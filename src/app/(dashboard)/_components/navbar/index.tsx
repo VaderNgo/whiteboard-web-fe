@@ -1,5 +1,6 @@
 "use client";
 
+import { InviteButton } from "./invite-button";
 import { SearchInput } from "./search-input";
 
 export const Navbar = () => {
@@ -8,6 +9,7 @@ export const Navbar = () => {
             <div className="hidden lg:flex lg:flex-1">
                 <SearchInput />
             </div>
+            <InviteButton />
             {/* Avatar button here */}
         </div>
     );
