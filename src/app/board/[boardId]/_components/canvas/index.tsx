@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { Info } from "./info";
-import { Participants } from "./participants";
-import { Toolbar } from "./toolbar";
+import { Info } from "../info";
+import { Participants } from "../participants";
+import { Toolbar } from "../toolbar";
 import * as fabric from "fabric";
 
 interface CanvasProps {
@@ -17,6 +17,7 @@ export const Canvas = ({ boardId }: CanvasProps) => {
             width: window.innerWidth,
             backgroundColor: "#fff",
         });
+
         return () => {
             canvas.dispose();
         };
