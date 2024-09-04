@@ -1,4 +1,4 @@
-import Canvas from "./_components/canvas";
+import { Canvas } from "./_components/canvas";
 
 interface BoardPageProps {
     params: {
