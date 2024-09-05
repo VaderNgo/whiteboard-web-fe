@@ -14,19 +14,75 @@ export type Children = {
     color: string;
 };
 
-export type Node = {
-    id: string;
-    children: Children[];
-    parents: string[];
-    text: string;
-    shapeType: ShapeType;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    fillStyle: string;
-    strokeStyle: string;
-};
+export class Node {
+    id: string = "";
+    children: Children[] = [];
+    parents: string[] = [];
+    text: string = "";
+    shapeType: ShapeType = "Rect";
+    x: number = 0;
+    y: number = 0;
+    width: number = 0;
+    height: number = 0;
+    fillStyle: string = "";
+    strokeStyle: string = "";
+
+    constructor(
+        id: string,
+        children: Children[],
+        parents: string[],
+        text: string,
+        shapeType: ShapeType,
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        fillStyle: string,
+        strokeStyle: string
+    ) {
+        this.id = id;
+        this.children = children;
+        this.parents = parents;
+        this.text = text;
+        this.shapeType = shapeType;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.fillStyle = fillStyle;
+        this.strokeStyle = strokeStyle;
+    }
+
+    static fromJSON(json: any): Node {
+        return new Node(
+            json.id,
+            json.children,
+            json.parents,
+            json.text,
+            json.shapeType,
+            json.x,
+            json.y,
+            json.width,
+            json.height,
+            json.fillStyle,
+            json.strokeStyle
+        );
+    }
+}
+
+// export type Node = {
+//     id: string;
+//     children: Children[];
+//     parents: string[];
+//     text: string;
+//     shapeType: ShapeType;
+//     x: number;
+//     y: number;
+//     width: number;
+//     height: number;
+//     fillStyle: string;
+//     strokeStyle: string;
+// };
 
 export type StageConfig = {
     stageScale: number;
