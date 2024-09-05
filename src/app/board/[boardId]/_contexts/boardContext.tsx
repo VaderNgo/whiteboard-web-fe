@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import Konva from "konva";
 
-export type ShapeType = "Rect" | "Circle" | "Line";
+export type ShapeType = "Rect" | "Ellipse" | "Polygon" | "Line";
 
 type BoardContextProps = {
     children: React.ReactNode;
