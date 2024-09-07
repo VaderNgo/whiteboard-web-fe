@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+#color-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  grid-template-columns: repeat(40, 40px);
+  grid-template-rows: repeat(40, 40px);
+  transform: rotateX(45deg) rotateZ(33deg) perspective(700px) scale(1.5) translate(20px,50px);
+	transform-origin: center center;
+  z-index: 0;
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+
+#grid-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  grid-template-columns: repeat(40, 40px);
+  grid-template-rows: repeat(40, 40px);
+  transform: rotateX(45deg) rotateZ(33deg) perspective(700px) scale(1.5) translate(20px,50px);
+	transform-origin: center center;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(2,0,36,0) 10%, rgba(255,255,255,1) 50%);
+  aspect-ratio: 1;
+}
+
+.typewriter-container {
+  font-size: 2rem;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 0.15rem solid #333;
+  animation: blink-caret 0.75s step-end infinite;
+}
+
+@keyframes blink-caret {
+  from, to {
+      border-color: transparent;
+  }
+  50% {
+      border-color: #333;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
