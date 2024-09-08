@@ -3,6 +3,11 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import Konva from "konva";
 
+export const fills = ["#6B7280", "#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#6366F1", "#8B5CF6", "#EC4899"];
+
+export const CANVAS_WIDTH = window.innerWidth;
+export const CANVAS_HEIGHT = window.innerHeight;
+
 export type ShapeType = "Rect" | "Ellipse" | "Polygon" | "Line";
 
 type BoardContextProps = {
@@ -69,20 +74,6 @@ export class Node {
         );
     }
 }
-
-// export type Node = {
-//     id: string;
-//     children: Children[];
-//     parents: string[];
-//     text: string;
-//     shapeType: ShapeType;
-//     x: number;
-//     y: number;
-//     width: number;
-//     height: number;
-//     fillStyle: string;
-//     strokeStyle: string;
-// };
 
 export type StageConfig = {
     stageScale: number;

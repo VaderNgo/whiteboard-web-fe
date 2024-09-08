@@ -1,3 +1,4 @@
+"use client";
 import React, { createContext, useCallback, useContext, useEffect, useMemo } from "react";
 import socketIOClient, { Socket } from "socket.io-client";
 import { Node, BoardContext, BoardUser, UserCursor } from "../_contexts/boardContext";
@@ -22,7 +23,7 @@ export type DeleteBoardNodesPayload = {
     boardId: string;
     data: {
         nodesToUpdate: Node[];
-        nodesToDelete: string[];
+        nodesToDelete: Node[];
     };
 };
 

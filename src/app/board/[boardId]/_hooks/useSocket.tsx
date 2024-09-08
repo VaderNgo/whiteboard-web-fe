@@ -46,7 +46,7 @@ const useSocket = () => {
     );
 
     const deleteBoardNodes = useCallback(
-        (nodesToUpdate: Node[], nodesToDelete: string[]) => {
+        (nodesToUpdate: Node[], nodesToDelete: Node[]) => {
             if (!socket || !boardId) return;
             const payload: DeleteBoardNodesPayload = {
                 boardId,
