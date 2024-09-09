@@ -44,8 +44,9 @@ const Canvas: React.FC = () => {
         setBoardUsers,
         setUserCursors,
         setBoardName,
+        canDragStage,
+        setCanDragStage,
     } = useContext(BoardContext);
-    const [canDragStage, setCanDragStage] = useState(true);
     const transformerRef = useRef<Konva.Transformer>(null);
     const selectionRectRef = useRef<Konva.Rect>(null);
     const [selectionRectCoords, setSelectionRectCoords] = useState({ x1: 0, y1: 0 });
@@ -111,28 +112,6 @@ const Canvas: React.FC = () => {
             transformerRef.current?.getLayer()?.batchDraw();
         }
     }, [selectedShapes, nodes]);
-
-    useEffect(() => {
-        window.addEventListener("keydown", (e: KeyboardEvent) => {
-            if (e.shiftKey) {
-                setCanDragStage(false);
-            }
-        });
-        window.addEventListener("keyup", () => {
-            setCanDragStage(true);
-        });
-
-        return () => {
-            window.removeEventListener("keydown", (e: KeyboardEvent) => {
-                if (e.shiftKey) {
-                    setCanDragStage(false);
-                }
-            });
-            window.removeEventListener("keyup", () => {
-                setCanDragStage(true);
-            });
-        };
-    }, []);
 
     const handleDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
         const stage = e.target.getStage();
@@ -315,6 +294,7 @@ const Canvas: React.FC = () => {
                     <SocketContext.Consumer>
                         {(socketContextValue) => (
                             <Stage
+                                onContextMenu={(e) => e.evt.preventDefault()}
                                 style={stageStyle}
                                 ref={stageRef}
                                 className="-z-10 absolute top-0 overflow-hidden"

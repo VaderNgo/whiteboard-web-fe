@@ -111,6 +111,8 @@ type IBoardContext = {
     setNodes: React.Dispatch<React.SetStateAction<Map<string, Node>>>;
     selectedNode: Node | null;
     setSelectedNode: React.Dispatch<React.SetStateAction<Node | null>>;
+    canDragStage: boolean;
+    setCanDragStage: React.Dispatch<React.SetStateAction<boolean>>;
     shapeType: ShapeType;
     setShapeType: React.Dispatch<React.SetStateAction<ShapeType>>;
     fillStyle: string;
@@ -168,6 +170,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
         backgroundSize: `${50 * stageConfig.stageScale}px ${50 * stageConfig.stageScale}px`,
         backgroundPosition: "0px 0px",
     });
+    const [canDragStage, setCanDragStage] = useState<boolean>(false);
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
     const [dark, setDark] = useState(false);
     const [history, setHistory] = useState<History[]>([
@@ -221,6 +224,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
             setBoardUsers,
             boardName,
             setBoardName,
+            canDragStage,
+            setCanDragStage,
         }),
         [
             nodes,
@@ -241,6 +246,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
             userCursors,
             boardUsers,
             boardName,
+            canDragStage,
         ]
     );
 
