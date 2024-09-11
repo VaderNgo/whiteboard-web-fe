@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, SubmitHandler, RegisterOptions } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
+import { useCreateAccount } from "@/lib/services/mutations";
+import { LoaderCircle, X } from "lucide-react";
 
 interface InputFieldProps {
   label: string;
@@ -48,14 +50,14 @@ interface SignupFormContainerProps {
 }
 
 const SignupFormContainer: React.FC<SignupFormContainerProps> = ({ children }) => (
-  <div className="bg-white/90 w-full h-full p-5 rounded-md border">
+  <div className="bg-white/90 w-full h-full p-5 rounded-md border relative">
     <h2 className="text-center font-semibold font-mono text-3xl mb-2">Signup</h2>
     {children}
   </div>
 );
-
+``;
 const inputSchema = z.object({
-  username: z.string().min(1, "Username is required").max(15),
+  username: z.string().min(3, "Username must be at least 5 characters long").max(15),
   email: z.string().email(),
   password: z
     .string()
@@ -72,24 +74,41 @@ const inputSchema = z.object({
     }, "Password must contain at least one uppercase letter"),
 });
 
-type InputType = z.infer<typeof inputSchema>;
+export type SignupBodyType = z.infer<typeof inputSchema>;
 
-const SignupForm: React.FC = () => {
+export default function SignupForm({ onClose }: { onClose: () => void }) {
+  const [registered, setRegistered] = useState(false);
+  const createAccount = useCreateAccount();
+
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
-  } = useForm<InputType>({
-    mode: "onChange",
+  } = useForm<SignupBodyType>({
+    mode: "onBlur",
     resolver: zodResolver(inputSchema),
   });
 
-  const onSubmit: SubmitHandler<InputType> = (data) => {
-    console.log(data);
+  const onSubmit: SubmitHandler<SignupBodyType> = async (data) => {
+    try {
+      await createAccount.mutateAsync(data);
+      clearErrors();
+      setRegistered(true);
+    } catch (err: any) {
+      const errMessage = err.message;
+      if (errMessage.includes("Username")) setError("username", { message: errMessage });
+      else if (errMessage.includes("Email")) setError("email", { message: errMessage });
+    }
   };
 
   return (
     <SignupFormContainer>
+      <X
+        onClick={onClose}
+        className="absolute top-2 right-2 opacity-50 size-5 hover:opacity-100 transition-opacity cursor-pointer pointer-events-auto"
+      />
       <Form>
         <InputField
           label="Username"
@@ -120,16 +139,20 @@ const SignupForm: React.FC = () => {
           disabled={
             errors.email != undefined ||
             errors.password != undefined ||
-            errors.username != undefined
+            errors.username != undefined ||
+            createAccount.isPending ||
+            registered
           }
-          className="mt-4 p-2 bg-blue-500 text-white rounded-sm font-bold disabled:opacity-50"
+          className="mt-4 p-2 bg-blue-500 text-white rounded-sm font-bold disabled:opacity-50 w-32"
           onClick={handleSubmit(onSubmit)}
         >
-          Sign Up
+          {createAccount.isPending ? (
+            <LoaderCircle className="animate-spin text-white" />
+          ) : (
+            "Sign up"
+          )}
         </button>
       </Form>
     </SignupFormContainer>
   );
-};
-
-export default SignupForm;
+}

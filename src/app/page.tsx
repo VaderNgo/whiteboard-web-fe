@@ -45,6 +45,7 @@ const Homepage = () => {
   const [selection, setSelection] = useState<SelectionState>(SELECTION_STATES.DEFAULT);
   const [showSignup, setShowSignup] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showDefault, setShowDefault] = useState(true);
 
   // The reason we are use separete states for showing signup and login forms
   // is because if we used the selection state, React will update too quickly
@@ -53,16 +54,22 @@ const Homepage = () => {
   useEffect(() => {
     if (selection === SELECTION_STATES.SIGNUP) {
       const timer = setTimeout(() => setShowSignup(true), 500);
-      return () => clearTimeout(timer);
     } else {
       setShowSignup(false);
     }
 
     if (selection === SELECTION_STATES.LOGIN) {
       const timer = setTimeout(() => setShowLogin(true), 500);
-      return () => clearTimeout(timer);
     } else {
       setShowLogin(false);
+    }
+
+    if (selection === SELECTION_STATES.DEFAULT) {
+      const timer = setTimeout(() => {
+        setShowDefault(true);
+      }, 500);
+    } else {
+      setShowDefault(false);
     }
   }, [selection]);
 
@@ -72,7 +79,7 @@ const Homepage = () => {
       <InteractiveColorGrid />
 
       <AnimatePresence>
-        {selection === SELECTION_STATES.DEFAULT && (
+        {showDefault && (
           <>
             <AnimatedContent className="z-[1] self-center mt-[15%] p-5 font-mono text-center text-2xl md:text-5xl font-bold bg-white/80 backdrop-blur-sm rounded-md pointer-events-none">
               <h1>
@@ -95,7 +102,7 @@ const Homepage = () => {
       <AnimatePresence>
         {showSignup && (
           <AnimatedContent className="z-[1] self-center mt-[10%] w-full max-w-96 pointer-events-none">
-            <SignupForm />
+            <SignupForm onClose={() => setSelection(SELECTION_STATES.DEFAULT)} />
           </AnimatedContent>
         )}
       </AnimatePresence>
