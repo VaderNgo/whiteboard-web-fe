@@ -1,62 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm, SubmitHandler, RegisterOptions } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
-import { useCreateAccount } from "@/lib/services/mutations";
-import { LoaderCircle, X } from "lucide-react";
+import { useCreateAccount, useLogin } from "@/lib/services/mutations";
+import { LoaderCircle } from "lucide-react";
+import { FormContainer, InputField, Form } from "@/components/ui/form";
+import { useRouter } from "next/navigation";
 
-interface InputFieldProps {
-  label: string;
-  type: string;
-  errorMessage?: string;
-  register: any;
-  name: string;
-  validationOptions?: RegisterOptions;
-}
-
-const InputField: React.FC<InputFieldProps> = ({
-  label,
-  type,
-  errorMessage,
-  register,
-  name,
-  validationOptions,
-}) => (
-  <div className="w-full">
-    <h3 className="font-medium">{label}</h3>
-    <input
-      type={type}
-      className="border border-black rounded-sm p-2 w-full"
-      {...register(name, validationOptions)}
-    />
-    {errorMessage && <p className="text-red-500 text-sm mt-1">{errorMessage}</p>}
-  </div>
-);
-
-interface FormProps {
-  children: React.ReactNode;
-}
-
-const Form: React.FC<FormProps> = ({ children }) => (
-  <form className="pointer-events-auto font-mono flex flex-col items-center w-full gap-5">
-    {children}
-  </form>
-);
-
-interface SignupFormContainerProps {
-  children: React.ReactNode;
-}
-
-const SignupFormContainer: React.FC<SignupFormContainerProps> = ({ children }) => (
-  <div className="bg-white/90 w-full h-full p-5 rounded-md border relative">
-    <h2 className="text-center font-semibold font-mono text-3xl mb-2">Signup</h2>
-    {children}
-  </div>
-);
-``;
-const inputSchema = z.object({
+const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 5 characters long").max(15),
   email: z.string().email(),
   password: z
@@ -74,11 +27,14 @@ const inputSchema = z.object({
     }, "Password must contain at least one uppercase letter"),
 });
 
-export type SignupBodyType = z.infer<typeof inputSchema>;
+export type RegiterBodyType = z.infer<typeof registerSchema>;
 
 export default function SignupForm({ onClose }: { onClose: () => void }) {
   const [registered, setRegistered] = useState(false);
+  const [rootError, setRootError] = useState("");
   const createAccount = useCreateAccount();
+  const login = useLogin();
+  const router = useRouter();
 
   const {
     register,
@@ -86,29 +42,29 @@ export default function SignupForm({ onClose }: { onClose: () => void }) {
     setError,
     clearErrors,
     formState: { errors },
-  } = useForm<SignupBodyType>({
+  } = useForm<RegiterBodyType>({
     mode: "onBlur",
-    resolver: zodResolver(inputSchema),
+    resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit: SubmitHandler<SignupBodyType> = async (data) => {
+  const onSubmit: SubmitHandler<RegiterBodyType> = async (data) => {
     try {
       await createAccount.mutateAsync(data);
       clearErrors();
       setRegistered(true);
+      setRootError("");
+      await login.mutateAsync({ username: data.username, password: data.password });
+      router.push("/dashboard");
     } catch (err: any) {
       const errMessage = err.message;
       if (errMessage.includes("Username")) setError("username", { message: errMessage });
       else if (errMessage.includes("Email")) setError("email", { message: errMessage });
+      else setRootError("Something went wrong. Please try again later.");
     }
   };
 
   return (
-    <SignupFormContainer>
-      <X
-        onClick={onClose}
-        className="absolute top-2 right-2 opacity-50 size-5 hover:opacity-100 transition-opacity cursor-pointer pointer-events-auto"
-      />
+    <FormContainer title="Signup" onClose={onClose} rootError={rootError}>
       <Form>
         <InputField
           label="Username"
@@ -134,6 +90,7 @@ export default function SignupForm({ onClose }: { onClose: () => void }) {
           errorMessage={errors.password?.message}
           validationOptions={{ required: "Password is required" }}
         />
+
         <button
           type="submit"
           disabled={
@@ -141,18 +98,19 @@ export default function SignupForm({ onClose }: { onClose: () => void }) {
             errors.password != undefined ||
             errors.username != undefined ||
             createAccount.isPending ||
+            login.isPending ||
             registered
           }
-          className="mt-4 p-2 bg-blue-500 text-white rounded-sm font-bold disabled:opacity-50 w-32"
+          className="mt-4 p-2 bg-blue-500 text-white rounded-sm font-bold disabled:opacity-50 w-32 flex items-center justify-center"
           onClick={handleSubmit(onSubmit)}
         >
-          {createAccount.isPending ? (
+          {createAccount.isPending || login.isPending ? (
             <LoaderCircle className="animate-spin text-white" />
           ) : (
             "Sign up"
           )}
         </button>
       </Form>
-    </SignupFormContainer>
+    </FormContainer>
   );
 }

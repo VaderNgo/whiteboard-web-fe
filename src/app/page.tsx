@@ -7,6 +7,7 @@ import InteractiveColorGrid from "./_components/interactive-color-grid";
 import SignupButton from "./_components/signup-btn";
 import TypewriterText from "./_components/typewriter-text";
 import SignupForm from "./_components/signup-form";
+import LoginForm from "./_components/login-form";
 
 const TYPEWRITER_TEXTS = [
   "Make your team's ideas come to life",
@@ -74,8 +75,8 @@ const Homepage = () => {
   }, [selection]);
 
   return (
-    <div className="flex h-full w-full min-h-screen flex-col overflow-hidden">
-      <HeaderBar />
+    <div className="flex justify-center lg:justify-normal h-full w-full min-h-screen flex-col overflow-hidden">
+      <HeaderBar onLogin={() => setSelection(SELECTION_STATES.LOGIN)} />
       <InteractiveColorGrid />
 
       <AnimatePresence>
@@ -103,6 +104,14 @@ const Homepage = () => {
         {showSignup && (
           <AnimatedContent className="z-[1] self-center mt-[10%] w-full max-w-96 pointer-events-none">
             <SignupForm onClose={() => setSelection(SELECTION_STATES.DEFAULT)} />
+          </AnimatedContent>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showLogin && (
+          <AnimatedContent className="z-[1] self-center mt-[10%] w-full max-w-96 pointer-events-none">
+            <LoginForm onClose={() => setSelection(SELECTION_STATES.DEFAULT)} />
           </AnimatedContent>
         )}
       </AnimatePresence>
