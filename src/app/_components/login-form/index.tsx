@@ -47,7 +47,7 @@ export default function LoginForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <FormContainer title="Login" onClose={onClose} rootError={rootError}>
+    <FormContainer title="Login" onClose={onClose} rootMessage={rootError}>
       <Form>
         <InputField
           label="Username"

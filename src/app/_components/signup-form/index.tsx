@@ -31,7 +31,8 @@ export type RegiterBodyType = z.infer<typeof registerSchema>;
 
 export default function SignupForm({ onClose }: { onClose: () => void }) {
   const [registered, setRegistered] = useState(false);
-  const [rootError, setRootError] = useState("");
+  const [rootMessage, setRootMessage] = useState("");
+  const [rootType, setRootType] = useState<"error" | "success">("error");
   const createAccount = useCreateAccount();
   const login = useLogin();
   const router = useRouter();
@@ -50,21 +51,27 @@ export default function SignupForm({ onClose }: { onClose: () => void }) {
   const onSubmit: SubmitHandler<RegiterBodyType> = async (data) => {
     try {
       await createAccount.mutateAsync(data);
+
       clearErrors();
       setRegistered(true);
-      setRootError("");
+      setRootType("success");
+      setRootMessage("Account created successfully. \nLogging in...");
+
       await login.mutateAsync({ username: data.username, password: data.password });
+
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // User experience I know
       router.push("/dashboard");
     } catch (err: any) {
       const errMessage = err.message;
+      setRootType("error");
       if (errMessage.includes("Username")) setError("username", { message: errMessage });
       else if (errMessage.includes("Email")) setError("email", { message: errMessage });
-      else setRootError("Something went wrong. Please try again later.");
+      else setRootMessage("Something went wrong. \nPlease try again later.");
     }
   };
 
   return (
-    <FormContainer title="Signup" onClose={onClose} rootError={rootError}>
+    <FormContainer title="Signup" onClose={onClose} rootMessage={rootMessage} rootType={rootType}>
       <Form>
         <InputField
           label="Username"

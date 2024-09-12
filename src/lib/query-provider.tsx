@@ -9,6 +9,7 @@ export const QueryProvider = ({ children }: { children: ReactNode }) => {
       defaultOptions: {
         queries: {
           staleTime: 600 * 1000,
+          gcTime: 1000 * 60 * 60 * 24,
         },
       },
     })
