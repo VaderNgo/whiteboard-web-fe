@@ -11,6 +11,7 @@ type ShapePickerProps = {
 
 export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
     const { selectedNode, setSelectedNode } = useContext(BoardContext);
+    useEffect(() => {}, [selectedNode]);
     let shapePickerStyle: React.CSSProperties = {
         position: "absolute",
         left: `${left}px`,
@@ -36,7 +37,7 @@ export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
                 <div className="flex flex-col gap-y-2">
                     <Circle onClick={() => handleShapeTypeChange("Ellipse")} className="cursor-pointer" />
                     <Square />
-                    <Hexagon />
+                    <Hexagon onClick={() => handleShapeTypeChange("Polygon")} className="cursor-pointer" />
                     <Hexagon />
                 </div>
                 <div className="flex flex-col gap-y-2">

@@ -24,6 +24,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     useEffect(() => {
         shapeRef.current?.setAttr("id", node.id);
     }, [node.id]);
+    useEffect(() => {}, [selectedNode]);
 
     const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
         if (stageRef) {
@@ -87,6 +88,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
                 nodes: prevState,
             });
             updateBoard([updatedNode], "update");
+            setSelectedNode(updatedNode);
             //   saveUp([updatedNode]).catch((err) => console.log(err));
             return new Map(prevState);
         });
@@ -143,9 +145,9 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     };
     const handleTransform = () => {
         if (shapeRef.current) {
+            const currNode = nodes.get(node.id);
             const currGroup = shapeRef.current;
             setNodes((prevState) => {
-                const currNode = nodes.get(node.id);
                 if (!currNode) return prevState;
                 const updatedNode = {
                     ...currNode,
@@ -166,9 +168,9 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
             const scaleY = currGroup.scaleY();
             currGroup.scaleX(1);
             currGroup.scaleY(1);
+            const currNode = nodes.get(node.id);
 
             setNodes((prevState) => {
-                const currNode = nodes.get(node.id);
                 if (!currNode) return prevState;
                 const updatedNode = {
                     ...currNode,
@@ -181,6 +183,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
                     diff: null,
                     nodes: prevState,
                 });
+                setSelectedNode(updatedNode);
                 // saveUpdatedNodes([updatedNode]).catch((err) => console.log(err));
                 updateBoard([updatedNode], "update");
                 return new Map(prevState);

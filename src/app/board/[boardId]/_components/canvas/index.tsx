@@ -123,7 +123,7 @@ const Canvas: React.FC = () => {
             transformerRef.current?.nodes(selectedShapes);
             transformerRef.current?.getLayer()?.batchDraw();
         }
-    }, [selectedShapes]);
+    }, [selectedShapes, selectedNode]);
 
     const handleDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
         // const stage = e.target.getStage();
