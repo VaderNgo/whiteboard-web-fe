@@ -46,6 +46,7 @@ const Canvas: React.FC = () => {
         boardAction,
         setBoardAction,
         setLayerRef,
+        selectedNode,
     } = useContext(BoardContext);
     const transformerRef = useRef<Konva.Transformer>(null);
     const selectionRectRef = useRef<Konva.Rect>(null);

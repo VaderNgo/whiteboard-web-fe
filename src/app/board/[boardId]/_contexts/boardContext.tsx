@@ -10,6 +10,21 @@ export const CANVAS_HEIGHT = window.innerHeight;
 
 export type ShapeType = "Rect" | "Ellipse" | "Polygon" | "Line";
 
+export enum EditorTab {
+    SHAPE_PICKER = "shape_picker",
+    SHAPE_BORDER = "shape_border",
+    SHAPE_COLOR = "shape_color",
+
+    FONT_SIZE = "font_size",
+    FONT_FAMILY = "font_family",
+    FONT_STYLE = "font_style",
+
+    TEXT_COLOR = "font_color",
+    TEXT_HIGHLIGHT = "font_highlight",
+
+    ALIGNMENT = "alignment",
+}
+
 type BoardContextProps = {
     children: React.ReactNode;
 };
