@@ -19,11 +19,42 @@ export type Children = {
     color: string;
 };
 
+export enum BoardAction {
+    Select = "Select",
+    Drag = "Drag",
+    Draw = "Draw",
+}
+
+export class Text {
+    id: string = "";
+    content: string = "";
+    fontSize: number = 12;
+    fontFamily: string = "";
+    textColor: string = "black";
+    hightlightColor: string = "transparent";
+
+    constructor(
+        id: string,
+        content?: string,
+        fontSize?: number,
+        fontFamily?: string,
+        textColor?: string,
+        highlightColor?: string
+    ) {
+        this.id = id;
+        if (content !== undefined) this.content = content;
+        if (fontSize !== undefined) this.fontSize = fontSize;
+        if (fontFamily !== undefined) this.fontFamily = fontFamily;
+        if (textColor !== undefined) this.textColor = textColor;
+        if (highlightColor !== undefined) this.hightlightColor = highlightColor;
+    }
+}
+
 export class Node {
     id: string = "";
     children: Children[] = [];
     parents: string[] = [];
-    text: string = "";
+    text: Text = new Text("", "");
     shapeType: ShapeType = "Rect";
     x: number = 0;
     y: number = 0;
@@ -36,7 +67,7 @@ export class Node {
         id: string,
         children: Children[],
         parents: string[],
-        text: string,
+        text: Text,
         shapeType: ShapeType,
         x: number,
         y: number,
@@ -57,22 +88,6 @@ export class Node {
         this.fillStyle = fillStyle;
         this.strokeStyle = strokeStyle;
     }
-
-    static fromJSON(json: any): Node {
-        return new Node(
-            json.id,
-            json.children,
-            json.parents,
-            json.text,
-            json.shapeType,
-            json.x,
-            json.y,
-            json.width,
-            json.height,
-            json.fillStyle,
-            json.strokeStyle
-        );
-    }
 }
 
 export type StageConfig = {
@@ -87,6 +102,20 @@ type StageStyle = {
     backgroundImage: string;
     backgroundSize: string;
     backgroundPosition: string;
+};
+
+export type EditorType = {
+    font: string;
+    fontSize: number;
+    fontBold: boolean;
+    fontAlign: "left" | "center" | "right";
+    fontColor: string;
+    highlightColor: string;
+
+    shapeType: ShapeType;
+    strokeStyle: string;
+    strokeWidth: number;
+    fillStyle: string;
 };
 
 export type History = {
@@ -111,6 +140,10 @@ type IBoardContext = {
     setNodes: React.Dispatch<React.SetStateAction<Map<string, Node>>>;
     selectedNode: Node | null;
     setSelectedNode: React.Dispatch<React.SetStateAction<Node | null>>;
+    editorValue: EditorType;
+    setEditorValue: React.Dispatch<React.SetStateAction<EditorType>>;
+    boardAction: BoardAction;
+    setBoardAction: React.Dispatch<React.SetStateAction<BoardAction>>;
     canDragStage: boolean;
     setCanDragStage: React.Dispatch<React.SetStateAction<boolean>>;
     shapeType: ShapeType;
@@ -129,6 +162,8 @@ type IBoardContext = {
     setStageStyle: React.Dispatch<React.SetStateAction<StageStyle>>;
     stageRef: React.RefObject<Konva.Stage> | null;
     setStageRef: React.Dispatch<React.SetStateAction<React.RefObject<Konva.Stage> | null>>;
+    layerRef: React.RefObject<Konva.Layer> | null;
+    setLayerRef: React.Dispatch<React.SetStateAction<React.RefObject<Konva.Layer> | null>>;
     displayColorPicker: boolean;
     setDisplayColorPicker: React.Dispatch<React.SetStateAction<boolean>>;
     dark: boolean;
@@ -151,6 +186,7 @@ export const BoardContext: React.Context<IBoardContext> = createContext({} as IB
 
 export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) => {
     const [stageRef, setStageRef] = useState<React.RefObject<Konva.Stage> | null>(null);
+    const [layerRef, setLayerRef] = useState<React.RefObject<Konva.Layer> | null>(null);
     const [nodes, setNodes] = useState<Map<string, Node>>(new Map());
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
     const [shapeType, setShapeType] = useState<ShapeType>("Rect");
@@ -185,6 +221,20 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
     const [boardName, setBoardName] = useState<string>("");
     const [userCursors, setUserCursors] = useState<Map<string, UserCursor>>(new Map());
     const [boardUsers, setBoardUsers] = useState<Map<string, BoardUser>>(new Map());
+    const [boardAction, setBoardAction] = useState<BoardAction>(BoardAction.Select);
+    const [editorValue, setEditorValue] = useState<EditorType>({
+        shapeType: "Rect",
+        strokeStyle: "#000",
+        strokeWidth: 1,
+        fillStyle: "transparent",
+
+        font: "Arial",
+        fontSize: 12,
+        fontBold: false,
+        fontAlign: "left",
+        fontColor: "#000",
+        highlightColor: "transparent",
+    });
 
     const value = useMemo(
         () => ({
@@ -226,6 +276,12 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
             setBoardName,
             canDragStage,
             setCanDragStage,
+            boardAction,
+            setBoardAction,
+            layerRef,
+            setLayerRef,
+            editorValue,
+            setEditorValue,
         }),
         [
             nodes,
@@ -247,6 +303,9 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
             boardUsers,
             boardName,
             canDragStage,
+            boardAction,
+            layerRef,
+            editorValue,
         ]
     );
 

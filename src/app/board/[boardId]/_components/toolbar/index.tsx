@@ -19,15 +19,12 @@ import {
     Type,
     Undo2Icon,
 } from "lucide-react";
-import { useContext, useState } from "react";
-import { BoardContext, Node } from "../../_contexts/boardContext";
+import { useContext, useEffect, useState } from "react";
+import { BoardAction, BoardContext, Node } from "../../_contexts/boardContext";
 import useSocket from "../../_hooks/useSocket";
-import { CanvasMode } from "../../_types/canvas";
-import { LayerType } from "../../_types/layer";
 import { ToolButton } from "./tool-button";
 
 import useHistory from "../../_hooks/useHistory";
-import { Shape } from "react-konva";
 
 const Toolbar = () => {
     const {
@@ -43,6 +40,8 @@ const Toolbar = () => {
         setShapeType,
         canDragStage,
         setCanDragStage,
+        boardAction,
+        setBoardAction,
     } = useContext(BoardContext);
     const { addToHistory, handleRedo, handleUndo } = useHistory();
     const { deleteBoardNodes } = useSocket();
@@ -159,61 +158,45 @@ const Toolbar = () => {
 
     const handleToolButtonClick = (tool: ToolButtonState) => {
         setCanDragStage(false);
+        if (
+            [
+                ToolButtonState.ArrowLine,
+                ToolButtonState.Rectangle,
+                // ToolButtonState.Shapes,
+                ToolButtonState.Ellipse,
+            ].includes(tool)
+        ) {
+            setBoardAction(BoardAction.Draw);
+        }
+        setSelectState(tool);
         switch (tool) {
             case ToolButtonState.Select:
-                setSelectState(ToolButtonState.Select);
+                setBoardAction(BoardAction.Select);
                 break;
             case ToolButtonState.Drag:
-                setSelectState(ToolButtonState.Drag);
+                setBoardAction(BoardAction.Drag);
                 setCanDragStage(true);
                 break;
-            case ToolButtonState.Shapes:
-                setSelectState(ToolButtonState.Shapes);
-                setIsShapesOpen(!isShapesOpen);
-                break;
-            case ToolButtonState.Pencil:
-                setSelectState(ToolButtonState.Pencil);
-                break;
-            case ToolButtonState.Text:
-                setSelectState(ToolButtonState.Text);
-                break;
-            case ToolButtonState.Note:
-                setSelectState(ToolButtonState.Note);
-                break;
             case ToolButtonState.Rectangle:
-                setSelectState(ToolButtonState.Rectangle);
                 setShapeType("Rect");
                 break;
             case ToolButtonState.Ellipse:
-                setSelectState(ToolButtonState.Ellipse);
-                break;
-            case ToolButtonState.Triangle:
-                setSelectState(ToolButtonState.Triangle);
-                break;
-            case ToolButtonState.Pentagon:
-                setSelectState(ToolButtonState.Pentagon);
-                break;
-            case ToolButtonState.Diamond:
-                setSelectState(ToolButtonState.Diamond);
-                break;
-            case ToolButtonState.Hexagon:
-                setSelectState(ToolButtonState.Hexagon);
-                break;
-            case ToolButtonState.Line:
-                setSelectState(ToolButtonState.Line);
-                break;
-            case ToolButtonState.ArrowLine:
-                setSelectState(ToolButtonState.ArrowLine);
-                break;
-            case ToolButtonState.ArrowLine2:
-                setSelectState(ToolButtonState.ArrowLine2);
+                setShapeType("Ellipse");
                 break;
         }
     };
 
+    useEffect(() => {
+        if (boardAction === BoardAction.Select) setSelectState(ToolButtonState.Select);
+        else if (boardAction === BoardAction.Drag) {
+            setSelectState(ToolButtonState.Drag);
+            setCanDragStage(true);
+        }
+    }, [boardAction]);
+
     return (
         <>
-            {isShapesOpen && (
+            {true && (
                 <div className="absolute top-[50%] -translate-y-[50%] left-20 flex flex-col bg-white">
                     <div className="bg-white rouned-md px-1.5 pt-1.5 flex flex-row items-center">
                         <ToolButton
@@ -244,7 +227,7 @@ const Toolbar = () => {
                             label="Rectangle"
                             side="top"
                             icon={Square}
-                            onClick={() => setSelectState(ToolButtonState.Rectangle)}
+                            onClick={() => handleToolButtonClick(ToolButtonState.Rectangle)}
                             isActive={selectState === ToolButtonState.Rectangle}
                         />
                         <ToolButton
@@ -293,7 +276,7 @@ const Toolbar = () => {
                         label="Select"
                         icon={MousePointer2}
                         onClick={() => handleToolButtonClick(ToolButtonState.Select)}
-                        isActive={selectState === ToolButtonState.Select}
+                        isActive={selectState === ToolButtonState.Select || boardAction === BoardAction.Select}
                     />
                     <ToolButton
                         label="Drag"
