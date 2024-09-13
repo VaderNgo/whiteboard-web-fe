@@ -1,6 +1,6 @@
 "use client";
 
-import qs, { Stringifiable } from "query-string";
+import qs from "query-string";
 import { Search } from "lucide-react";
 import { useDebounceValue } from "usehooks-ts";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,7 @@ export const SearchInput = () => {
     useEffect(() => {
         const url = qs.stringifyUrl(
             {
-                url: "/",
+                url: "/dashboard",
                 query: { search: debouncedValue[0] },
             },
             { skipEmptyString: true, skipNull: true }
