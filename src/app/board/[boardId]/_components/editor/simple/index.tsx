@@ -19,7 +19,11 @@ const SimpleEditor = () => {
     const [activeTab, setActiveTab] = useState<EditorTab | null>(null);
 
     useEffect(() => {
-        if (selectedNode && stageRef && stageRef.current) {
+        if (selectedShapes.length !== 1) {
+            setActiveTab(null);
+        }
+
+        if (selectedNode && stageRef && stageRef.current && selectedShapes.length === 1) {
             const stage = stageRef.current;
             const stageRect = stage.container().getBoundingClientRect();
             const groupRect = selectedShapes[0].getClientRect();
@@ -67,7 +71,7 @@ const SimpleEditor = () => {
                 ref={setEditorRef}
                 className={cn(
                     "absolute hidden w-fit h-fit flex-row bg-white p-2 gap-5 items-center rounded-md top-10 left-10 caret-transparent select-none shadow-md",
-                    selectedNode && "flex"
+                    selectedNode && selectedShapes.length === 1 && "flex"
                 )}
                 style={editorStyle}
             >
