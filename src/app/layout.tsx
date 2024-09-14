@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/lib/query-provider";
+import VerificationPrompt from "./dashboard/_components/verification-prompt";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,6 +20,7 @@ export default function RootLayout({
     <QueryProvider>
       <html lang="en">
         <body className={`${inter.className} h-screen w-screen relative overflow-x-hidden`}>
+          <VerificationPrompt />
           {children}
         </body>
       </html>

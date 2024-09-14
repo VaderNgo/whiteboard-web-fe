@@ -30,7 +30,6 @@ export type TeamCreateResponse = {
   description: string;
   logo: string;
   id: number;
-  maxMembers: number;
 };
 
 export function useCreateTeam() {
@@ -64,6 +63,34 @@ export function useUploadLogo() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+}
+
+export function useInviteMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ teamId, recipientEmail }: { teamId: string; recipientEmail: string }) => {
+      return await AxiosInstance.post(`/teams/${teamId}/members`, {
+        recipientEmail,
+      });
+    },
+
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["team-members", { teamId: variables.teamId }] });
+    },
+  });
+}
+
+export function useRemoveMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ teamId, memberId }: { teamId: string; memberId: string }) => {
+      return await AxiosInstance.delete(`/teams/${teamId}/members/${memberId}`);
+    },
+
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["team-members", { teamId: variables.teamId }] });
     },
   });
 }

@@ -26,11 +26,12 @@ export const NewButton = ({
               disabled={disabled}
               onClick={() => setOpen(!isOpen)}
               className={cn(
-                "bg-white/25 h-full w-full rounded-md flex items-center justify-center opacity-60 transition",
-                !disabled && "hover:opacity-100"
+                "bg-black/10 h-full w-full rounded-md flex items-center justify-center opacity-60 transition",
+                !disabled && "hover:opacity-100 active:scale-90 transition-transform",
+                disabled && "cursor-not-allowed"
               )}
             >
-              <Plus className="text-white" />
+              <Plus className="text-black" />
             </button>
           </Hint>
         </div>

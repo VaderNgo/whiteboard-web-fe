@@ -1,12 +1,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "../axios";
+import { Plan } from "../plans-enum";
 
 export type Team = {
   id: string;
   name: string;
   description?: string;
   logo: string;
-  maxMembers: number;
+  plan: Plan;
   role: string;
 };
 
@@ -25,12 +26,34 @@ export type LoggedInUser = {
   emailVerified: boolean;
   avatar: string;
   createdAt: string;
-  maxOwnedTeams: number;
+  accountPlan: Plan;
 };
 
 export function useLoggedInUser() {
   return useQuery({
     queryKey: ["user"],
     queryFn: async () => (await AxiosInstance.get<LoggedInUser>("/auth/me")).data,
+  });
+}
+
+export type TeamMember = {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string;
+  role: string;
+};
+
+export type TeamMembersResponse = {
+  currentMembers: TeamMember[];
+  pendingMembers: TeamMember[];
+};
+
+export function useGetTeamMembers(teamId: string) {
+  return useQuery({
+    queryKey: ["team-members", { teamId }],
+    queryFn: async () =>
+      (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`)).data,
+    placeholderData: keepPreviousData,
   });
 }
