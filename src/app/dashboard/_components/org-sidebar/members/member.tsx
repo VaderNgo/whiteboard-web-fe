@@ -16,6 +16,7 @@ type MemberProps = {
   email: string;
   className?: string;
   userId: string;
+  showActions?: boolean;
 };
 
 export const Member = ({
@@ -26,6 +27,7 @@ export const Member = ({
   email,
   className,
   userId,
+  showActions = true,
 }: MemberProps) => {
   const removeMember = useRemoveMember();
 
@@ -46,7 +48,7 @@ export const Member = ({
       </div>
       <p className="text-sm text-muted-foreground">{role}</p>
 
-      {role !== "OWNER" && (
+      {role !== "OWNER" && showActions && (
         <DropdownMenu>
           <DropdownMenuTrigger>
             <EllipsisVertical size={16} />

@@ -77,7 +77,9 @@ export function useInviteMember() {
     },
 
     onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: ["team-members", { teamId: variables.teamId }] });
+      queryClient.invalidateQueries({
+        queryKey: ["team-members", { teamId: variables.teamId.toString() }],
+      });
     },
   });
 }
@@ -89,8 +91,38 @@ export function useRemoveMember() {
       return await AxiosInstance.delete(`/teams/${teamId}/members/${memberId}`);
     },
 
-    onSuccess: (data, variables, context) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["team-members", { teamId: variables.teamId }] });
+    },
+  });
+}
+
+export function useMarkAsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      return await AxiosInstance.patch(`/notifications/${id}`);
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+}
+
+export function useReplyInvite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ inviteId: id, accept }: { inviteId: string; accept: boolean }) => {
+      return await AxiosInstance.patch(`/invites/${id}`, {
+        status: accept ? "ACCEPTED" : "REJECTED",
+      });
+    },
+
+    onSuccess: (_, variables) => {
+      if (variables.accept) {
+        queryClient.invalidateQueries({ queryKey: ["teams"] });
+      }
     },
   });
 }

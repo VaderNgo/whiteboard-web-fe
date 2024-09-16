@@ -3,7 +3,7 @@ import { LoaderCircle, Mail, Search, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useGetTeamMembers } from "@/lib/services/queries";
+import { useGetTeamMembers, useLoggedInUser } from "@/lib/services/queries";
 import { useState } from "react";
 import { Member } from "./member";
 import { useInviteMember } from "@/lib/services/mutations";
@@ -15,7 +15,9 @@ export const MembersDialog = ({ teamId }: { teamId: string }) => {
   const [emailInput, setEmailInput] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const { data } = useGetTeamMembers(teamId);
+  const data = useGetTeamMembers(teamId).data;
+  const loggedInUserId = useLoggedInUser().data?.id;
+  const teamOwnerId = data?.currentMembers.find((member) => member.role === "OWNER")?.id;
   const inviteMember = useInviteMember();
 
   const filteredCurrentMembers = searchInput
@@ -111,18 +113,25 @@ export const MembersDialog = ({ teamId }: { teamId: string }) => {
         </div>
 
         <div className="flex flex-col gap-5 pr-4 max-h-64 overflow-scroll">
-          {filteredCurrentMembers?.map((member) => (
-            <Member
-              teamId={teamId}
-              userId={member.id.toString()}
-              key={member.id}
-              avatarUrl={member.avatar}
-              name={member.name}
-              email={member.email}
-              role={member.role}
-              className="h-12"
-            />
-          ))}
+          {filteredCurrentMembers
+            ?.sort((a, b) => {
+              if (a.role === "OWNER") return -1;
+              if (b.role === "OWNER") return 1;
+              return 0;
+            })
+            .map((member) => (
+              <Member
+                teamId={teamId}
+                userId={member.id.toString()}
+                key={member.id}
+                avatarUrl={member.avatar}
+                name={member.name}
+                email={member.email}
+                role={member.role}
+                className="h-12"
+                showActions={loggedInUserId ? loggedInUserId === teamOwnerId : false}
+              />
+            ))}
 
           {filteredPendingMembers?.map((member) => (
             <Member
@@ -134,6 +143,7 @@ export const MembersDialog = ({ teamId }: { teamId: string }) => {
               email={member.email}
               role={"PENDING"}
               className="h-12 opacity-50"
+              showActions={loggedInUserId ? loggedInUserId === teamOwnerId : false}
             />
           ))}
         </div>

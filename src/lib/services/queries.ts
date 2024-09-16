@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "../axios";
 import { Plan } from "../plans-enum";
 
@@ -15,7 +15,6 @@ export function useGetTeams() {
   return useQuery({
     queryKey: ["teams"],
     queryFn: async () => (await AxiosInstance.get<Team[]>("/teams")).data,
-    placeholderData: keepPreviousData,
   });
 }
 
@@ -51,9 +50,24 @@ export type TeamMembersResponse = {
 
 export function useGetTeamMembers(teamId: string) {
   return useQuery({
-    queryKey: ["team-members", { teamId }],
+    queryKey: ["team-members", { teamId: teamId.toString() }],
     queryFn: async () =>
       (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`)).data,
-    placeholderData: keepPreviousData,
+  });
+}
+
+export type Notification = {
+  id: number;
+  type: string;
+  inviteId?: number;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+export function useGetNotifications() {
+  return useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => (await AxiosInstance.get<Notification[]>("/notifications")).data,
   });
 }

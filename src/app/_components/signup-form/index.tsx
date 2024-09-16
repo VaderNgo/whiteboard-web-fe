@@ -10,11 +10,11 @@ import { FormContainer, InputField, Form } from "@/components/ui/form";
 import { useRouter } from "next/navigation";
 
 const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 5 characters long").max(15),
+  username: z.string().min(3, "Username must be at least 3 characters long").max(15),
   email: z.string().email(),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters long")
+    .min(6, "Password must be at least 6 characters long")
     .refine((password: string) => {
       let hasUppercase = false;
       for (let i = 0; i < password.length; i++) {
