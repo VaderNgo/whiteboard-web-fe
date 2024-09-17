@@ -9,6 +9,7 @@ import { Member } from "./member";
 import { useInviteMember } from "@/lib/services/mutations";
 import { AxiosError } from "axios";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { cn } from "@/lib/utils";
 
 export const MembersDialog = ({ teamId }: { teamId: string }) => {
   const [searchInput, setSearchInput] = useState("");
@@ -16,7 +17,7 @@ export const MembersDialog = ({ teamId }: { teamId: string }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const data = useGetTeamMembers(teamId).data;
-  const loggedInUserId = useLoggedInUser().data?.id;
+  const loggedInUser = useLoggedInUser().data;
   const teamOwnerId = data?.currentMembers.find((member) => member.role === "OWNER")?.id;
   const inviteMember = useInviteMember();
 
@@ -86,7 +87,7 @@ export const MembersDialog = ({ teamId }: { teamId: string }) => {
           />
         </div>
 
-        <div className="flex">
+        <div className={cn("flex", loggedInUser?.id !== teamOwnerId && "hidden")}>
           <div className="flex-1 relative">
             <Mail className="absolute top-1/2 left-3 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
@@ -129,7 +130,7 @@ export const MembersDialog = ({ teamId }: { teamId: string }) => {
                 email={member.email}
                 role={member.role}
                 className="h-12"
-                showActions={loggedInUserId ? loggedInUserId === teamOwnerId : false}
+                showActions={loggedInUser ? loggedInUser.id === teamOwnerId : false}
               />
             ))}
 
@@ -143,7 +144,7 @@ export const MembersDialog = ({ teamId }: { teamId: string }) => {
               email={member.email}
               role={"PENDING"}
               className="h-12 opacity-50"
-              showActions={loggedInUserId ? loggedInUserId === teamOwnerId : false}
+              showActions={loggedInUser ? loggedInUser.id === teamOwnerId : false}
             />
           ))}
         </div>
