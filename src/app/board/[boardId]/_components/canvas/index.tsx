@@ -508,9 +508,9 @@ const Canvas: React.FC = () => {
                             <Transformer
                               ref={transformerRef}
                               rotateEnabled={true}
-                              anchorSize={5}
-                              anchorStrokeWidth={10}
-                              anchorCornerRadius={0}
+                              anchorSize={15}
+                              anchorStrokeWidth={5}
+                              anchorCornerRadius={50}
                               flipEnabled={true}
                               ignoreStroke={true}
                               boundBoxFunc={(oldBox, newBox) => {

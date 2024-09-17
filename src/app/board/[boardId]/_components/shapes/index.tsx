@@ -207,6 +207,28 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     setIsEditing(!isEditing);
   };
 
+  const getTextWidth = () => {
+    let width = node.width * groupScale.x;
+    if (node.shapeType === "Ellipse") {
+      return (width / 2) * Math.sqrt(2);
+    }
+    if (node.shapeType === "Polygon") {
+      return (width / 2) * Math.sqrt(2);
+    }
+    return width;
+  };
+
+  const getTextHeight = () => {
+    let height = node.height * groupScale.y;
+    if (node.shapeType === "Ellipse") {
+      return (height / 2) * Math.sqrt(2);
+    }
+    if (node.shapeType === "Polygon") {
+      return (height / 2) * Math.sqrt(2);
+    }
+    return height;
+  };
+
   return (
     <Group
       ref={shapeRef}
@@ -231,11 +253,13 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         fontFamily="Arial"
         onDblClick={onToggleEdit}
         padding={10}
+        align="center"
+        verticalAlign="middle"
         strokeScaleEnabled={false}
         scaleX={1 / groupScale.x}
         scaleY={1 / groupScale.y}
-        width={node.width * groupScale.x}
-        height={node.height * groupScale.y}
+        width={getTextWidth()}
+        height={getTextHeight()}
       />
       {node.shapeType === "Rect" && <RectShape node={node} />}
       {node.shapeType === "Ellipse" && <EllipseShape node={node} />}
