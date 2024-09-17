@@ -514,7 +514,7 @@ const Canvas: React.FC = () => {
                               flipEnabled={true}
                               ignoreStroke={true}
                               boundBoxFunc={(oldBox, newBox) => {
-                                if (newBox.width > 800) {
+                                if (newBox.width < 5 || newBox.height < 5) {
                                   return oldBox;
                                 }
                                 return newBox;
