@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { NotificationView } from "./_components/views/notification/notification-view";
+import { useEffect } from "react";
 
 const DashboardPage = () => {
   const searchParams = useSearchParams();
@@ -10,10 +11,12 @@ const DashboardPage = () => {
   const pathname = usePathname();
   const view = searchParams.get("view");
 
-  // Set default to inbox view
-  if (!view) {
-    router.push(`${pathname}?view=inbox`);
-  }
+  useEffect(() => {
+    // Set default to inbox view
+    if (!view) {
+      router.push(`${pathname}?view=inbox`);
+    }
+  }, [view]);
 
   if (view === "inbox") {
     return <NotificationView />;
