@@ -1,12 +1,13 @@
 import Konva from "konva";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Group, Text } from "react-konva";
-import { BoardContext, Node } from "../../_contexts/boardContext";
+import { BoardContext, Node, Text as TextNode } from "../../_contexts/boardContext";
 import useHistory from "../../_hooks/useHistory";
 import useSocket from "../../_hooks/useSocket";
 import EllipseShape from "./ellipseShape";
 import PolygonShape from "./polygonShape";
 import RectShape from "./rectShape";
+import { TextEditor } from "../text/textEditor";
 
 type ShapeProps = {
   node: Node;
@@ -210,7 +211,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const getTextWidth = () => {
     let width = node.width * groupScale.x;
     if (node.shapeType === "Ellipse") {
-      return (width / 2) * Math.sqrt(2);
+      return width / Math.sqrt(2);
     }
     if (node.shapeType === "Polygon") {
       return (width / 2) * Math.sqrt(2);
@@ -221,12 +222,58 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const getTextHeight = () => {
     let height = node.height * groupScale.y;
     if (node.shapeType === "Ellipse") {
-      return (height / 2) * Math.sqrt(2);
+      return height / Math.sqrt(2);
     }
     if (node.shapeType === "Polygon") {
       return (height / 2) * Math.sqrt(2);
     }
     return height;
+  };
+
+  const getTextX = () => {
+    if (node.shapeType === "Ellipse" || node.shapeType === "Polygon") {
+      return -(getTextWidth() / 2) * (1 / groupScale.x);
+    }
+    return 0;
+  };
+
+  const getTextY = () => {
+    if (node.shapeType === "Ellipse" || node.shapeType === "Polygon") {
+      return -(getTextHeight() / 2) * (1 / groupScale.y);
+    }
+    return 0;
+  };
+
+  const handleTextChange = (newContent: string) => {
+    setNodes((prevState) => {
+      const updatedNode = new Node(
+        node.id,
+        node.children,
+        node.parents,
+        new TextNode(
+          node.text.id,
+          newContent,
+          node.text.fontSize,
+          node.text.fontFamily,
+          node.text.textColor,
+          node.text.hightlightColor
+        ),
+        node.shapeType,
+        node.x,
+        node.y,
+        node.width,
+        node.height,
+        node.fillStyle,
+        node.strokeStyle
+      );
+      prevState.set(node.id, updatedNode);
+      updateBoard([updatedNode], "update");
+      return new Map(prevState);
+    });
+  };
+
+  const handleTextEditingFinish = () => {
+    setIsEditing(false);
   };
 
   return (
@@ -246,21 +293,40 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       onDblClick={onToggleEdit}
       name="mindmap-node"
     >
-      <Text
-        ref={textRef}
-        text="Hello World"
-        fontSize={20}
-        fontFamily="Arial"
-        onDblClick={onToggleEdit}
-        padding={10}
-        align="center"
-        verticalAlign="middle"
-        strokeScaleEnabled={false}
-        scaleX={1 / groupScale.x}
-        scaleY={1 / groupScale.y}
-        width={getTextWidth()}
-        height={getTextHeight()}
-      />
+      {isEditing ? (
+        <TextEditor
+          initialText={node.text.content}
+          x={getTextX()}
+          y={getTextY() + getTextHeight() / 3}
+          width={getTextWidth()}
+          height={getTextHeight()}
+          fontSize={node.text.fontSize}
+          fontFamily={node.text.fontFamily}
+          padding={node.shapeType === "Polygon" ? 20 : 10}
+          onTextChange={handleTextChange}
+          onFinishEditing={handleTextEditingFinish}
+        />
+      ) : (
+        <Text
+          ref={textRef}
+          text={node.text.content}
+          fontSize={node.text.fontSize}
+          fontFamily={node.text.fontFamily}
+          fill={node.text.textColor}
+          onDblClick={onToggleEdit}
+          onTap={onToggleEdit}
+          padding={node.shapeType === "Polygon" ? 20 : 10}
+          align="center"
+          verticalAlign="middle"
+          strokeScaleEnabled={false}
+          scaleX={1 / groupScale.x}
+          scaleY={1 / groupScale.y}
+          width={getTextWidth()}
+          height={getTextHeight()}
+          x={getTextX()}
+          y={getTextY()}
+        />
+      )}
       {node.shapeType === "Rect" && <RectShape node={node} />}
       {node.shapeType === "Ellipse" && <EllipseShape node={node} />}
       {node.shapeType === "Polygon" && <PolygonShape node={node} />}
