@@ -50,7 +50,7 @@ export function useCreateTeam() {
   });
 }
 
-export function useUploadLogo() {
+export function useUploadTeamLogo() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: FormData }) => {
@@ -123,6 +123,19 @@ export function useReplyInvite() {
       if (variables.accept) {
         queryClient.invalidateQueries({ queryKey: ["teams"] });
       }
+    },
+  });
+}
+
+export function useDisbandTeam() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ teamId }: { teamId: string }) => {
+      return await AxiosInstance.delete(`/teams/${teamId}`);
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
     },
   });
 }

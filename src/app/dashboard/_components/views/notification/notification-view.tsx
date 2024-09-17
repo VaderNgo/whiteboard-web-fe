@@ -31,28 +31,7 @@ export const NotificationView = ({ className }: InboxViewProps) => {
       <Headers timeColumnWidth={maxWidth} />
       <div>
         {notifications?.map((item, index) => {
-          if (item.type.toUpperCase() === "BASIC") {
-            return (
-              <BaseNotification
-                key={item.id}
-                item={{
-                  id: item.id.toString(),
-                  content: item.content,
-                  time: timeAgo(item.createdAt),
-                  unread: !item.isRead,
-                }}
-                timeRef={(el) => (timeRefs.current[index] = el)}
-                minTimeWidth={maxWidth}
-                actions={[
-                  {
-                    name: "Mark as read",
-                    icon: CheckCheck,
-                    func: () => markAsRead.mutate({ id: item.id.toString() }),
-                  },
-                ]}
-              />
-            );
-          } else if (item.type.toUpperCase() === "INVITE") {
+          if (item.type.toUpperCase() === "INVITE") {
             return (
               <BaseNotification
                 key={item.id}
@@ -86,6 +65,27 @@ export const NotificationView = ({ className }: InboxViewProps) => {
                       });
                       markAsRead.mutate({ id: item.id.toString() });
                     },
+                  },
+                ]}
+              />
+            );
+          } else {
+            return (
+              <BaseNotification
+                key={item.id}
+                item={{
+                  id: item.id.toString(),
+                  content: item.content,
+                  time: timeAgo(item.createdAt),
+                  unread: !item.isRead,
+                }}
+                timeRef={(el) => (timeRefs.current[index] = el)}
+                minTimeWidth={maxWidth}
+                actions={[
+                  {
+                    name: "Mark as read",
+                    icon: CheckCheck,
+                    func: () => markAsRead.mutate({ id: item.id.toString() }),
                   },
                 ]}
               />

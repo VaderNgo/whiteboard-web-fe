@@ -10,7 +10,7 @@ interface NavButtonProps {
   param: string;
 }
 
-const NavButton: React.FC<NavButtonProps> = ({ icon: Icon, text, param }) => {
+const ParamNavButton: React.FC<NavButtonProps> = ({ icon: Icon, text, param }) => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -35,4 +35,4 @@ const NavButton: React.FC<NavButtonProps> = ({ icon: Icon, text, param }) => {
   );
 };
 
-export default NavButton;
+export default ParamNavButton;

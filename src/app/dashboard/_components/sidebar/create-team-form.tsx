@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 import { LoaderCircle } from "lucide-react";
 import { FormContainer, InputField, Form } from "@/components/ui/form";
-import { useCreateTeam, useUploadLogo } from "@/lib/services/mutations";
+import { useCreateTeam, useUploadTeamLogo } from "@/lib/services/mutations";
 
 const createTeamSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long").max(15),
@@ -26,7 +26,7 @@ export default function CreateTeamForm({
   const [rootMessage, setRootMessage] = useState("");
   const [rootType, setRootType] = useState<"error" | "success">("error");
   const createTeam = useCreateTeam();
-  const uploadLogo = useUploadLogo();
+  const uploadLogo = useUploadTeamLogo();
 
   const {
     register,

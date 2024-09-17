@@ -3,7 +3,12 @@ import { LoaderCircle, Mail, Search, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useGetTeamMembers, useLoggedInUser } from "@/lib/services/queries";
+import {
+  LoggedInUser,
+  TeamMembersResponse,
+  useGetTeamMembers,
+  useLoggedInUser,
+} from "@/lib/services/queries";
 import { useState } from "react";
 import { Member } from "./member";
 import { useInviteMember } from "@/lib/services/mutations";
@@ -11,27 +16,34 @@ import { AxiosError } from "axios";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 
-export const MembersDialog = ({ teamId }: { teamId: string }) => {
+export const MembersDialog = ({
+  teamId,
+  teamMembers,
+  loggedInUser,
+  teamOwnerId,
+}: {
+  teamId: string;
+  teamMembers?: TeamMembersResponse;
+  loggedInUser?: LoggedInUser;
+  teamOwnerId?: number;
+}) => {
   const [searchInput, setSearchInput] = useState("");
   const [emailInput, setEmailInput] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const data = useGetTeamMembers(teamId).data;
-  const loggedInUser = useLoggedInUser().data;
-  const teamOwnerId = data?.currentMembers.find((member) => member.role === "OWNER")?.id;
   const inviteMember = useInviteMember();
 
   const filteredCurrentMembers = searchInput
-    ? data?.currentMembers.filter((member) =>
+    ? teamMembers?.currentMembers.filter((member) =>
         member.name.toLowerCase().includes(searchInput.toLowerCase())
       )
-    : data?.currentMembers;
+    : teamMembers?.currentMembers;
 
   const filteredPendingMembers = searchInput
-    ? data?.pendingMembers.filter((member) =>
+    ? teamMembers?.pendingMembers.filter((member) =>
         member.name.toLowerCase().includes(searchInput.toLowerCase())
       )
-    : data?.pendingMembers;
+    : teamMembers?.pendingMembers;
 
   const handleInviteMember = async () => {
     try {

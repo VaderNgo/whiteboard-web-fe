@@ -31,7 +31,7 @@ export function BaseNotification({
     <div
       className={cn(
         "flex items-center gap-2 w-full border-b border-gray-200 font-mono relative",
-        !item.unread && "opacity-50"
+        !item.unread && "opacity-30"
       )}
     >
       <div className="w-8 flex justify-center items-center">

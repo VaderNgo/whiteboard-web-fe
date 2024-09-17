@@ -51,8 +51,10 @@ export type TeamMembersResponse = {
 export function useGetTeamMembers(teamId: string) {
   return useQuery({
     queryKey: ["team-members", { teamId: teamId.toString() }],
-    queryFn: async () =>
-      (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`)).data,
+    queryFn: async () => {
+      if (!teamId) return { currentMembers: [], pendingMembers: [] };
+      return (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`)).data;
+    },
   });
 }
 
