@@ -139,3 +139,22 @@ export function useDisbandTeam() {
     },
   });
 }
+
+export function useUpdateTeam() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { newName?: string; newDescription?: string };
+    }) => {
+      return await AxiosInstance.patch(`/teams/${id}`, data);
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+}

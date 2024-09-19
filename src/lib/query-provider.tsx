@@ -25,7 +25,7 @@ export const QueryProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleTeamMemberUpdated = (teamId: string) => {
-    client.invalidateQueries({ queryKey: ["team-members", { teamId }] });
+    client.invalidateQueries({ queryKey: ["team-members", { teamId: teamId.toString() }] });
   };
 
   const handleRemovedFromTeam = (teamId: string) => {
@@ -36,9 +36,14 @@ export const QueryProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleTeamUpdated = (teamId: string) => {
+    client.invalidateQueries({ queryKey: ["teams"] });
+  };
+
   socket.on("new_notification", handleNewNotification);
   socket.on("team_member_updated", handleTeamMemberUpdated);
   socket.on("removed_from_team", handleRemovedFromTeam);
+  socket.on("team_updated", handleTeamUpdated);
 
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 };

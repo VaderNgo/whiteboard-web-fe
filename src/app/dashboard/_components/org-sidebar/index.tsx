@@ -42,7 +42,8 @@ export const OrgSidebar = () => {
             loggedInUser={loggedInUser.data}
             teamOwnerId={teamOwner?.id}
           />
-          <SettingsDialog />
+
+          {teamOwner?.id === loggedInUser.data?.id && <SettingsDialog {...teamDetails} />}
 
           {teamOwner?.id !== loggedInUser.data?.id && (
             <LeaveDialog teamId={teamDetails.id} userId={loggedInUser.data?.id.toString()} />

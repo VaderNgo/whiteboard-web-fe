@@ -6,10 +6,11 @@ import { ChangeEvent, useState } from "react";
 type ImagePreviewerProps = {
   className?: string;
   setImageUri: (uri: string) => void;
+  defaultUri?: string;
 };
 
-export function ImagePreviewer({ setImageUri, className }: ImagePreviewerProps) {
-  const [previewUri, setPreviewUri] = useState<string | null>(null);
+export function ImagePreviewer({ setImageUri, className, defaultUri }: ImagePreviewerProps) {
+  const [previewUri, setPreviewUri] = useState<string | undefined>(defaultUri);
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

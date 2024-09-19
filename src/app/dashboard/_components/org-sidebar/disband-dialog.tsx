@@ -1,6 +1,12 @@
-import { Trash2, UserRoundX } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
-import { Dialog, DialogContent, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { useState } from "react";
@@ -24,18 +30,19 @@ export const DisbandDialog = ({ teamId }: { teamId: string }) => {
         >
           <div className="flex items-center w-full">
             <Trash2 className="mr-2" size={25} />
-            <p className="">Disband team</p>
+            <div className="">Disband team</div>
           </div>
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle>
-          <div className="text-xl font-bold">Are you sure?</div>
-        </DialogTitle>
-        <DialogDescription>
-          <p>This action cannot be undone.</p>
-          <p>This will disband the team and remove any associated team boards.</p>
-        </DialogDescription>
+        <DialogHeader>
+          <DialogTitle>
+            <div className="text-xl font-bold">Are you sure?</div>
+          </DialogTitle>
+          <DialogDescription>
+            This will disband the team and remove any associated team boards.
+          </DialogDescription>
+        </DialogHeader>
         <DialogFooter>
           <Button
             variant="destructive"
