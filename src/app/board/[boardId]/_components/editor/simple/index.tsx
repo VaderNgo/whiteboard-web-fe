@@ -1,6 +1,6 @@
 import { Hint } from "@/components/hint";
 import { cn } from "@/lib/utils";
-import { AlignCenter, Bold, Highlighter, Link, Square } from "lucide-react";
+import { AlignCenter, Bold, Circle, Highlighter, Link, Square } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { BoardContext, EditorTab } from "../../../_contexts/boardContext";
 import useHistory from "../../../_hooks/useHistory";
@@ -16,6 +16,7 @@ const SimpleEditor = () => {
     stageStyle,
     stageConfig,
     selectedShapes,
+    setNodes,
   } = useContext(BoardContext);
   const { addToHistory } = useHistory();
   const { updateBoard } = useSocket();
@@ -71,6 +72,10 @@ const SimpleEditor = () => {
     setActiveTab(tab);
   };
 
+  const handleEditorValueChange = (key: string, value: any) => {
+    setEditorValue((prev) => ({ ...prev, [key]: value }));
+  };
+
   return (
     <>
       <ShapePicker top={tabTop} left={left} activeTab={activeTab} />
@@ -87,7 +92,7 @@ const SimpleEditor = () => {
             className="flex flex-row justify-center items-center cursor-pointer"
             onClick={() => handleTabChange(EditorTab.SHAPE_PICKER)}
           >
-            <Square />
+            {editorValue.shapeType === "Rect" ? <Square /> : <Circle />}
           </div>
         </Hint>
 
@@ -96,7 +101,7 @@ const SimpleEditor = () => {
             className="flex flex-row justify-center items-center cursor-pointer"
             onClick={() => handleTabChange(EditorTab.FONT_FAMILY)}
           >
-            <span>Font</span>
+            <span>{editorValue.font}</span>
           </div>
         </Hint>
 
@@ -104,7 +109,13 @@ const SimpleEditor = () => {
           <div className="flex flex-row justify-center items-center cursor-pointer">
             <div className="flex flex-row bg-green-500">
               <div className="">
-                <input defaultValue={12} type="number" min={1} className="w-[50px]" />
+                <input
+                  defaultValue={editorValue.fontSize}
+                  type="number"
+                  min={1}
+                  className="w-[50px]"
+                  onChange={(e) => handleEditorValueChange("fontSize", Number(e.target.value))}
+                />
               </div>
               <div className="flex flex-col bg-red-50"></div>
             </div>
@@ -122,7 +133,12 @@ const SimpleEditor = () => {
             <Link />
           </Hint>
         </div>
-        <div className="flex flex-row justify-center items-center cursor-pointer gap-5">
+        <div
+          className="flex flex-row justify-center items-center cursor-pointer gap-5"
+          onClick={() => {
+            handleEditorValueChange("fontColor", "red");
+          }}
+        >
           <Hint label="Text Color" side="top" sideOffset={10}>
             <div className="flex flex-col h-full justify-center items-center">
               <span className="font-bold text-black text-md">A</span>

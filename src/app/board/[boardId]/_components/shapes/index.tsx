@@ -4,10 +4,10 @@ import { Group, Text } from "react-konva";
 import { BoardContext, Node, Text as TextNode } from "../../_contexts/boardContext";
 import useHistory from "../../_hooks/useHistory";
 import useSocket from "../../_hooks/useSocket";
+import { TextEditor } from "../text/textEditor";
 import EllipseShape from "./ellipseShape";
 import PolygonShape from "./polygonShape";
 import RectShape from "./rectShape";
-import { TextEditor } from "../text/textEditor";
 
 type ShapeProps = {
   node: Node;
@@ -23,6 +23,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     setSelectedShapes,
     stageRef,
     lineStyle,
+    editorValue,
+    setEditorValue,
   } = useContext(BoardContext);
   const shapeRef = useRef<Konva.Group>(null);
   const textRef = useRef<Konva.Text>(null);
@@ -34,7 +36,18 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   useEffect(() => {
     shapeRef.current?.setAttr("id", node.id);
   }, [node.id]);
-  useEffect(() => {}, [selectedNode]);
+
+  useEffect(() => {
+    if (selectedNode && selectedNode.id === node.id) {
+      updateTextNodeValue();
+    }
+  }, [editorValue]);
+
+  useEffect(() => {
+    if (isEditing && selectedNode == null) {
+      endEditing();
+    }
+  }, [selectedNode]);
 
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (stageRef) {
@@ -105,6 +118,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   };
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (isEditing) return;
     if (e.evt.shiftKey) {
       setSelectedNode(null);
       if (selectedShapes.find((shape) => shape._id === shapeRef.current?._id)) {
@@ -153,6 +167,20 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     } else {
       setSelectedNode(node);
       setSelectedShapes([shapeRef.current as Konva.Group]);
+      setEditorValue({
+        shapeType: node.shapeType,
+        fillStyle: node.fillStyle,
+        strokeStyle: node.strokeStyle,
+        strokeWidth: 1,
+
+        font: node.text.fontFamily,
+        fontSize: node.text.fontSize,
+        fontBold: false,
+        align: node.text.align,
+        verticalAlign: node.text.verticalAlign,
+        fontColor: node.text.textColor,
+        highlightColor: node.text.hightlightColor,
+      });
     }
   };
   const handleTransform = () => {
@@ -204,9 +232,6 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       setGroupScale({ x: 1, y: 1 });
     }
   };
-  const onToggleEdit = () => {
-    setIsEditing(!isEditing);
-  };
 
   const getTextWidth = () => {
     let width = node.width * groupScale.x;
@@ -246,34 +271,47 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
 
   const handleTextChange = (newContent: string) => {
     setNodes((prevState) => {
-      const updatedNode = new Node(
-        node.id,
-        node.children,
-        node.parents,
-        new TextNode(
-          node.text.id,
-          newContent,
-          node.text.fontSize,
-          node.text.fontFamily,
-          node.text.textColor,
-          node.text.hightlightColor
-        ),
-        node.shapeType,
-        node.x,
-        node.y,
-        node.width,
-        node.height,
-        node.fillStyle,
-        node.strokeStyle
-      );
+      const updatedNode = prevState.get(node.id);
+      if (!updatedNode) return prevState;
+      updatedNode.text.setAttrs({
+        ...node.text,
+        content: newContent,
+      });
       prevState.set(node.id, updatedNode);
       updateBoard([updatedNode], "update");
       return new Map(prevState);
     });
   };
 
-  const handleTextEditingFinish = () => {
+  let updateTextNodeValue = () => {
+    setNodes((prevState) => {
+      const updatedNode = prevState.get(selectedNode!.id);
+      if (!updatedNode) return prevState;
+      updatedNode.text.setAttrs({
+        fontSize: editorValue.fontSize,
+        fontFamily: editorValue.font,
+        textColor: editorValue.fontColor,
+        hightlightColor: editorValue.highlightColor,
+        align: editorValue.align,
+        verticalAlign: editorValue.verticalAlign,
+      });
+
+      console.log("updatedNode", updatedNode);
+      prevState.set(selectedNode!.id, updatedNode);
+      updateBoard([updatedNode], "update");
+      return new Map(prevState);
+    });
+  };
+
+  const startEditting = () => {
+    setIsEditing(true);
+    setSelectedNode(node);
+    setSelectedShapes([shapeRef.current as Konva.Group]);
+  };
+  const endEditing = () => {
     setIsEditing(false);
+    setSelectedNode(null);
+    setSelectedShapes([]);
   };
 
   return (
@@ -290,34 +328,33 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       onTap={handleClick}
       onTransform={handleTransform}
       onTransformEnd={handleTransformEnd}
-      onDblClick={onToggleEdit}
+      onDblClick={startEditting}
       name="mindmap-node"
     >
       {isEditing ? (
         <TextEditor
           initialText={node.text.content}
           x={getTextX()}
-          y={getTextY() + getTextHeight() / 3}
+          y={getTextY()}
           width={getTextWidth()}
           height={getTextHeight()}
           fontSize={node.text.fontSize}
-          fontFamily={node.text.fontFamily}
+          fontFamily={"Arial"}
           padding={node.shapeType === "Polygon" ? 20 : 10}
           onTextChange={handleTextChange}
-          onFinishEditing={handleTextEditingFinish}
+          onFinishEditing={endEditing}
         />
       ) : (
         <Text
           ref={textRef}
           text={node.text.content}
           fontSize={node.text.fontSize}
-          fontFamily={node.text.fontFamily}
+          fontFamily={"Arial"}
           fill={node.text.textColor}
-          onDblClick={onToggleEdit}
-          onTap={onToggleEdit}
           padding={node.shapeType === "Polygon" ? 20 : 10}
           align="center"
           verticalAlign="middle"
+          fillAfterStrokeEnabled={true}
           strokeScaleEnabled={false}
           scaleX={1 / groupScale.x}
           scaleY={1 / groupScale.y}

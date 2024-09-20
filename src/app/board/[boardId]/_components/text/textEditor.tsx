@@ -43,30 +43,36 @@ export const TextEditor: React.FC<TextEditorProps> = ({
 
   return (
     <Html>
-      <textarea
-        ref={textareaRef}
+      <div
         style={{
           position: "absolute",
           top: `${y}px`,
           left: `${x}px`,
           width: `${width}px`,
           height: `${height}px`,
-          fontSize: `${fontSize}px`,
-          fontFamily,
-          border: "none",
-          padding: `${padding}px`,
-          margin: "0px",
-          overflow: "hidden",
-          background: "none",
-          outline: "none",
-          resize: "none",
-          lineHeight: "1.2",
-          textAlign: "center",
+          display: "flex",
         }}
-        defaultValue={initialText}
-        onBlur={handleBlur}
-        onChange={handleChange}
-      />
+      >
+        <textarea
+          ref={textareaRef}
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            fontSize: `${fontSize}px`,
+            alignContent: "center",
+            textAlign: "center",
+            fontFamily,
+            overflow: "hidden",
+            background: "none",
+            lineHeight: "1.2",
+            outline: "none",
+          }}
+          defaultValue={initialText}
+          onBlur={handleBlur}
+          onChange={handleChange}
+        />
+      </div>
     </Html>
   );
 };
