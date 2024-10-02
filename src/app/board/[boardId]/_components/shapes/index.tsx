@@ -68,8 +68,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         x,
         y,
       };
-      prevState.set(node.id, updatedNode);
-      updateBoard([updatedNode], "update");
+      prevState.set(node.id, updatedNode as Node);
+      updateBoard([updatedNode as Node], "update");
       return new Map(prevState);
     });
   };
@@ -104,14 +104,14 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         x,
         y,
       };
-      prevState.set(node.id, updatedNode);
+      prevState.set(node.id, updatedNode as Node);
       addToHistory({
         type: "update",
         diff: null,
         nodes: prevState,
       });
-      updateBoard([updatedNode], "update");
-      setSelectedNode(updatedNode);
+      updateBoard([updatedNode as Node], "update");
+      setSelectedNode(updatedNode as Node);
       //   saveUp([updatedNode]).catch((err) => console.log(err));
       return new Map(prevState);
     });
@@ -145,19 +145,19 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
             ...selectNode,
             children: [...selectNode.children, { id: currNode.id, color: lineStyle }],
           };
-          prevState.set(selectedNode.id, updatedSelectNode);
+          prevState.set(selectedNode.id, updatedSelectNode as Node);
           const updatedCurrNode = {
             ...currNode,
             parents: [...currNode.parents, selectedNode.id],
           };
-          prevState.set(currNode.id, updatedCurrNode);
+          prevState.set(currNode.id, updatedCurrNode as Node);
           addToHistory({
             type: "update",
             diff: null,
             nodes: prevState,
           });
           // saveUpdatedNodes([updatedSelectNode, updatedCurrNode]).catch((err) => console.log(err));
-          updateBoard([updatedSelectNode, updatedCurrNode], "update");
+          updateBoard([updatedSelectNode as Node, updatedCurrNode as Node], "update");
           return new Map(prevState);
         }
         return prevState;
@@ -168,18 +168,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       setSelectedNode(node);
       setSelectedShapes([shapeRef.current as Konva.Group]);
       setEditorValue({
-        shapeType: node.shapeType,
-        fillStyle: node.fillStyle,
-        strokeStyle: node.strokeStyle,
-        strokeWidth: 1,
-
-        font: node.text.fontFamily,
-        fontSize: node.text.fontSize,
-        fontBold: false,
-        align: node.text.align,
-        verticalAlign: node.text.verticalAlign,
-        fontColor: node.text.textColor,
-        highlightColor: node.text.hightlightColor,
+        text: node.text,
+        node: node,
       });
     }
   };
@@ -194,8 +184,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           x: currGroup.x(),
           y: currGroup.y(),
         };
-        prevState.set(node.id, updatedNode);
-        updateBoard([updatedNode], "update");
+        prevState.set(node.id, updatedNode as Node);
+        updateBoard([updatedNode as Node], "update");
         return new Map(prevState);
       });
       setGroupScale({ x: currGroup.scaleX(), y: currGroup.scaleY() });
@@ -218,15 +208,15 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           width: node.width * scaleX,
           height: node.height * scaleY,
         };
-        prevState.set(node.id, updatedNode);
+        prevState.set(node.id, updatedNode as Node);
         addToHistory({
           type: "update",
           diff: null,
           nodes: prevState,
         });
-        setSelectedNode(updatedNode);
+        setSelectedNode(updatedNode as Node);
         // saveUpdatedNodes([updatedNode]).catch((err) => console.log(err));
-        updateBoard([updatedNode], "update");
+        updateBoard([updatedNode as Node], "update");
         return new Map(prevState);
       });
       setGroupScale({ x: 1, y: 1 });
@@ -288,12 +278,12 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       const updatedNode = prevState.get(selectedNode!.id);
       if (!updatedNode) return prevState;
       updatedNode.text.setAttrs({
-        fontSize: editorValue.fontSize,
-        fontFamily: editorValue.font,
-        textColor: editorValue.fontColor,
-        hightlightColor: editorValue.highlightColor,
-        align: editorValue.align,
-        verticalAlign: editorValue.verticalAlign,
+        fontSize: editorValue.text?.fontSize,
+        fontFamily: editorValue.text?.fontFamily,
+        textColor: editorValue.text?.textColor,
+        hightlightColor: editorValue.text?.hightlightColor,
+        align: editorValue.text?.align,
+        verticalAlign: editorValue.text?.verticalAlign,
       });
 
       console.log("updatedNode", updatedNode);

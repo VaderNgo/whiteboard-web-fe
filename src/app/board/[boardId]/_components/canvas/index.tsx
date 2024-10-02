@@ -88,9 +88,7 @@ const Canvas: React.FC = () => {
     };
   }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]); //getBoard
 
-  useEffect(() => {
-    console.log(boardAction);
-  }, [boardAction, tempShapeRef]);
+  useEffect(() => {}, [boardAction, tempShapeRef]);
 
   const resizeStage = () => {
     setResizedCanvasHeight(window.innerHeight);
@@ -132,45 +130,9 @@ const Canvas: React.FC = () => {
     }
   }, [selectedShapes, selectedNode]);
 
-  const handleDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    // const stage = e.target.getStage();
-    // let pointerPosition = null;
-    // if (e.target === stageRef.current && stage) {
-    //     pointerPosition = stage.getRelativePointerPosition();
-    //     if (pointerPosition) {
-    //         const id = nanoid();
-    //         const defaultBlockArray = htmlToDraft(`<p style="font-size: 18px;"></p>`);
-    //         const contentState = ContentState.createFromBlockArray(
-    //             defaultBlockArray.contentBlocks,
-    //             defaultBlockArray.entityMap
-    //         );
-    //         const newNode: Node = {
-    //             id,
-    //             children: [],
-    //             parents: [],
-    //             text: JSON.stringify(convertToRaw(contentState)),
-    //             shapeType,
-    //             x: pointerPosition.x,
-    //             y: pointerPosition.y,
-    //             width: 500,
-    //             height: 90,
-    //             fillStyle,
-    //             strokeStyle,
-    //         };
-    //         setNodes((prevState) => {
-    //             prevState.set(newNode.id, newNode);
-    //             addToHistory({
-    //                 type: "add",
-    //                 diff: [newNode.id],
-    //                 nodes: prevState,
-    //             });
-    //             return new Map(prevState);
-    //         });
-    //         // saveUpdatedNodes([newNode]).catch((err) => console.log(err));
-    //         updateBoard([newNode], "update");
-    //     }
-    // }
-  };
+  useEffect(() => {
+    // console.log("nodes map: ", nodes);
+  }, [nodes]);
 
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
@@ -267,9 +229,6 @@ const Canvas: React.FC = () => {
       const X1 = stageRef.current.getRelativePointerPosition()?.x;
       const Y1 = stageRef.current.getRelativePointerPosition()?.y;
       let shape = null;
-      console.log(shapeType);
-      console.log(boardAction);
-      console.log(X1, Y1);
       switch (shapeType) {
         case "Ellipse":
           shape = new Konva.Ellipse({
@@ -361,13 +320,7 @@ const Canvas: React.FC = () => {
   };
 
   const addDrawnShape = () => {
-    const id = nanoid();
-    const textId = nanoid();
-    // const defaultBlockArray = htmlToDraft(`<p style="font-size: 18px;"></p>`);
-    // const contentState = ContentState.createFromBlockArray(
-    //     defaultBlockArray.contentBlocks,
-    //     defaultBlockArray.entityMap
-    // );
+    if (!tempShapeRef.current) return;
     const shapeAttribute = {
       x: tempShapeRef.current?.attrs.x + tempShapeRef.current?.attrs.width / 2,
       y: tempShapeRef.current?.attrs.y + tempShapeRef.current?.attrs.height / 2,
@@ -382,16 +335,9 @@ const Canvas: React.FC = () => {
       default:
         break;
     }
-    const newNode: Node = {
-      id,
-      children: [],
-      parents: [],
-      text: new Text(textId, ""),
-      shapeType,
-      fillStyle: "transparent",
-      strokeStyle: "black",
+    const newNode: Node = new Node().setAttrs({
       ...shapeAttribute,
-    };
+    });
     setNodes((prevState) => {
       prevState.set(newNode.id, newNode);
       addToHistory({
@@ -422,25 +368,11 @@ const Canvas: React.FC = () => {
       setSelectedShapes(selected as Konva.Group[]);
     } else if (boardAction === BoardAction.Draw) {
       addDrawnShape();
-      console.log(stageRef.current?.content.children);
       tempShapeRef.current?.destroy();
       layerRef.current?.batchDraw();
       tempShapeRef.current = null;
       setBoardAction(BoardAction.Select);
     }
-  };
-
-  const handleTransform = () => {
-    const shape = selectionRectRef.current!;
-    const scaleX = shape.scaleX();
-    const scaleY = shape.scaleY();
-
-    shape.width(shape.width() * scaleX);
-    shape.height(shape.height() * scaleY);
-    shape.scaleX(1);
-    shape.scaleY(1);
-
-    shape.strokeWidth(shape.strokeWidth() / Math.max(scaleX, scaleY));
   };
 
   return (
@@ -471,7 +403,6 @@ const Canvas: React.FC = () => {
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
-                onDblClick={handleDoubleClick}
                 onWheel={handleWheel}
               >
                 <BoardContext.Provider value={roomContextValue}>

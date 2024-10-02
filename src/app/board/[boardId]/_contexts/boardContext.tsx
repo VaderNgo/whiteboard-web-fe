@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import Konva from "konva";
+import { nanoid } from "nanoid";
 
 export const fills = [
   "#6B7280",
@@ -50,8 +51,8 @@ export enum BoardAction {
 }
 
 export class Text {
-  id: string = "";
-  content: string = "ABC";
+  id: string = nanoid();
+  content: string = "";
   fontSize: number = 12;
   fontFamily: string = "Arial";
   align: string = "left";
@@ -66,7 +67,7 @@ export class Text {
 }
 
 export class Node {
-  id: string = "";
+  id: string = nanoid();
   children: Children[] = [];
   parents: string[] = [];
   text: Text = new Text();
@@ -75,33 +76,18 @@ export class Node {
   y: number = 0;
   width: number = 0;
   height: number = 0;
-  fillStyle: string = "";
-  strokeStyle: string = "";
+  fillColor: string = "transparent";
+  strokeColor: string = "black";
+  strokeWidth: number = 2;
+  anchorPoints: number[] = [];
 
-  constructor(
-    id: string,
-    children: Children[],
-    parents: string[],
-    text: Text,
-    shapeType: ShapeType,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    fillStyle: string,
-    strokeStyle: string
-  ) {
-    this.id = id;
-    this.children = children;
-    this.parents = parents;
-    this.text = text;
-    this.shapeType = shapeType;
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.fillStyle = fillStyle;
-    this.strokeStyle = strokeStyle;
+  points: number[] = [];
+  lineJoin: string = "miter"; // miter,  round , bevel
+  lineCap: string = "butt"; // butt, round, square
+
+  setAttrs(obj: Partial<Node>): Node {
+    Object.assign(this, obj);
+    return this;
   }
 }
 
@@ -120,18 +106,8 @@ type StageStyle = {
 };
 
 export type EditorType = {
-  font: string;
-  fontSize: number;
-  fontBold: boolean;
-  align: string;
-  verticalAlign: string;
-  fontColor: string;
-  highlightColor: string;
-
-  shapeType: ShapeType;
-  strokeStyle: string;
-  strokeWidth: number;
-  fillStyle: string;
+  node: Node | null;
+  text: Text | null;
 };
 
 export type History = {
@@ -156,6 +132,7 @@ type IBoardContext = {
   setNodes: React.Dispatch<React.SetStateAction<Map<string, Node>>>;
   selectedNode: Node | null;
   setSelectedNode: React.Dispatch<React.SetStateAction<Node | null>>;
+
   editorValue: EditorType;
   setEditorValue: React.Dispatch<React.SetStateAction<EditorType>>;
   boardAction: BoardAction;
@@ -239,18 +216,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
   const [boardUsers, setBoardUsers] = useState<Map<string, BoardUser>>(new Map());
   const [boardAction, setBoardAction] = useState<BoardAction>(BoardAction.Select);
   const [editorValue, setEditorValue] = useState<EditorType>({
-    shapeType: "Rect",
-    strokeStyle: "#000",
-    strokeWidth: 1,
-    fillStyle: "transparent",
-
-    font: "Arial",
-    fontSize: 12,
-    fontBold: false,
-    align: "left",
-    verticalAlign: "top",
-    fontColor: "#000",
-    highlightColor: "transparent",
+    node: null,
+    text: null,
   });
 
   const value = useMemo(

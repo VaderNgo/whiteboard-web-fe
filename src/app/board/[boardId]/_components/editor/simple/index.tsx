@@ -73,7 +73,13 @@ const SimpleEditor = () => {
   };
 
   const handleEditorValueChange = (key: string, value: any) => {
-    setEditorValue((prev) => ({ ...prev, [key]: value }));
+    let node = editorValue.node;
+    let text = editorValue.text;
+    if (node && text) {
+      if (["fontSize", "fontFamily", "textColor"].includes(key)) text.setAttrs({ [key]: value });
+      else node.setAttrs({ [key]: value });
+    }
+    setEditorValue({ node, text });
   };
 
   return (
@@ -92,7 +98,7 @@ const SimpleEditor = () => {
             className="flex flex-row justify-center items-center cursor-pointer"
             onClick={() => handleTabChange(EditorTab.SHAPE_PICKER)}
           >
-            {editorValue.shapeType === "Rect" ? <Square /> : <Circle />}
+            {editorValue.node?.shapeType === "Rect" ? <Square /> : <Circle />}
           </div>
         </Hint>
 
@@ -101,7 +107,7 @@ const SimpleEditor = () => {
             className="flex flex-row justify-center items-center cursor-pointer"
             onClick={() => handleTabChange(EditorTab.FONT_FAMILY)}
           >
-            <span>{editorValue.font}</span>
+            <span>{editorValue.text?.fontFamily}</span>
           </div>
         </Hint>
 
@@ -110,7 +116,7 @@ const SimpleEditor = () => {
             <div className="flex flex-row bg-green-500">
               <div className="">
                 <input
-                  defaultValue={editorValue.fontSize}
+                  defaultValue={editorValue.text?.fontSize}
                   type="number"
                   min={1}
                   className="w-[50px]"
@@ -136,7 +142,7 @@ const SimpleEditor = () => {
         <div
           className="flex flex-row justify-center items-center cursor-pointer gap-5"
           onClick={() => {
-            handleEditorValueChange("fontColor", "red");
+            handleEditorValueChange("textColor", "red");
           }}
         >
           <Hint label="Text Color" side="top" sideOffset={10}>
