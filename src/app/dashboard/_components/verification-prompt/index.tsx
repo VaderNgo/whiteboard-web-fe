@@ -3,7 +3,7 @@
 import { useLoggedInUser } from "@/lib/services/queries";
 import { socket } from "@/lib/websocket";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function VerificationPrompt() {
   const user = useLoggedInUser();

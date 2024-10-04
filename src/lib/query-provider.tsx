@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ReactNode } from "react";
+import { useState, ReactNode } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { socket } from "./websocket";
 import { usePathname, useRouter } from "next/navigation";
@@ -31,7 +31,6 @@ export const QueryProvider = ({ children }: { children: ReactNode }) => {
   const handleRemovedFromTeam = (teamId: string) => {
     client.invalidateQueries({ queryKey: ["teams"] });
     if (pathname === `/dashboard/${teamId}`) {
-      console.log("redirecting to dashboard");
       router.push("/dashboard");
     }
   };

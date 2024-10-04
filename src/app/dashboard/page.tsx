@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { NotificationView } from "./_components/views/notification/notification-view";
 import { useEffect } from "react";
+import { socket } from "@/lib/websocket";
 
 const DashboardPage = () => {
   const searchParams = useSearchParams();
@@ -16,6 +17,8 @@ const DashboardPage = () => {
     if (!view) {
       router.push(`${pathname}?view=inbox`);
     }
+
+    socket.connect();
   }, [view]);
 
   if (view === "inbox") {
