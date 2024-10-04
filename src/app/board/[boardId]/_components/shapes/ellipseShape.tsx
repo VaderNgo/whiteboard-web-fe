@@ -45,8 +45,8 @@ const EllipseShape = ({ node, isHovering }: EllipseShapeProps) => {
             stroke="#b00b69"
             strokeWidth={3}
             strokeScaleEnabled={false}
-            onMouseEnter={(e) => e.target.to({ strokeWidth: 5, radius: 15 })}
-            onMouseLeave={(e) => e.target.to({ strokeWidth: 3, radius: 10 })}
+            onMouseEnter={(e) => e.target.to({ strokeWidth: 5, radius: 15, duration: 0.2 })}
+            onMouseLeave={(e) => e.target.to({ strokeWidth: 3, radius: 10, duration: 0.2 })}
           />
         ))}
       <Ellipse

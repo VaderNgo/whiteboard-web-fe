@@ -26,8 +26,11 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     editorValue,
     setEditorValue,
   } = useContext(BoardContext);
+
   const shapeRef = useRef<Konva.Group>(null);
   const textRef = useRef<Konva.Text>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const { addToHistory } = useHistory();
   const { updateBoard, updateUserMouse } = useSocket();
@@ -308,11 +311,19 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
 
   const startHovering = () => {
     if (isEditing) return;
+    if (selectedNode && selectedNode.id === node.id) return;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     setIsHovering(true);
   };
 
   const endHovering = () => {
-    setIsHovering(false);
+    timeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
+      timeoutRef.current = null;
+    }, 700);
   };
 
   return (

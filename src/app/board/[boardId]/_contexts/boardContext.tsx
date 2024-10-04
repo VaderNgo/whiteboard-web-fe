@@ -79,7 +79,7 @@ export class Node {
   fillColor: string = "transparent";
   strokeColor: string = "black";
   strokeWidth: number = 2;
-  sides: number = 3;
+  sides: number = 4;
 
   setAttrs(obj: Partial<Node>): Node {
     Object.assign(this, obj);

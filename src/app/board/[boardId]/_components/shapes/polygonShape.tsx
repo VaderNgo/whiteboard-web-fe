@@ -17,9 +17,19 @@ const PolygonShape = ({ node, isHovering }: PolygonShapeProps) => {
   let anchorPoints = (node: Node) => {
     switch (node.sides) {
       case 4:
-        return [];
+        return [
+          [0, node.height],
+          [node.width, 0],
+          [-node.width, 0],
+          [0, -node.height],
+        ];
       case 5:
-        return [];
+        return [
+          [0, node.height / 2],
+          [node.width / 2, 0],
+          [-node.width / 2, 0],
+          [0, -node.height / 2],
+        ];
       default:
         return [
           [0, node.height / 2],
@@ -42,8 +52,8 @@ const PolygonShape = ({ node, isHovering }: PolygonShapeProps) => {
             stroke="#b00b69"
             strokeWidth={3}
             strokeScaleEnabled={false}
-            onMouseEnter={(e) => e.target.to({ strokeWidth: 5, radius: 15 })}
-            onMouseLeave={(e) => e.target.to({ strokeWidth: 3, radius: 10 })}
+            onMouseEnter={(e) => e.target.to({ strokeWidth: 5, radius: 15, duration: 0.2 })}
+            onMouseLeave={(e) => e.target.to({ strokeWidth: 3, radius: 10, duration: 0.2 })}
           />
         ))}
       <RegularPolygon
