@@ -79,13 +79,19 @@ export class Node {
   fillColor: string = "transparent";
   strokeColor: string = "black";
   strokeWidth: number = 2;
-  anchorPoints: number[] = [];
-
-  points: number[] = [];
-  lineJoin: string = "miter"; // miter,  round , bevel
-  lineCap: string = "butt"; // butt, round, square
+  sides: number = 3;
 
   setAttrs(obj: Partial<Node>): Node {
+    Object.assign(this, obj);
+    return this;
+  }
+}
+
+export class Path {
+  id: string = nanoid();
+  data: string = ""; // liek svg path in konva
+
+  setAttrs(obj: Partial<Path>): Path {
     Object.assign(this, obj);
     return this;
   }
@@ -132,7 +138,10 @@ type IBoardContext = {
   setNodes: React.Dispatch<React.SetStateAction<Map<string, Node>>>;
   selectedNode: Node | null;
   setSelectedNode: React.Dispatch<React.SetStateAction<Node | null>>;
-
+  paths: Map<string, Path>;
+  setPaths: React.Dispatch<React.SetStateAction<Map<string, Path>>>;
+  selectedPath: Path | null;
+  setSelectedPath: React.Dispatch<React.SetStateAction<Path | null>>;
   editorValue: EditorType;
   setEditorValue: React.Dispatch<React.SetStateAction<EditorType>>;
   boardAction: BoardAction;
@@ -181,7 +190,9 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
   const [stageRef, setStageRef] = useState<React.RefObject<Konva.Stage> | null>(null);
   const [layerRef, setLayerRef] = useState<React.RefObject<Konva.Layer> | null>(null);
   const [nodes, setNodes] = useState<Map<string, Node>>(new Map());
+  const [paths, setPaths] = useState<Map<string, Path>>(new Map());
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [selectedPath, setSelectedPath] = useState<Path | null>(null);
   const [shapeType, setShapeType] = useState<ShapeType>("Rect");
   const [fillStyle, setFillStyle] = useState<string>("#fff");
   const [strokeStyle, setStrokeStyle] = useState<string>("#000");
@@ -228,6 +239,10 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
       setNodes,
       selectedNode,
       setSelectedNode,
+      paths,
+      setPaths,
+      selectedPath,
+      setSelectedPath,
       shapeType,
       setShapeType,
       fillStyle,
@@ -269,7 +284,9 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
     }),
     [
       nodes,
+      paths,
       selectedNode,
+      selectedPath,
       selectedShapes,
       stageConfig,
       stageStyle,

@@ -32,6 +32,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const { addToHistory } = useHistory();
   const { updateBoard, updateUserMouse } = useSocket();
   const [groupScale, setGroupScale] = useState({ x: 1, y: 1 });
+  const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     shapeRef.current?.setAttr("id", node.id);
@@ -119,6 +120,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (isEditing) return;
+    if (isHovering) setIsHovering(false);
     if (e.evt.shiftKey) {
       setSelectedNode(null);
       if (selectedShapes.find((shape) => shape._id === shapeRef.current?._id)) {
@@ -304,6 +306,15 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     setSelectedShapes([]);
   };
 
+  const startHovering = () => {
+    if (isEditing) return;
+    setIsHovering(true);
+  };
+
+  const endHovering = () => {
+    setIsHovering(false);
+  };
+
   return (
     <Group
       ref={shapeRef}
@@ -311,7 +322,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       y={node.y}
       offsetX={node.shapeType === "Rect" ? node.width / 2 : 0}
       offsetY={node.shapeType === "Rect" ? node.height / 2 : 0}
-      draggable
+      draggable={selectedNode?.id == node.id}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onClick={handleClick}
@@ -319,6 +330,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       onTransform={handleTransform}
       onTransformEnd={handleTransformEnd}
       onDblClick={startEditting}
+      onMouseEnter={startHovering}
+      onMouseLeave={endHovering}
       name="mindmap-node"
     >
       {isEditing ? (
@@ -354,9 +367,9 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           y={getTextY()}
         />
       )}
-      {node.shapeType === "Rect" && <RectShape node={node} />}
-      {node.shapeType === "Ellipse" && <EllipseShape node={node} />}
-      {node.shapeType === "Polygon" && <PolygonShape node={node} />}
+      {node.shapeType === "Rect" && <RectShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Ellipse" && <EllipseShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Polygon" && <PolygonShape node={node} isHovering={isHovering} />}
     </Group>
   );
 };

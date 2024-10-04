@@ -1,6 +1,5 @@
 "use client";
 import Konva from "konva";
-import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Layer, Rect, Stage, Transformer } from "react-konva";
@@ -10,7 +9,6 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   Node,
-  Text,
 } from "../../_contexts/boardContext";
 
 import Cursor from "../cursor";
@@ -37,8 +35,6 @@ const Canvas: React.FC = () => {
     setStageStyle,
     shapeType,
     setStageRef,
-    fillStyle,
-    strokeStyle,
     setDisplayColorPicker,
     history,
     historyIndex,
@@ -410,24 +406,6 @@ const Canvas: React.FC = () => {
                     <Layer ref={layerRef}>
                       {true && (
                         <>
-                          {nodes &&
-                            nodes.size > 0 &&
-                            Array.from(nodes.keys()).map((key) => {
-                              const currNode = nodes.get(key);
-                              if (!currNode) return null;
-                              return currNode.children.map((child) => {
-                                const currChild = nodes.get(child.id);
-                                if (!currChild) return null;
-                                return (
-                                  <Edge
-                                    key={`edge_${currNode.id}_${child.id}`}
-                                    node={currNode}
-                                    currNodeChildren={currChild}
-                                    color={child.color}
-                                  />
-                                );
-                              });
-                            })}
                           {nodes &&
                             nodes.size > 0 &&
                             Array.from(nodes.keys()).map((key) => {
