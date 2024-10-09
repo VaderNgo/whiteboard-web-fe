@@ -431,7 +431,7 @@ const Canvas: React.FC = () => {
       } else {
         if (!isDrawing || !drawingPath) return;
 
-        const finalPath = calculateEdges(drawingPath.points);
+        const finalPath = calculateEdges(drawingPath);
         setPaths((prevPaths) => {
           const newPaths = new Map(prevPaths);
           newPaths.set(finalPath.id, finalPath);

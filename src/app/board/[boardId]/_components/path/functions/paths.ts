@@ -1,7 +1,7 @@
 import { Vector2d } from "konva/lib/types";
 import { Path, PathEdge, PathPoint } from "../../../_contexts/boardContext";
 
-export function updatePath(path: any, edge: PathEdge, position: any) {
+export function updatePath(path: Path, edge: PathEdge, position: any) {
   const newPoints = path.points.map((item: any, index: any) => {
     if (edge.points.includes(index)) {
       return {
@@ -11,29 +11,9 @@ export function updatePath(path: any, edge: PathEdge, position: any) {
     }
     return item;
   });
-  // return {
-  //   ...path,
-  //   points: newPoints,
-  // };
-  return new Path().setAttrs({
-    ...path,
-    id: path.id,
+  return path.setAttrs({
     points: newPoints,
   });
-  // const newPoints = path.points.map((item, index) => {
-  //   if (edge.points.includes(index)) {
-  //     return new PathPoint().setAttrs({
-  //       ...item,
-  //       [edge.axis]: position[edge.axis as keyof Vector2d],
-  //     });
-  //   }
-  //   return item;
-  // });
-
-  // return new Path().setAttrs({
-  //   ...path,
-  //   points: newPoints,
-  // });
 }
 
 export function getPathData(points: PathPoint[]) {

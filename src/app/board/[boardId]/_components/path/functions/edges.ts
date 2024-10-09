@@ -114,11 +114,10 @@ function calculateDraggableEdges(points: PathPoint[]): PathEdge[] {
   }, []);
 }
 
-export function calculateEdges(points: PathPoint[]): Path {
-  const extrudableEdges = calculateExtrudableEdges(points);
-  const edges = calculateDraggableEdges(points);
-  return new Path().setAttrs({
-    points,
+export function calculateEdges(path: Path): Path {
+  const extrudableEdges = calculateExtrudableEdges(path.points);
+  const edges = calculateDraggableEdges(path.points);
+  return path.setAttrs({
     edges,
     extrudableEdges,
     activeDrag: { extruded: false },

@@ -12,5 +12,5 @@ export function setActiveDrag(path: Path) {
 }
 
 export function clearActiveDrag(path: Path) {
-  return calculateEdges(path.points);
+  return calculateEdges(path);
 }
