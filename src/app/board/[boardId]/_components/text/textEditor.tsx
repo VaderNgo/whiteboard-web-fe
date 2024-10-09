@@ -8,6 +8,7 @@ interface TextEditorProps {
   height: number;
   fontSize: number;
   fontFamily: string;
+  textColor: string;
   padding: number;
   onTextChange: (newText: string) => void;
   onFinishEditing: () => void;
@@ -21,6 +22,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   fontSize,
   fontFamily,
   padding,
+  textColor,
   onTextChange,
   onFinishEditing,
 }) => {
@@ -63,6 +65,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
             alignContent: "center",
             textAlign: "center",
             fontFamily,
+            color: textColor,
             overflow: "hidden",
             background: "none",
             lineHeight: "1.2",

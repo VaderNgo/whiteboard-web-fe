@@ -353,6 +353,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           width={getTextWidth()}
           height={getTextHeight()}
           fontSize={node.text.fontSize}
+          textColor={node.text.textColor}
           fontFamily={"Arial"}
           padding={node.shapeType === "Polygon" ? 20 : 10}
           onTextChange={handleTextChange}

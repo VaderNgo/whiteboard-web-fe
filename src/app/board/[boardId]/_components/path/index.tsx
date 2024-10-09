@@ -1,14 +1,22 @@
-import { use, useContext, useRef } from "react";
-import { BoardContext, Path } from "../../_contexts/boardContext";
-import Konva from "konva";
+import { Path } from "react-konva";
+import { Path as PathClass } from "../../_contexts/boardContext";
+import { ControlPoints } from "./controlPoints";
+import { getPathData } from "./functions";
 
-type EditablePathProps = {
-  path: Path;
-};
+interface EditablePathProps {
+  initialPath: PathClass;
+  onChange: (path: PathClass) => void;
+}
 
-const EditablePath = ({ path }: EditablePathProps) => {
-  const { paths, setPaths } = useContext(BoardContext);
-  const pathRef = useRef<Konva.Group>(null);
-};
-
-export default EditablePath;
+export function EditablePath({ initialPath, onChange }: EditablePathProps) {
+  return (
+    <>
+      <Path
+        data={getPathData(initialPath.points)}
+        stroke={initialPath.strokeColor}
+        strokeWidth={initialPath.strokeWidth}
+      />
+      <ControlPoints path={initialPath} onChange={onChange} />
+    </>
+  );
+}

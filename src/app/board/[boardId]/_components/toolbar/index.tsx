@@ -163,6 +163,7 @@ const Toolbar = () => {
         ToolButtonState.ArrowLine,
         ToolButtonState.Rectangle,
         // ToolButtonState.Shapes,
+        ToolButtonState.Line,
         ToolButtonState.Ellipse,
       ].includes(tool)
     ) {
@@ -182,6 +183,9 @@ const Toolbar = () => {
         break;
       case ToolButtonState.Ellipse:
         setShapeType("Ellipse");
+        break;
+      case ToolButtonState.Line:
+        setShapeType("Path");
         break;
     }
   };

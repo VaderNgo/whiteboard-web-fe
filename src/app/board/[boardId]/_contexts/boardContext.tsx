@@ -18,7 +18,7 @@ export const fills = [
 export const CANVAS_WIDTH = window.innerWidth;
 export const CANVAS_HEIGHT = window.innerHeight;
 
-export type ShapeType = "Rect" | "Ellipse" | "Polygon" | "Line";
+export type ShapeType = "Rect" | "Ellipse" | "Polygon" | "Path";
 
 export enum EditorTab {
   SHAPE_PICKER = "shape_picker",
@@ -87,9 +87,39 @@ export class Node {
   }
 }
 
+export class PathPoint {
+  command: string = "M";
+  x: number = 0;
+  y: number = 0;
+  setAttrs(obj: Partial<PathPoint>): PathPoint {
+    Object.assign(this, obj);
+    return this;
+  }
+}
+
+export class PathEdge {
+  axis: string = "x";
+  points: number[] = [];
+
+  setAttrs(obj: Partial<PathEdge>): PathEdge {
+    Object.assign(this, obj);
+    return this;
+  }
+}
+
 export class Path {
   id: string = nanoid();
-  data: string = ""; // liek svg path in konva
+  dragging: null | string = null;
+  activeDrag: object = { extruded: false };
+  edges: PathEdge[] = [];
+  extrudableEdges: PathEdge[] = [];
+  points: PathPoint[] = [];
+  strokeColor: string = "black";
+  strokeWidth: number = 2;
+  dash: [number, number] = [5, 5];
+
+  startAnchorPoint: { x: number; y: number } | null = null;
+  endAnchorPoint: { x: number; y: number } | null = null;
 
   setAttrs(obj: Partial<Path>): Path {
     Object.assign(this, obj);
