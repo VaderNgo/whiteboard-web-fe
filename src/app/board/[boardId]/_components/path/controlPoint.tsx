@@ -2,10 +2,10 @@ import { Vector2d } from "konva/lib/types";
 import React, { useRef } from "react";
 import { Circle } from "react-konva";
 
-const STROKE_WIDTH = 2;
-const RADIUS = 4;
-const HOVER_STROKE_WIDTH = 4;
-const HOVER_RADIUS = 6;
+const STROKE_WIDTH = 4;
+const RADIUS = 8;
+const HOVER_STROKE_WIDTH = 6;
+const HOVER_RADIUS = 10;
 
 interface ControlPointProps {
   x: number;

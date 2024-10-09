@@ -80,10 +80,44 @@ export class Node {
   strokeColor: string = "black";
   strokeWidth: number = 2;
   sides: number = 4;
-
+  anchorPoints: [number, number][] = [];
   setAttrs(obj: Partial<Node>): Node {
     Object.assign(this, obj);
+    this.calculateAnchorPoints();
     return this;
+  }
+  public calculateAnchorPoints() {
+    if (this.shapeType === "Rect") {
+      this.anchorPoints = [
+        [0, this.height / 2],
+        [this.width / 2, 0],
+        [this.width / 2, this.height],
+        [this.width, this.height / 2],
+      ];
+    } else if (this.shapeType === "Ellipse") {
+      this.anchorPoints = [
+        [0, this.height / 2],
+        [this.width / 2, 0],
+        [-this.width / 2, 0],
+        [0, -this.height / 2],
+      ];
+    } else {
+      if (this.sides == 3) {
+        this.anchorPoints = [
+          [0, this.height / 2],
+          [this.width / Math.sqrt(3), 0],
+          [-this.width / Math.sqrt(3), 0],
+        ];
+      } else if (this.sides == 4) {
+        this.anchorPoints = [
+          [0, this.height],
+          [this.width, 0],
+          [-this.width, 0],
+          [0, -this.height],
+        ];
+      } else {
+      }
+    }
   }
 }
 

@@ -22,19 +22,10 @@ const RectShape = ({ node, isHovering }: RectShapeProps) => {
     e.target.scale({ x: 1, y: 1 });
   };
 
-  let anchorPoints = (node: Node) => {
-    return [
-      [0, node.height / 2],
-      [node.width / 2, 0],
-      [node.width / 2, node.height],
-      [node.width, node.height / 2],
-    ];
-  };
-
   return (
     <>
       {isHovering &&
-        anchorPoints(node).map((point, index) => (
+        node.anchorPoints.map((point, index) => (
           <Circle
             key={index}
             x={point[0]}

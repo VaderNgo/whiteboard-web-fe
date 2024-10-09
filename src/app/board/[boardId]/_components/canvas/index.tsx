@@ -440,6 +440,7 @@ const Canvas: React.FC = () => {
 
         setDrawingPath(null);
         setIsDrawing(false);
+        setBoardAction(BoardAction.Select);
       }
     }
   };

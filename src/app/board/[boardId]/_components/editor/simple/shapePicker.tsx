@@ -21,6 +21,7 @@ export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
   const handleShapeTypeChange = (type: ShapeType) => {
     if (selectedNode) {
       selectedNode.shapeType = type;
+      selectedNode.calculateAnchorPoints();
     }
     setSelectedNode(null);
   };

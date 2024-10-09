@@ -14,35 +14,10 @@ const PolygonShape = ({ node, isHovering }: PolygonShapeProps) => {
   const scaleX = node.width / radius;
   const scaleY = node.height / radius;
 
-  let anchorPoints = (node: Node) => {
-    switch (node.sides) {
-      case 4:
-        return [
-          [0, node.height],
-          [node.width, 0],
-          [-node.width, 0],
-          [0, -node.height],
-        ];
-      case 5:
-        return [
-          [0, node.height / 2],
-          [node.width / 2, 0],
-          [-node.width / 2, 0],
-          [0, -node.height / 2],
-        ];
-      default:
-        return [
-          [0, node.height / 2],
-          [node.width / Math.sqrt(3), 0],
-          [-node.width / Math.sqrt(3), 0],
-        ];
-    }
-  };
-
   return (
     <>
       {isHovering &&
-        anchorPoints(node).map((point, index) => (
+        node.anchorPoints.map((point, index) => (
           <Circle
             key={index}
             x={point[0]}

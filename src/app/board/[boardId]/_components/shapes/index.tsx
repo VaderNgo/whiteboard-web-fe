@@ -67,11 +67,12 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       const { x, y } = e.target.position();
       const currNode = prevState.get(node.id);
       if (!currNode) return prevState;
-      const updatedNode = {
+      const updatedNode = new Node().setAttrs({
         ...currNode,
         x,
         y,
-      };
+      });
+      updatedNode.calculateAnchorPoints();
       prevState.set(node.id, updatedNode as Node);
       updateBoard([updatedNode as Node], "update");
       return new Map(prevState);
@@ -103,11 +104,12 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           }
         });
       }
-      const updatedNode = {
+      const updatedNode = new Node().setAttrs({
         ...currNode,
         x,
         y,
-      };
+      });
+      updatedNode.calculateAnchorPoints();
       prevState.set(node.id, updatedNode as Node);
       addToHistory({
         type: "update",
@@ -184,11 +186,12 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       const currGroup = shapeRef.current;
       setNodes((prevState) => {
         if (!currNode) return prevState;
-        const updatedNode = {
+        const updatedNode = new Node().setAttrs({
           ...currNode,
           x: currGroup.x(),
           y: currGroup.y(),
-        };
+        });
+        updatedNode.calculateAnchorPoints();
         prevState.set(node.id, updatedNode as Node);
         updateBoard([updatedNode as Node], "update");
         return new Map(prevState);
@@ -208,11 +211,12 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
 
       setNodes((prevState) => {
         if (!currNode) return prevState;
-        const updatedNode = {
+        const updatedNode = new Node().setAttrs({
           ...currNode,
           width: node.width * scaleX,
           height: node.height * scaleY,
-        };
+        });
+        updatedNode.calculateAnchorPoints();
         prevState.set(node.id, updatedNode as Node);
         addToHistory({
           type: "update",
