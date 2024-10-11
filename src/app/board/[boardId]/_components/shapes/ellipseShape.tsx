@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Circle, Ellipse } from "react-konva";
-import { Node } from "../../_contexts/boardContext";
+import { BoardAction, BoardContext, Node } from "../../_contexts/boardContext";
 import Konva from "konva";
 
 type EllipseShapeProps = {
@@ -9,6 +9,7 @@ type EllipseShapeProps = {
 };
 
 const EllipseShape = ({ node, isHovering }: EllipseShapeProps) => {
+  const { boardAction } = useContext(BoardContext);
   useEffect(() => {}, [isHovering]);
 
   const handleTransform = (e: Konva.KonvaEventObject<Event>) => {
@@ -26,21 +27,6 @@ const EllipseShape = ({ node, isHovering }: EllipseShapeProps) => {
 
   return (
     <>
-      {isHovering &&
-        node.anchorPoints.map((point, index) => (
-          <Circle
-            key={index}
-            x={point[0]}
-            y={point[1]}
-            radius={10}
-            fill="white"
-            stroke="#b00b69"
-            strokeWidth={3}
-            strokeScaleEnabled={false}
-            onMouseEnter={(e) => e.target.to({ strokeWidth: 5, radius: 15, duration: 0.2 })}
-            onMouseLeave={(e) => e.target.to({ strokeWidth: 3, radius: 10, duration: 0.2 })}
-          />
-        ))}
       <Ellipse
         fill={node.fillColor}
         stroke={node.strokeColor}

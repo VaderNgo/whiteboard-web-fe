@@ -11,6 +11,7 @@ interface ControlPointProps {
   x: number;
   y: number;
   axis?: "x" | "y";
+  isDraggable: boolean;
   onDragStart?: (e: any) => void;
   onDragMove?: (e: any) => void;
   onDragEnd?: (e: any) => void;
@@ -24,6 +25,7 @@ export function ControlPoint({
   onDragStart,
   onDragMove,
   onDragEnd,
+  isDraggable = true,
   type = "control",
 }: ControlPointProps) {
   const [isHovered, setIsHovered] = React.useState(false);
@@ -56,7 +58,7 @@ export function ControlPoint({
       strokeWidth={isHovered ? HOVER_STROKE_WIDTH : STROKE_WIDTH}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      draggable
+      draggable={isDraggable}
       onDragStart={onDragStart}
       onDragMove={onDragMove}
       onDragEnd={(e) => {

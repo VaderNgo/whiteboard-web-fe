@@ -160,14 +160,21 @@ const Toolbar = () => {
     setCanDragStage(false);
     if (
       [
-        ToolButtonState.ArrowLine,
         ToolButtonState.Rectangle,
         // ToolButtonState.Shapes,
-        ToolButtonState.Line,
         ToolButtonState.Ellipse,
       ].includes(tool)
     ) {
-      setBoardAction(BoardAction.Draw);
+      setBoardAction(BoardAction.DrawShape);
+    } else if (
+      [
+        ToolButtonState.Line,
+        // ToolButtonState.Shapes,
+        ToolButtonState.ArrowLine,
+        ToolButtonState.ArrowLine2,
+      ].includes(tool)
+    ) {
+      setBoardAction(BoardAction.DrawLine);
     }
     setSelectState(tool);
     switch (tool) {

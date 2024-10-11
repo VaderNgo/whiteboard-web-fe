@@ -1,3 +1,4 @@
+import Konva from "konva";
 import { Path } from "../../../_contexts/boardContext";
 import { calculateEdges } from "./edges";
 

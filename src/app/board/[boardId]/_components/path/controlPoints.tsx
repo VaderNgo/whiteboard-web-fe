@@ -24,8 +24,11 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
       x={sourcePoint.x}
       y={sourcePoint.y}
       type="tip"
+      isDraggable={path.startAnchorPoint == null}
       onDragMove={(e) => {
-        onChange(updatePathFromTip(path, 0, e.target.getPosition()));
+        if (path.startAnchorPoint == null) {
+          onChange(updatePathFromTip(path, 0, e.target.getPosition()));
+        }
       }}
     />
   );
@@ -34,8 +37,11 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
       x={destinationPoint.x}
       y={destinationPoint.y}
       type="tip"
+      isDraggable={path.endAnchorPoint == null}
       onDragMove={(e) => {
-        onChange(updatePathFromTip(path, path.points.length - 1, e.target.getPosition()));
+        if (path.endAnchorPoint == null) {
+          onChange(updatePathFromTip(path, path.points.length - 1, e.target.getPosition()));
+        }
       }}
     />
   );
@@ -47,6 +53,7 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
         key={key}
         x={x}
         y={y}
+        isDraggable={true}
         axis={edge.axis as "x" | "y"}
         onDragMove={(e) => {
           onChange(updatePath(path, edge, e.target.getPosition()));
@@ -62,6 +69,7 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
         key={key}
         x={x}
         y={y}
+        isDraggable={true}
         axis={edge.axis as "x" | "y"}
         onDragStart={() => {
           onChange(setActiveDrag(path));

@@ -1,13 +1,15 @@
-import React, { useEffect } from "react";
-import { Circle, Rect } from "react-konva";
-import { Node } from "../../_contexts/boardContext";
 import Konva from "konva";
+import { useContext, useEffect } from "react";
+import { Rect } from "react-konva";
+import { BoardContext, Node } from "../../_contexts/boardContext";
+import { Anchor } from "./anchor";
 type RectShapeProps = {
   node: Node;
   isHovering: boolean;
 };
 
 const RectShape = ({ node, isHovering }: RectShapeProps) => {
+  const { boardAction } = useContext(BoardContext);
   useEffect(() => {}, [isHovering]);
   const handleTransform = (e: Konva.KonvaEventObject<Event>) => {
     const scaleX = e.target.scaleX();
@@ -24,21 +26,6 @@ const RectShape = ({ node, isHovering }: RectShapeProps) => {
 
   return (
     <>
-      {isHovering &&
-        node.anchorPoints.map((point, index) => (
-          <Circle
-            key={index}
-            x={point[0]}
-            y={point[1]}
-            radius={10}
-            fill="white"
-            stroke="#b00b69"
-            strokeWidth={3}
-            strokeScaleEnabled={false}
-            onMouseEnter={(e) => e.target.to({ strokeWidth: 5, radius: 15, duration: 0.2 })}
-            onMouseLeave={(e) => e.target.to({ strokeWidth: 3, radius: 10, duration: 0.2 })}
-          />
-        ))}
       <Rect
         width={node.width}
         height={node.height}

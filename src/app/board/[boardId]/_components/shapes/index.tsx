@@ -8,6 +8,7 @@ import { TextEditor } from "../text/textEditor";
 import EllipseShape from "./ellipseShape";
 import PolygonShape from "./polygonShape";
 import RectShape from "./rectShape";
+import { Anchor } from "./anchor";
 
 type ShapeProps = {
   node: Node;
@@ -25,6 +26,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     lineStyle,
     editorValue,
     setEditorValue,
+    boardAction,
   } = useContext(BoardContext);
 
   const shapeRef = useRef<Konva.Group>(null);
@@ -53,6 +55,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     }
   }, [selectedNode]);
 
+  useEffect(() => {}, [isHovering]);
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (stageRef) {
       const mouseX = stageRef.current?.getRelativePointerPosition()?.x;
@@ -295,7 +298,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         verticalAlign: editorValue.text?.verticalAlign,
       });
 
-      console.log("updatedNode", updatedNode);
+      // console.log("updatedNode", updatedNode);
       prevState.set(selectedNode!.id, updatedNode);
       updateBoard([updatedNode], "update");
       return new Map(prevState);
@@ -349,6 +352,17 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       onMouseLeave={endHovering}
       name="mindmap-node"
     >
+      {node.anchorPoints.map((anchorPoint) => (
+        <Anchor
+          key={anchorPoint.indexAnchor}
+          nodeId={anchorPoint.nodeId}
+          index={anchorPoint.indexAnchor}
+          isHovering={isHovering}
+          x={anchorPoint.position.x}
+          y={anchorPoint.position.y}
+          boardAction={boardAction}
+        />
+      ))}
       {isEditing ? (
         <TextEditor
           initialText={node.text.content}

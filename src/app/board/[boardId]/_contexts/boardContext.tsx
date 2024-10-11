@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import Konva from "konva";
 import { nanoid } from "nanoid";
+import { Vector2d } from "konva/lib/types";
 
 export const fills = [
   "#6B7280",
@@ -18,7 +19,7 @@ export const fills = [
 export const CANVAS_WIDTH = window.innerWidth;
 export const CANVAS_HEIGHT = window.innerHeight;
 
-export type ShapeType = "Rect" | "Ellipse" | "Polygon" | "Path";
+export type ShapeType = "Rect" | "Ellipse" | "Polygon";
 
 export enum EditorTab {
   SHAPE_PICKER = "shape_picker",
@@ -47,7 +48,8 @@ export type Children = {
 export enum BoardAction {
   Select = "Select",
   Drag = "Drag",
-  Draw = "Draw",
+  DrawShape = "DrawShape",
+  DrawLine = "DrawLine",
 }
 
 export class Text {
@@ -61,6 +63,16 @@ export class Text {
   hightlightColor: string = "transparent";
 
   setAttrs(obj: Partial<Text>): Text {
+    Object.assign(this, obj);
+    return this;
+  }
+}
+
+export class AnchorPoint {
+  nodeId: string = "";
+  indexAnchor: number = 0;
+  position: Vector2d = { x: 0, y: 0 };
+  setAttrs(obj: Partial<AnchorPoint>): AnchorPoint {
     Object.assign(this, obj);
     return this;
   }
@@ -80,42 +92,102 @@ export class Node {
   strokeColor: string = "black";
   strokeWidth: number = 2;
   sides: number = 4;
-  anchorPoints: [number, number][] = [];
+  anchorPoints: AnchorPoint[] = [];
   setAttrs(obj: Partial<Node>): Node {
     Object.assign(this, obj);
     this.calculateAnchorPoints();
     return this;
   }
   public calculateAnchorPoints() {
+    this.anchorPoints = [];
     if (this.shapeType === "Rect") {
       this.anchorPoints = [
-        [0, this.height / 2],
-        [this.width / 2, 0],
-        [this.width / 2, this.height],
-        [this.width, this.height / 2],
+        new AnchorPoint().setAttrs({
+          nodeId: this.id,
+          indexAnchor: 0,
+          position: { x: 0, y: this.height / 2 },
+        }),
+        new AnchorPoint().setAttrs({
+          nodeId: this.id,
+          indexAnchor: 1,
+          position: { x: this.width / 2, y: 0 },
+        }),
+        new AnchorPoint().setAttrs({
+          nodeId: this.id,
+          indexAnchor: 2,
+          position: { x: this.width / 2, y: this.height },
+        }),
+        new AnchorPoint().setAttrs({
+          nodeId: this.id,
+          indexAnchor: 3,
+          position: { x: this.width, y: this.height / 2 },
+        }),
       ];
     } else if (this.shapeType === "Ellipse") {
       this.anchorPoints = [
-        [0, this.height / 2],
-        [this.width / 2, 0],
-        [-this.width / 2, 0],
-        [0, -this.height / 2],
+        new AnchorPoint().setAttrs({
+          nodeId: this.id,
+          indexAnchor: 0,
+          position: { x: 0, y: this.height / 2 },
+        }),
+        new AnchorPoint().setAttrs({
+          nodeId: this.id,
+          indexAnchor: 1,
+          position: { x: this.width / 2, y: 0 },
+        }),
+        new AnchorPoint().setAttrs({
+          nodeId: this.id,
+          indexAnchor: 2,
+          position: { x: -this.width / 2, y: 0 },
+        }),
+        new AnchorPoint().setAttrs({
+          nodeId: this.id,
+          indexAnchor: 3,
+          position: { x: 0, y: -this.height / 2 },
+        }),
       ];
     } else {
       if (this.sides == 3) {
         this.anchorPoints = [
-          [0, this.height / 2],
-          [this.width / Math.sqrt(3), 0],
-          [-this.width / Math.sqrt(3), 0],
+          new AnchorPoint().setAttrs({
+            nodeId: this.id,
+            indexAnchor: 0,
+            position: { x: 0, y: this.height / 2 },
+          }),
+          new AnchorPoint().setAttrs({
+            nodeId: this.id,
+            indexAnchor: 1,
+            position: { x: this.width / Math.sqrt(3), y: 0 },
+          }),
+          new AnchorPoint().setAttrs({
+            nodeId: this.id,
+            indexAnchor: 2,
+            position: { x: -this.width / Math.sqrt(3), y: 0 },
+          }),
         ];
       } else if (this.sides == 4) {
         this.anchorPoints = [
-          [0, this.height],
-          [this.width, 0],
-          [-this.width, 0],
-          [0, -this.height],
+          new AnchorPoint().setAttrs({
+            nodeId: this.id,
+            indexAnchor: 0,
+            position: { x: 0, y: this.height },
+          }),
+          new AnchorPoint().setAttrs({
+            nodeId: this.id,
+            indexAnchor: 1,
+            position: { x: this.width, y: 0 },
+          }),
+          new AnchorPoint().setAttrs({
+            nodeId: this.id,
+            indexAnchor: 2,
+            position: { x: -this.width, y: 0 },
+          }),
+          new AnchorPoint().setAttrs({
+            nodeId: this.id,
+            indexAnchor: 3,
+            position: { x: 0, y: -this.height },
+          }),
         ];
-      } else {
       }
     }
   }
@@ -152,8 +224,8 @@ export class Path {
   strokeWidth: number = 2;
   dash: [number, number] = [5, 5];
 
-  startAnchorPoint: { x: number; y: number } | null = null;
-  endAnchorPoint: { x: number; y: number } | null = null;
+  startAnchorPoint: { nodeId: string; indexAnchor: number } | null = null;
+  endAnchorPoint: { nodeId: string; indexAnchor: number } | null = null;
 
   setAttrs(obj: Partial<Path>): Path {
     Object.assign(this, obj);
@@ -206,6 +278,10 @@ type IBoardContext = {
   setPaths: React.Dispatch<React.SetStateAction<Map<string, Path>>>;
   selectedPath: Path | null;
   setSelectedPath: React.Dispatch<React.SetStateAction<Path | null>>;
+  drawingPath: Path | null;
+  setDrawingPath: React.Dispatch<React.SetStateAction<Path | null>>;
+  isDrawingPath: boolean;
+  setIsDrawingPath: React.Dispatch<React.SetStateAction<boolean>>;
   editorValue: EditorType;
   setEditorValue: React.Dispatch<React.SetStateAction<EditorType>>;
   boardAction: BoardAction;
@@ -257,13 +333,15 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
   const [paths, setPaths] = useState<Map<string, Path>>(new Map());
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [selectedPath, setSelectedPath] = useState<Path | null>(null);
+  const [drawingPath, setDrawingPath] = useState<Path | null>(null);
+  const [isDrawingPath, setIsDrawingPath] = useState<boolean>(false);
   const [shapeType, setShapeType] = useState<ShapeType>("Rect");
   const [fillStyle, setFillStyle] = useState<string>("#fff");
   const [strokeStyle, setStrokeStyle] = useState<string>("#000");
   const [lineStyle, setLineStyle] = useState<string>("#000");
   const [selectedShapes, setSelectedShapes] = useState<Konva.Group[]>([]);
   const [stageConfig, setStageConfig] = useState<StageConfig>({
-    stageScale: 0.8,
+    stageScale: 1,
     stageX: 0,
     stageY: 0,
   });
@@ -307,6 +385,10 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
       setPaths,
       selectedPath,
       setSelectedPath,
+      drawingPath,
+      setDrawingPath,
+      isDrawingPath,
+      setIsDrawingPath,
       shapeType,
       setShapeType,
       fillStyle,
@@ -351,6 +433,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
       paths,
       selectedNode,
       selectedPath,
+      drawingPath,
+      isDrawingPath,
       selectedShapes,
       stageConfig,
       stageStyle,

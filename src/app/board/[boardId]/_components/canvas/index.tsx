@@ -57,6 +57,10 @@ const Canvas: React.FC = () => {
     setPaths,
     selectedPath,
     setSelectedPath,
+    drawingPath,
+    setDrawingPath,
+    isDrawingPath,
+    setIsDrawingPath,
   } = useContext(BoardContext);
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
@@ -71,12 +75,7 @@ const Canvas: React.FC = () => {
   const [resizedCanvasWidth, setResizedCanvasWidth] = useState(CANVAS_WIDTH);
   const [resizedCanvasHeight, setResizedCanvasHeight] = useState(CANVAS_HEIGHT);
   const tempShapeRef = useRef<Konva.Shape | null>(null);
-  const [drawingPath, setDrawingPath] = useState<Path | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  useEffect(() => {
-    console.log("drawingPath: ", drawingPath);
-    console.log("paths: ", paths);
-  }, [paths, drawingPath]);
+  useEffect(() => {}, [paths, drawingPath, nodes]);
 
   const createStepPathPoints = (start: PathPoint, end: { x: number; y: number }): PathPoint[] => {
     return [
@@ -146,10 +145,6 @@ const Canvas: React.FC = () => {
       transformerRef.current?.getLayer()?.batchDraw();
     }
   }, [selectedShapes, selectedNode]);
-
-  useEffect(() => {
-    // console.log("nodes map: ", nodes);
-  }, [nodes]);
 
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
@@ -242,68 +237,65 @@ const Canvas: React.FC = () => {
         x: X1,
         y: Y1,
       });
-    } else if (boardAction === BoardAction.Draw) {
+    } else if (boardAction === BoardAction.DrawShape) {
       const X1 = stageRef.current.getRelativePointerPosition()?.x;
       const Y1 = stageRef.current.getRelativePointerPosition()?.y;
-      if (shapeType != "Path") {
-        let shape = null;
-        switch (shapeType) {
-          case "Ellipse":
-            shape = new Konva.Ellipse({
-              x: X1,
-              y: Y1,
-              radiusX: 10,
-              radiusY: 10,
-              fill: "transparent",
-              stroke: "black",
-              strokeWidth: 1,
-            });
-            break;
-          case "Rect":
-            shape = new Konva.Rect({
-              x: X1,
-              y: Y1,
-              width: 50,
-              height: 50,
-              fill: "transparent",
-              stroke: "black",
-              strokeWidth: 3,
-            });
-            break;
-          default:
-            shape = new Konva.Rect({
-              x: X1,
-              y: Y1,
-              width: 50,
-              height: 50,
-              fill: "transparent",
-              stroke: "black",
-              strokeWidth: 3,
-            });
-            break;
-        }
-        tempShapeRef.current = shape;
-        layerRef.current?.add(shape).batchDraw();
-      } else {
-        const clickedOnEmpty = e.target === e.target.getStage();
-        if (!clickedOnEmpty || isDrawing) return;
-
-        const X1 = stageRef.current.getRelativePointerPosition()?.x;
-        const Y1 = stageRef.current.getRelativePointerPosition()?.y;
-        if (!X1 || !Y1) return;
-        const initialPoint = new PathPoint().setAttrs({
-          command: "M",
-          x: X1,
-          y: Y1,
-        });
-
-        setDrawingPath(
-          new Path().setAttrs({
-            points: [initialPoint],
-          })
-        );
-        setIsDrawing(true);
+      let shape = null;
+      switch (shapeType) {
+        case "Ellipse":
+          shape = new Konva.Ellipse({
+            x: X1,
+            y: Y1,
+            radiusX: 10,
+            radiusY: 10,
+            fill: "transparent",
+            stroke: "black",
+            strokeWidth: 1,
+          });
+          break;
+        case "Rect":
+          shape = new Konva.Rect({
+            x: X1,
+            y: Y1,
+            width: 50,
+            height: 50,
+            fill: "transparent",
+            stroke: "black",
+            strokeWidth: 3,
+          });
+          break;
+        default:
+          shape = new Konva.Rect({
+            x: X1,
+            y: Y1,
+            width: 50,
+            height: 50,
+            fill: "transparent",
+            stroke: "black",
+            strokeWidth: 3,
+          });
+          break;
       }
+      tempShapeRef.current = shape;
+      layerRef.current?.add(shape).batchDraw();
+    } else {
+      const clickedOnEmpty = e.target === e.target.getStage();
+      if (!clickedOnEmpty || isDrawingPath) return;
+      const X1 = stageRef.current.getRelativePointerPosition()?.x;
+      const Y1 = stageRef.current.getRelativePointerPosition()?.y;
+      if (!X1 || !Y1) return;
+      const initialPoint = new PathPoint().setAttrs({
+        command: "M",
+        x: X1,
+        y: Y1,
+      });
+
+      setDrawingPath(
+        new Path().setAttrs({
+          points: [initialPoint],
+        })
+      );
+      setIsDrawingPath(true);
     }
   };
 
@@ -335,41 +327,39 @@ const Canvas: React.FC = () => {
         });
       }
     }
-    if (boardAction === BoardAction.Draw) {
-      if (shapeType != "Path") {
-        if (tempShapeRef.current && mouseX && mouseY) {
-          const { x: shapeX, y: shapeY } = tempShapeRef.current!.attrs;
-          switch (shapeType) {
-            case "Rect":
-              tempShapeRef.current.setAttrs({
-                width: mouseX! - shapeX!,
-                height: mouseY! - shapeY!,
-              });
-              break;
-            case "Ellipse":
-              tempShapeRef.current.setAttrs({
-                radiusX: Math.abs(mouseX! - shapeX!) / 2,
-                radiusY: Math.abs(mouseY! - shapeY!) / 2,
-              });
-              break;
-          }
-          layerRef.current?.batchDraw();
+    if (boardAction === BoardAction.DrawShape) {
+      if (tempShapeRef.current && mouseX && mouseY) {
+        const { x: shapeX, y: shapeY } = tempShapeRef.current!.attrs;
+        switch (shapeType) {
+          case "Rect":
+            tempShapeRef.current.setAttrs({
+              width: mouseX! - shapeX!,
+              height: mouseY! - shapeY!,
+            });
+            break;
+          case "Ellipse":
+            tempShapeRef.current.setAttrs({
+              radiusX: Math.abs(mouseX! - shapeX!) / 2,
+              radiusY: Math.abs(mouseY! - shapeY!) / 2,
+            });
+            break;
         }
-      } else {
-        if (!isDrawing || !drawingPath) return;
-        const x2 = stageRef.current?.getRelativePointerPosition()?.x;
-        const y2 = stageRef.current?.getRelativePointerPosition()?.y;
-        if (!x2 || !y2) return;
-        const startPoint = drawingPath.points[0];
-        const newPoints = createStepPathPoints(startPoint, { x: x2, y: y2 });
-
-        setDrawingPath(
-          new Path().setAttrs({
-            ...drawingPath,
-            points: newPoints,
-          })
-        );
+        layerRef.current?.batchDraw();
       }
+    } else {
+      if (!isDrawingPath || !drawingPath) return;
+      const x2 = stageRef.current?.getRelativePointerPosition()?.x;
+      const y2 = stageRef.current?.getRelativePointerPosition()?.y;
+      if (!x2 || !y2) return;
+      const startPoint = drawingPath.points[0];
+      const newPoints = createStepPathPoints(startPoint, { x: x2, y: y2 });
+
+      setDrawingPath(
+        new Path().setAttrs({
+          ...drawingPath,
+          points: newPoints,
+        })
+      );
     }
   };
 
@@ -406,7 +396,7 @@ const Canvas: React.FC = () => {
 
   const handleMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
     e.evt.preventDefault();
-    setIsDrawing(false);
+    setIsDrawingPath(false);
     if (boardAction === BoardAction.Select) {
       if (!selectionRectRef.current?.visible()) {
         selectionRectRef.current?.visible(false);
@@ -421,27 +411,25 @@ const Canvas: React.FC = () => {
         Konva.Util.haveIntersection(box, shape.getClientRect())
       );
       setSelectedShapes(selected as Konva.Group[]);
-    } else if (boardAction === BoardAction.Draw) {
-      if (shapeType != "Path") {
-        addDrawnShape();
-        tempShapeRef.current?.destroy();
-        layerRef.current?.batchDraw();
-        tempShapeRef.current = null;
-        setBoardAction(BoardAction.Select);
-      } else {
-        if (!isDrawing || !drawingPath) return;
+    } else if (boardAction === BoardAction.DrawShape) {
+      addDrawnShape();
+      tempShapeRef.current?.destroy();
+      layerRef.current?.batchDraw();
+      tempShapeRef.current = null;
+      setBoardAction(BoardAction.Select);
+    } else {
+      if (!isDrawingPath || !drawingPath) return;
 
-        const finalPath = calculateEdges(drawingPath);
-        setPaths((prevPaths) => {
-          const newPaths = new Map(prevPaths);
-          newPaths.set(finalPath.id, finalPath);
-          return newPaths;
-        });
+      const finalPath = calculateEdges(drawingPath);
+      setPaths((prevPaths) => {
+        const newPaths = new Map(prevPaths);
+        newPaths.set(finalPath.id, finalPath);
+        return newPaths;
+      });
 
-        setDrawingPath(null);
-        setIsDrawing(false);
-        setBoardAction(BoardAction.Select);
-      }
+      setDrawingPath(null);
+      setIsDrawingPath(false);
+      setBoardAction(BoardAction.Select);
     }
   };
 
