@@ -1,9 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import Konva from "konva";
-import { nanoid } from "nanoid";
 import { Vector2d } from "konva/lib/types";
+import { nanoid } from "nanoid";
+import React, { createContext, useMemo, useState } from "react";
 
 export const fills = [
   "#6B7280",
@@ -50,6 +50,7 @@ export enum BoardAction {
   Drag = "Drag",
   DrawShape = "DrawShape",
   DrawLine = "DrawLine",
+  DragPath = "DragPath",
 }
 
 export class Text {
@@ -91,7 +92,7 @@ export class Node {
   fillColor: string = "transparent";
   strokeColor: string = "black";
   strokeWidth: number = 2;
-  sides: number = 4;
+  sides: number = 3;
   anchorPoints: AnchorPoint[] = [];
   setAttrs(obj: Partial<Node>): Node {
     Object.assign(this, obj);

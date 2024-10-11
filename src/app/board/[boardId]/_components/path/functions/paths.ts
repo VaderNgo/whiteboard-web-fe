@@ -20,7 +20,7 @@ export function getPathData(points: PathPoint[]) {
   return points.map((point) => `${point.command} ${point.x} ${point.y}`).join(" ");
 }
 
-export function updatePathFromExtrude(path: Path, edge: PathEdge, position: any) {
+export function updatePathFromExtrude(path: Path, edge: PathEdge, position: Vector2d) {
   // Create copies so can mutate them
   const newPoints = [...path.points];
   const newExtrudableEdges = [...path.extrudableEdges];
@@ -33,8 +33,8 @@ export function updatePathFromExtrude(path: Path, edge: PathEdge, position: any)
   const nodeToUpdate = isStartEdge ? 0 : 1;
 
   // update edge's axis with teh current position
-  newPoints[edge.points[0]][axis as "x" | "y"] = position[axis];
-  newPoints[edge.points[1]][axis as "x" | "y"] = position[axis];
+  newPoints[edge.points[0]][axis as "x" | "y"] = position[axis as "x" | "y"];
+  newPoints[edge.points[1]][axis as "x" | "y"] = position[axis as "x" | "y"];
 
   // Check if the extruded flag has been set, that means we should create the new edge to extrude
   if (!path.activeDrag || !path.activeDrag.extruded) {
@@ -65,7 +65,7 @@ export function updatePathFromExtrude(path: Path, edge: PathEdge, position: any)
   });
 }
 
-export function updatePathFromTip(path: Path, index: number, position: any) {
+export function updatePathFromTip(path: Path, index: number, position: Vector2d) {
   const newPoints = [...path.points];
   newPoints[index] = new PathPoint().setAttrs({
     ...newPoints[index],

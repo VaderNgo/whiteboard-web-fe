@@ -1,6 +1,7 @@
-import React from "react";
+import { useContext } from "react";
+import { BoardAction, BoardContext, Path } from "../../_contexts/boardContext";
+import { ControlPoint } from "./controlPoint";
 import {
-  calculateEdges,
   clearActiveDrag,
   getControlPointCoords,
   setActiveDrag,
@@ -8,8 +9,6 @@ import {
   updatePathFromExtrude,
   updatePathFromTip,
 } from "./functions";
-import { Path, PathEdge } from "../../_contexts/boardContext";
-import { ControlPoint } from "./controlPoint";
 
 interface ControlPointsProps {
   path: Path;
@@ -17,6 +16,7 @@ interface ControlPointsProps {
 }
 
 export function ControlPoints({ path, onChange }: ControlPointsProps) {
+  const { boardAction, setBoardAction } = useContext(BoardContext);
   const sourcePoint = path.points[0];
   const destinationPoint = path.points[path.points.length - 1];
   const source = (
@@ -30,6 +30,12 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
           onChange(updatePathFromTip(path, 0, e.target.getPosition()));
         }
       }}
+      onDragStart={() => {
+        setBoardAction(BoardAction.DragPath);
+      }}
+      onDragEnd={() => {
+        setBoardAction(BoardAction.Select);
+      }}
     />
   );
   const destination = (
@@ -42,6 +48,12 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
         if (path.endAnchorPoint == null) {
           onChange(updatePathFromTip(path, path.points.length - 1, e.target.getPosition()));
         }
+      }}
+      onDragStart={() => {
+        setBoardAction(BoardAction.DragPath);
+      }}
+      onDragEnd={() => {
+        setBoardAction(BoardAction.Select);
       }}
     />
   );
