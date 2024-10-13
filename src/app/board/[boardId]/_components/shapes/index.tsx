@@ -1,14 +1,15 @@
 import Konva from "konva";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Group, Text } from "react-konva";
-import { BoardContext, Node, Text as TextNode } from "../../_contexts/boardContext";
+import { BoardContext, Node, Path } from "../../_contexts/boardContext";
 import useHistory from "../../_hooks/useHistory";
 import useSocket from "../../_hooks/useSocket";
+import { updatePathAnchors, updatePathsForMovedNode } from "../path/functions/snapping";
 import { TextEditor } from "../text/textEditor";
+import { Anchor } from "./anchor";
 import EllipseShape from "./ellipseShape";
 import PolygonShape from "./polygonShape";
 import RectShape from "./rectShape";
-import { Anchor } from "./anchor";
 
 type ShapeProps = {
   node: Node;
@@ -27,6 +28,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     editorValue,
     setEditorValue,
     boardAction,
+    paths,
+    setPaths,
   } = useContext(BoardContext);
 
   const shapeRef = useRef<Konva.Group>(null);
@@ -56,6 +59,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   }, [selectedNode]);
 
   useEffect(() => {}, [isHovering]);
+
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (stageRef) {
       const mouseX = stageRef.current?.getRelativePointerPosition()?.x;
@@ -79,6 +83,10 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       prevState.set(node.id, updatedNode as Node);
       updateBoard([updatedNode as Node], "update");
       return new Map(prevState);
+    });
+    setPaths((prevState) => {
+      const updatedPaths = updatePathsForMovedNode(nodes.get(node.id) as Node, prevState, nodes);
+      return updatedPaths;
     });
   };
 

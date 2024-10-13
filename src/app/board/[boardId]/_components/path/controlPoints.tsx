@@ -9,6 +9,7 @@ import {
   updatePathFromExtrude,
   updatePathFromTip,
 } from "./functions";
+import { handlePathEndpointDrag } from "./functions/snapping";
 
 interface ControlPointsProps {
   path: Path;
@@ -16,7 +17,7 @@ interface ControlPointsProps {
 }
 
 export function ControlPoints({ path, onChange }: ControlPointsProps) {
-  const { boardAction, setBoardAction } = useContext(BoardContext);
+  const { boardAction, setBoardAction, stageRef, nodes } = useContext(BoardContext);
   const sourcePoint = path.points[0];
   const destinationPoint = path.points[path.points.length - 1];
   const source = (
@@ -26,9 +27,9 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
       type="tip"
       isDraggable={path.startAnchorPoint == null}
       onDragMove={(e) => {
-        if (path.startAnchorPoint == null) {
-          onChange(updatePathFromTip(path, 0, e.target.getPosition()));
-        }
+        const pos = stageRef?.current?.getRelativePointerPosition();
+        if (!pos) return;
+        onChange(handlePathEndpointDrag(path, 0, pos, nodes, e));
       }}
       onDragStart={() => {
         setBoardAction(BoardAction.DragPath);
@@ -45,9 +46,9 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
       type="tip"
       isDraggable={path.endAnchorPoint == null}
       onDragMove={(e) => {
-        if (path.endAnchorPoint == null) {
-          onChange(updatePathFromTip(path, path.points.length - 1, e.target.getPosition()));
-        }
+        const pos = stageRef?.current?.getRelativePointerPosition();
+        if (!pos) return;
+        onChange(handlePathEndpointDrag(path, path.points.length - 1, pos, nodes, e));
       }}
       onDragStart={() => {
         setBoardAction(BoardAction.DragPath);

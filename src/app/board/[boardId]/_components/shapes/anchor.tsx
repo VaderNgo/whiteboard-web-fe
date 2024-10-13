@@ -23,18 +23,18 @@ export const Anchor = ({ nodeId, index, isHovering, x, y, boardAction }: AnchorP
       zIndex={0}
       x={x}
       y={y}
-      radius={10}
+      radius={6}
       fill="white"
-      stroke="#b00b69"
+      stroke="#3B82F6"
       visible={
         isHovering || boardAction === BoardAction.DrawLine || boardAction === BoardAction.DragPath
       }
-      strokeWidth={3}
+      strokeWidth={2}
       strokeScaleEnabled={false}
       onMouseEnter={(e) => {
-        e.target.to({ strokeWidth: 5, radius: 15, duration: 0.2 });
+        e.target.to({ strokeWidth: 4, radius: 10, duration: 0.2 });
       }}
-      onMouseLeave={(e) => e.target.to({ strokeWidth: 3, radius: 10, duration: 0.2 })}
+      onMouseLeave={(e) => e.target.to({ strokeWidth: 2, radius: 6, duration: 0.2 })}
     />
   );
 };

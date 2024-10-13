@@ -22,8 +22,8 @@ import useSocket from "../../_hooks/useSocket";
 
 import { SocketContext } from "../../_contexts/socketContext";
 import SimpleEditor from "../editor/simple";
-import { calculateEdges } from "../path/functions";
 import { EditablePath } from "../path";
+import { calculateEdges } from "../path/functions";
 
 const Canvas: React.FC = () => {
   const {
@@ -75,7 +75,7 @@ const Canvas: React.FC = () => {
   const [resizedCanvasWidth, setResizedCanvasWidth] = useState(CANVAS_WIDTH);
   const [resizedCanvasHeight, setResizedCanvasHeight] = useState(CANVAS_HEIGHT);
   const tempShapeRef = useRef<Konva.Shape | null>(null);
-  useEffect(() => {}, [paths, drawingPath, nodes]);
+  useEffect(() => {}, [drawingPath, nodes]);
 
   const createStepPathPoints = (start: PathPoint, end: { x: number; y: number }): PathPoint[] => {
     return [
@@ -468,17 +468,22 @@ const Canvas: React.FC = () => {
                     <Layer ref={layerRef}>
                       {true && (
                         <>
-                          {Array.from(paths.values()).map((path) => (
-                            <EditablePath
-                              key={path.id}
-                              initialPath={path}
-                              onChange={(updatedPath) => {
-                                const newPaths = new Map(paths);
-                                newPaths.set(updatedPath.id, updatedPath);
-                                setPaths(newPaths);
-                              }}
-                            />
-                          ))}
+                          {Array.from(paths.values()).map(
+                            (path) => (
+                              console.log(path),
+                              (
+                                <EditablePath
+                                  key={path.id}
+                                  initialPath={path}
+                                  onChange={(updatedPath) => {
+                                    const newPaths = new Map(paths);
+                                    newPaths.set(updatedPath.id, updatedPath);
+                                    setPaths(newPaths);
+                                  }}
+                                />
+                              )
+                            )
+                          )}
                           {drawingPath && (
                             <Line
                               points={drawingPath.points.flatMap((p) => [p.x, p.y])}

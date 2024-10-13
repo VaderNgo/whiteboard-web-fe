@@ -2,7 +2,7 @@ import { Vector2d } from "konva/lib/types";
 import React, { useContext, useRef } from "react";
 import { Circle } from "react-konva";
 import { findNearestAnchorPoint } from "./functions/snapping";
-import { BoardContext } from "../../_contexts/boardContext";
+import { BoardContext, Path } from "../../_contexts/boardContext";
 import Konva from "konva";
 
 const STROKE_WIDTH = 4;
@@ -19,6 +19,8 @@ interface ControlPointProps {
   onDragMove?: (e: any) => void;
   onDragEnd?: (e: any) => void;
   type?: "control" | "tip";
+  index?: number;
+  path?: Path;
 }
 
 export function ControlPoint({
@@ -30,25 +32,12 @@ export function ControlPoint({
   onDragEnd,
   isDraggable = true,
   type = "control",
+  index = -1,
+  path,
 }: ControlPointProps) {
   const [isHovered, setIsHovered] = React.useState(false);
   const { nodes, stageRef } = useContext(BoardContext);
   const anchorRef = useRef<Konva.Circle | null>(null);
-  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
-    if (!stageRef || !stageRef.current) return;
-    const pos = stageRef.current.getRelativePointerPosition();
-    if (!pos) return;
-    if (type === "tip") {
-      // For endpoints, we want to check for snapping
-      const snapResult = findNearestAnchorPoint(pos, nodes);
-      if (snapResult.shouldSnap && snapResult.position) {
-        e.target.position(snapResult.position);
-      }
-    }
-    if (onDragMove) {
-      onDragMove(e);
-    }
-  };
 
   const dragBoundFunc = (
     pos: { x: number; y: number },
@@ -79,7 +68,7 @@ export function ControlPoint({
       onMouseLeave={() => setIsHovered(false)}
       draggable={isDraggable}
       onDragStart={onDragStart}
-      onDragMove={handleDragMove}
+      onDragMove={onDragMove}
       onDragEnd={(e) => {
         if (onDragEnd) {
           onDragEnd(e);

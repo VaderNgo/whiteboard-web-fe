@@ -32,7 +32,6 @@ const RectShape = ({ node, isHovering }: RectShapeProps) => {
         fill={node.fillColor}
         stroke={node.strokeColor}
         strokeWidth={node.strokeWidth}
-        cornerRadius={0}
         strokeScaleEnabled={false}
         onTransform={handleTransform}
       />
