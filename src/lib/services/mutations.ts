@@ -25,6 +25,14 @@ export function useLogin() {
   });
 }
 
+export function useLogout() {
+  return useMutation({
+    mutationFn: async () => {
+      return await AxiosInstance.post("/auth/logout");
+    },
+  });
+}
+
 export type TeamCreateResponse = {
   name: string;
   description: string;
@@ -63,6 +71,23 @@ export function useUploadTeamLogo() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+}
+
+export function useUploadProfilePicture() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: FormData }) => {
+      return await AxiosInstance.put(`/users/${id}/avatar`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user"] });
     },
   });
 }
@@ -155,6 +180,17 @@ export function useUpdateTeam() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (data: { oldPassword: string; newPassword: string }) => {
+      return await AxiosInstance.put("/auth/change-password", {
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      });
     },
   });
 }

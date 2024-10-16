@@ -40,6 +40,7 @@ export const SettingsDialog = (team?: Team) => {
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
   } = useForm<EditTeamBody>({
     mode: "onBlur",
     resolver: zodResolver(editTeamSchema),
@@ -50,6 +51,14 @@ export const SettingsDialog = (team?: Team) => {
   });
 
   const watchedFields = watch(["name", "description"]);
+
+  useEffect(() => {
+    reset({
+      name: team?.name || "",
+      description: team?.description || "",
+    });
+    setImageUri(team?.logo || "");
+  }, [team, reset]);
 
   useEffect(() => {
     // Compare initial values with the current form values
@@ -141,7 +150,7 @@ export const SettingsDialog = (team?: Team) => {
         <div className="flex w-full gap-5 flex-1">
           <ImagePreviewer
             setImageUri={setImageUri}
-            defaultUri={team?.logo}
+            imageUri={imageUri}
             className="h-32 w-32 mt-6"
           />
           <div className="w-full">

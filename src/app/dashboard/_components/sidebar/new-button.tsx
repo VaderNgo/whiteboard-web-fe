@@ -43,14 +43,17 @@ export const NewButton = ({
         <div className="flex gap-5">
           <div className="flex-1 h-fit">
             <CreateTeamForm
-              onSubmitSuccess={async () => setOpen(false)}
+              onSubmitSuccess={async () => {
+                setOpen(false);
+                setLogo("");
+              }}
               selectedLogo={selectedLogo}
             />
           </div>
 
           <div className="flex flex-col">
             <h3 className="font-medium font-mono">Logo</h3>
-            <ImagePreviewer setImageUri={setLogo} className="w-32 h-32" />
+            <ImagePreviewer setImageUri={setLogo} imageUri={selectedLogo} className="w-32 h-32" />
           </div>
         </div>
       </DialogContent>
