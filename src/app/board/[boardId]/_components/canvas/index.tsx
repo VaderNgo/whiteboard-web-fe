@@ -1,20 +1,19 @@
 "use client";
 import Konva from "konva";
-import { nanoid } from "nanoid";
 import { useParams } from "next/navigation";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Layer, Rect, Stage, Transformer } from "react-konva";
+import { Layer, Line, Rect, Stage, Transformer } from "react-konva";
 import {
   BoardAction,
   BoardContext,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   Node,
-  Text,
+  Path,
+  PathPoint,
 } from "../../_contexts/boardContext";
 
 import Cursor from "../cursor";
-import Edge from "../edge";
 import Shape from "../shapes";
 import Toolbar from "../toolbar";
 
@@ -23,6 +22,8 @@ import useSocket from "../../_hooks/useSocket";
 
 import { SocketContext } from "../../_contexts/socketContext";
 import SimpleEditor from "../editor/simple";
+import { EditablePath } from "../path";
+import { calculateEdges } from "../path/functions";
 
 const Canvas: React.FC = () => {
   const {
@@ -37,8 +38,6 @@ const Canvas: React.FC = () => {
     setStageStyle,
     shapeType,
     setStageRef,
-    fillStyle,
-    strokeStyle,
     setDisplayColorPicker,
     history,
     historyIndex,
@@ -54,6 +53,14 @@ const Canvas: React.FC = () => {
     setBoardAction,
     setLayerRef,
     selectedNode,
+    paths,
+    setPaths,
+    selectedPath,
+    setSelectedPath,
+    drawingPath,
+    setDrawingPath,
+    isDrawingPath,
+    setIsDrawingPath,
   } = useContext(BoardContext);
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
@@ -68,7 +75,22 @@ const Canvas: React.FC = () => {
   const [resizedCanvasWidth, setResizedCanvasWidth] = useState(CANVAS_WIDTH);
   const [resizedCanvasHeight, setResizedCanvasHeight] = useState(CANVAS_HEIGHT);
   const tempShapeRef = useRef<Konva.Shape | null>(null);
+  useEffect(() => {}, [drawingPath, nodes]);
 
+  const createStepPathPoints = (start: PathPoint, end: { x: number; y: number }): PathPoint[] => {
+    return [
+      new PathPoint().setAttrs({ command: "M", x: start.x, y: start.y }),
+      new PathPoint().setAttrs({ command: "L", x: end.x, y: start.y }),
+      new PathPoint().setAttrs({ command: "L", x: end.x, y: end.y }),
+    ];
+  };
+
+  useEffect(() => {
+    setBoardId(params.boardId);
+    return () => {
+      setBoardId(undefined);
+    };
+  }, [params.boardId, setBoardId]);
   useEffect(() => {
     setBoardId(params.boardId);
     return () => {
@@ -87,16 +109,35 @@ const Canvas: React.FC = () => {
       setBoardName("");
     };
   }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]); //getBoard
-
   useEffect(() => {
-    console.log(boardAction);
-  }, [boardAction, tempShapeRef]);
+    if (params.boardId) {
+      joinBoard();
+    }
+    return () => {
+      leaveBoard();
+      setBoardUsers(new Map());
+      setUserCursors(new Map());
+      setBoardName("");
+    };
+  }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]); //getBoard
+
+  useEffect(() => {}, [boardAction, tempShapeRef]);
 
   const resizeStage = () => {
     setResizedCanvasHeight(window.innerHeight);
     setResizedCanvasWidth(window.innerWidth);
   };
+  const resizeStage = () => {
+    setResizedCanvasHeight(window.innerHeight);
+    setResizedCanvasWidth(window.innerWidth);
+  };
 
+  useEffect(() => {
+    window.addEventListener("resize", resizeStage);
+    return () => {
+      window.removeEventListener("resize", resizeStage);
+    };
+  }, []);
   useEffect(() => {
     window.addEventListener("resize", resizeStage);
     return () => {
@@ -112,13 +153,31 @@ const Canvas: React.FC = () => {
       document.removeEventListener("keydown", redoByShortCutKey);
     };
   }, [historyIndex, history, setHistoryIndex, setNodes, undoByShortCutKey, redoByShortCutKey]);
+  useEffect(() => {
+    document.addEventListener("keydown", undoByShortCutKey);
+    document.addEventListener("keydown", redoByShortCutKey);
+    return () => {
+      document.removeEventListener("keydown", undoByShortCutKey);
+      document.removeEventListener("keydown", redoByShortCutKey);
+    };
+  }, [historyIndex, history, setHistoryIndex, setNodes, undoByShortCutKey, redoByShortCutKey]);
 
   useEffect(() => {
     if (stageRef.current) {
       setStageRef(stageRef);
     }
   }, [setStageRef]);
+  useEffect(() => {
+    if (stageRef.current) {
+      setStageRef(stageRef);
+    }
+  }, [setStageRef]);
 
+  useEffect(() => {
+    if (layerRef.current) {
+      setLayerRef(layerRef);
+    }
+  }, [layerRef]);
   useEffect(() => {
     if (layerRef.current) {
       setLayerRef(layerRef);
@@ -132,46 +191,19 @@ const Canvas: React.FC = () => {
     }
   }, [selectedShapes, selectedNode]);
 
-  const handleDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    // const stage = e.target.getStage();
-    // let pointerPosition = null;
-    // if (e.target === stageRef.current && stage) {
-    //     pointerPosition = stage.getRelativePointerPosition();
-    //     if (pointerPosition) {
-    //         const id = nanoid();
-    //         const defaultBlockArray = htmlToDraft(`<p style="font-size: 18px;"></p>`);
-    //         const contentState = ContentState.createFromBlockArray(
-    //             defaultBlockArray.contentBlocks,
-    //             defaultBlockArray.entityMap
-    //         );
-    //         const newNode: Node = {
-    //             id,
-    //             children: [],
-    //             parents: [],
-    //             text: JSON.stringify(convertToRaw(contentState)),
-    //             shapeType,
-    //             x: pointerPosition.x,
-    //             y: pointerPosition.y,
-    //             width: 500,
-    //             height: 90,
-    //             fillStyle,
-    //             strokeStyle,
-    //         };
-    //         setNodes((prevState) => {
-    //             prevState.set(newNode.id, newNode);
-    //             addToHistory({
-    //                 type: "add",
-    //                 diff: [newNode.id],
-    //                 nodes: prevState,
-    //             });
-    //             return new Map(prevState);
-    //         });
-    //         // saveUpdatedNodes([newNode]).catch((err) => console.log(err));
-    //         updateBoard([newNode], "update");
-    //     }
-    // }
-  };
-
+  const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
+    e.evt.preventDefault();
+    if (boardAction !== BoardAction.Drag) {
+      return;
+    }
+    if (stageRef.current) {
+      const stage = stageRef.current;
+      const scaleBy = 1.05;
+      const oldScale = stageRef.current.scaleX();
+      const mousePointTo = {
+        x: (stage.getPointerPosition()?.x as number) / oldScale - stage.x() / oldScale,
+        y: (stage.getPointerPosition()?.y as number) / oldScale - stage.y() / oldScale,
+      };
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
     if (boardAction !== BoardAction.Drag) {
@@ -187,7 +219,11 @@ const Canvas: React.FC = () => {
       };
 
       const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
+      const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
+      if (newScale > 2 || newScale < 0.1) {
+        return;
+      }
       if (newScale > 2 || newScale < 0.1) {
         return;
       }
@@ -196,7 +232,17 @@ const Canvas: React.FC = () => {
         -(mousePointTo.x - (stage.getPointerPosition()?.x as number) / newScale) * newScale;
       const stageY =
         -(mousePointTo.y - (stage.getPointerPosition()?.y as number) / newScale) * newScale;
+      const stageX =
+        -(mousePointTo.x - (stage.getPointerPosition()?.x as number) / newScale) * newScale;
+      const stageY =
+        -(mousePointTo.y - (stage.getPointerPosition()?.y as number) / newScale) * newScale;
 
+      setStageConfig((prevState) => ({
+        ...prevState,
+        stageScale: newScale,
+        stageX,
+        stageY,
+      }));
       setStageConfig((prevState) => ({
         ...prevState,
         stageScale: newScale,
@@ -211,7 +257,20 @@ const Canvas: React.FC = () => {
       }));
     }
   };
+      setStageStyle((prevState) => ({
+        ...prevState,
+        backgroundSize: `${50 * newScale}px ${50 * newScale}px`,
+        backgroundPosition: `${stageX}px ${stageY}px`,
+      }));
+    }
+  };
 
+  const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
+    if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      const container = stageRef.current.container();
+      if (container) container.style.cursor = "grabbing";
+    }
+  };
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
       const container = stageRef.current.container();
@@ -227,6 +286,14 @@ const Canvas: React.FC = () => {
       }));
     }
   };
+  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
+    if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      setStageStyle((prevState) => ({
+        ...prevState,
+        backgroundPosition: `${e.target.x()}px ${e.target.y()}px`,
+      }));
+    }
+  };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
@@ -234,7 +301,20 @@ const Canvas: React.FC = () => {
       if (container) container.style.cursor = "auto";
     }
   };
+  const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
+    if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      const container = stageRef.current.container();
+      if (container) container.style.cursor = "auto";
+    }
+  };
 
+  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (e.target === stageRef.current) {
+      setSelectedNode(null);
+      setSelectedShapes([]);
+      setDisplayColorPicker(false);
+    }
+  };
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.target === stageRef.current) {
       setSelectedNode(null);
@@ -255,6 +335,18 @@ const Canvas: React.FC = () => {
         x1: X1 as number,
         y1: Y1 as number,
       });
+  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (e.target !== stageRef.current || boardAction === BoardAction.Drag) {
+      return;
+    }
+    e.evt.preventDefault();
+    if (boardAction === BoardAction.Select) {
+      const X1 = stageRef.current.getRelativePointerPosition()?.x;
+      const Y1 = stageRef.current.getRelativePointerPosition()?.y;
+      setSelectionRectCoords({
+        x1: X1 as number,
+        y1: Y1 as number,
+      });
 
       selectionRectRef.current?.visible(true);
       selectionRectRef.current?.width(0);
@@ -263,13 +355,10 @@ const Canvas: React.FC = () => {
         x: X1,
         y: Y1,
       });
-    } else if (boardAction === BoardAction.Draw) {
+    } else if (boardAction === BoardAction.DrawShape) {
       const X1 = stageRef.current.getRelativePointerPosition()?.x;
       const Y1 = stageRef.current.getRelativePointerPosition()?.y;
       let shape = null;
-      console.log(shapeType);
-      console.log(boardAction);
-      console.log(X1, Y1);
       switch (shapeType) {
         case "Ellipse":
           shape = new Konva.Ellipse({
@@ -307,9 +396,37 @@ const Canvas: React.FC = () => {
       }
       tempShapeRef.current = shape;
       layerRef.current?.add(shape).batchDraw();
+    } else {
+      const clickedOnEmpty = e.target === e.target.getStage();
+      if (!clickedOnEmpty || isDrawingPath) return;
+      const X1 = stageRef.current.getRelativePointerPosition()?.x;
+      const Y1 = stageRef.current.getRelativePointerPosition()?.y;
+      if (!X1 || !Y1) return;
+      const initialPoint = new PathPoint().setAttrs({
+        command: "M",
+        x: X1,
+        y: Y1,
+      });
+
+      setDrawingPath(
+        new Path().setAttrs({
+          points: [initialPoint],
+        })
+      );
+      setIsDrawingPath(true);
     }
   };
 
+  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // user mouse
+    // const uid = authState.user?.uid;
+    // if (uid) {
+    const mouseX = stageRef.current?.getRelativePointerPosition()?.x;
+    const mouseY = stageRef.current?.getRelativePointerPosition()?.y;
+    if (mouseX && mouseY) {
+      updateUserMouse({ x: mouseX, y: mouseY });
+    }
+    // }
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
     // user mouse
     // const uid = authState.user?.uid;
@@ -338,7 +455,7 @@ const Canvas: React.FC = () => {
         });
       }
     }
-    if (boardAction === BoardAction.Draw) {
+    if (boardAction === BoardAction.DrawShape) {
       if (tempShapeRef.current && mouseX && mouseY) {
         const { x: shapeX, y: shapeY } = tempShapeRef.current!.attrs;
         switch (shapeType) {
@@ -357,17 +474,25 @@ const Canvas: React.FC = () => {
         }
         layerRef.current?.batchDraw();
       }
+    } else {
+      if (!isDrawingPath || !drawingPath) return;
+      const x2 = stageRef.current?.getRelativePointerPosition()?.x;
+      const y2 = stageRef.current?.getRelativePointerPosition()?.y;
+      if (!x2 || !y2) return;
+      const startPoint = drawingPath.points[0];
+      const newPoints = createStepPathPoints(startPoint, { x: x2, y: y2 });
+
+      setDrawingPath(
+        new Path().setAttrs({
+          ...drawingPath,
+          points: newPoints,
+        })
+      );
     }
   };
 
   const addDrawnShape = () => {
-    const id = nanoid();
-    const textId = nanoid();
-    // const defaultBlockArray = htmlToDraft(`<p style="font-size: 18px;"></p>`);
-    // const contentState = ContentState.createFromBlockArray(
-    //     defaultBlockArray.contentBlocks,
-    //     defaultBlockArray.entityMap
-    // );
+    if (!tempShapeRef.current) return;
     const shapeAttribute = {
       x: tempShapeRef.current?.attrs.x + tempShapeRef.current?.attrs.width / 2,
       y: tempShapeRef.current?.attrs.y + tempShapeRef.current?.attrs.height / 2,
@@ -382,16 +507,9 @@ const Canvas: React.FC = () => {
       default:
         break;
     }
-    const newNode: Node = {
-      id,
-      children: [],
-      parents: [],
-      text: new Text(textId, ""),
-      shapeType,
-      fillStyle: "transparent",
-      strokeStyle: "black",
+    const newNode: Node = new Node().setAttrs({
       ...shapeAttribute,
-    };
+    });
     setNodes((prevState) => {
       prevState.set(newNode.id, newNode);
       addToHistory({
@@ -406,6 +524,7 @@ const Canvas: React.FC = () => {
 
   const handleMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
     e.evt.preventDefault();
+    setIsDrawingPath(false);
     if (boardAction === BoardAction.Select) {
       if (!selectionRectRef.current?.visible()) {
         selectionRectRef.current?.visible(false);
@@ -420,27 +539,26 @@ const Canvas: React.FC = () => {
         Konva.Util.haveIntersection(box, shape.getClientRect())
       );
       setSelectedShapes(selected as Konva.Group[]);
-    } else if (boardAction === BoardAction.Draw) {
+    } else if (boardAction === BoardAction.DrawShape) {
       addDrawnShape();
-      console.log(stageRef.current?.content.children);
       tempShapeRef.current?.destroy();
       layerRef.current?.batchDraw();
       tempShapeRef.current = null;
       setBoardAction(BoardAction.Select);
+    } else {
+      if (!isDrawingPath || !drawingPath) return;
+
+      const finalPath = calculateEdges(drawingPath);
+      setPaths((prevPaths) => {
+        const newPaths = new Map(prevPaths);
+        newPaths.set(finalPath.id, finalPath);
+        return newPaths;
+      });
+
+      setDrawingPath(null);
+      setIsDrawingPath(false);
+      setBoardAction(BoardAction.Select);
     }
-  };
-
-  const handleTransform = () => {
-    const shape = selectionRectRef.current!;
-    const scaleX = shape.scaleX();
-    const scaleY = shape.scaleY();
-
-    shape.width(shape.width() * scaleX);
-    shape.height(shape.height() * scaleY);
-    shape.scaleX(1);
-    shape.scaleY(1);
-
-    shape.strokeWidth(shape.strokeWidth() / Math.max(scaleX, scaleY));
   };
 
   return (
@@ -455,7 +573,7 @@ const Canvas: React.FC = () => {
                 onContextMenu={(e) => e.evt.preventDefault()}
                 style={stageStyle}
                 ref={stageRef}
-                className="-z-10 absolute top-0 overflow-hidden"
+                className=" absolute top-0 overflow-hidden"
                 scaleX={stageConfig.stageScale}
                 scaleY={stageConfig.stageScale}
                 x={stageConfig.stageX}
@@ -471,7 +589,6 @@ const Canvas: React.FC = () => {
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
-                onDblClick={handleDoubleClick}
                 onWheel={handleWheel}
               >
                 <BoardContext.Provider value={roomContextValue}>
@@ -479,24 +596,30 @@ const Canvas: React.FC = () => {
                     <Layer ref={layerRef}>
                       {true && (
                         <>
-                          {nodes &&
-                            nodes.size > 0 &&
-                            Array.from(nodes.keys()).map((key) => {
-                              const currNode = nodes.get(key);
-                              if (!currNode) return null;
-                              return currNode.children.map((child) => {
-                                const currChild = nodes.get(child.id);
-                                if (!currChild) return null;
-                                return (
-                                  <Edge
-                                    key={`edge_${currNode.id}_${child.id}`}
-                                    node={currNode}
-                                    currNodeChildren={currChild}
-                                    color={child.color}
-                                  />
-                                );
-                              });
-                            })}
+                          {Array.from(paths.values()).map(
+                            (path) => (
+                              console.log(path),
+                              (
+                                <EditablePath
+                                  key={path.id}
+                                  initialPath={path}
+                                  onChange={(updatedPath) => {
+                                    const newPaths = new Map(paths);
+                                    newPaths.set(updatedPath.id, updatedPath);
+                                    setPaths(newPaths);
+                                  }}
+                                />
+                              )
+                            )
+                          )}
+                          {drawingPath && (
+                            <Line
+                              points={drawingPath.points.flatMap((p) => [p.x, p.y])}
+                              stroke={drawingPath.strokeColor}
+                              strokeWidth={drawingPath.strokeWidth}
+                              dash={drawingPath.dash}
+                            />
+                          )}
                           {nodes &&
                             nodes.size > 0 &&
                             Array.from(nodes.keys()).map((key) => {
@@ -508,13 +631,13 @@ const Canvas: React.FC = () => {
                             <Transformer
                               ref={transformerRef}
                               rotateEnabled={true}
-                              anchorSize={5}
-                              anchorStrokeWidth={10}
-                              anchorCornerRadius={0}
+                              anchorSize={15}
+                              anchorStrokeWidth={5}
+                              anchorCornerRadius={50}
                               flipEnabled={true}
                               ignoreStroke={true}
                               boundBoxFunc={(oldBox, newBox) => {
-                                if (newBox.width > 800) {
+                                if (newBox.width < 5 || newBox.height < 5) {
                                   return oldBox;
                                 }
                                 return newBox;
