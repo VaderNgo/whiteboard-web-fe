@@ -103,7 +103,7 @@ export function useInviteMember() {
 
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: ["team-members", { teamId: variables.teamId.toString() }],
+        queryKey: ["team-members", variables.teamId.toString()],
       });
     },
   });
