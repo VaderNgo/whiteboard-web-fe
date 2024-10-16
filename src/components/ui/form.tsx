@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { RegisterOptions } from "react-hook-form";
 
@@ -41,27 +42,39 @@ export const Form: React.FC<FormProps> = ({ children }) => (
 
 interface FormContainerProps {
   children: React.ReactNode;
-  title: string;
-  rootError?: string;
-  onClose: () => void;
+  title?: string;
+  rootMessage?: string;
+  rootType?: "error" | "success";
+  onClose?: () => void;
+  containerLess?: boolean;
 }
 
 export const FormContainer: React.FC<FormContainerProps> = ({
   children,
   title,
   onClose,
-  rootError,
+  rootMessage: rootMessage,
+  rootType = "error",
+  containerLess = false,
 }) => (
-  <div className="bg-white/90 w-full h-full p-5 rounded-md border relative">
-    <h2 className="text-center font-semibold font-mono text-3xl mb-2">{title}</h2>
-    <X
-      onClick={onClose}
-      className="absolute top-2 right-2 opacity-50 size-5 hover:opacity-100 transition-opacity cursor-pointer pointer-events-auto"
-    />
-    {rootError && (
-      <p className="font-mono rounded-md py-2 text-red-800 bg-red-100 border text-center my-4">
-        {rootError}
-      </p>
+  <div className={cn(!containerLess && "bg-white/90 w-full h-full p-5 rounded-md border relative")}>
+    {title && <h2 className="text-center font-semibold font-mono text-3xl mb-2">{title}</h2>}
+    {onClose && (
+      <X
+        onClick={onClose}
+        className="absolute top-2 right-2 opacity-50 size-5 hover:opacity-100 transition-opacity cursor-pointer pointer-events-auto"
+      />
+    )}
+    {rootMessage && (
+      <pre
+        className={cn(
+          "font-mono rounded-md py-2 border text-left px-2 mb-4",
+          rootType == "error" && "text-red-800 bg-red-100",
+          rootType == "success" && "text-green-800 bg-green-100"
+        )}
+      >
+        {rootMessage}
+      </pre>
     )}
     {children}
   </div>

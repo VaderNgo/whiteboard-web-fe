@@ -91,7 +91,24 @@ const Canvas: React.FC = () => {
       setBoardId(undefined);
     };
   }, [params.boardId, setBoardId]);
+  useEffect(() => {
+    setBoardId(params.boardId);
+    return () => {
+      setBoardId(undefined);
+    };
+  }, [params.boardId, setBoardId]);
 
+  useEffect(() => {
+    if (params.boardId) {
+      joinBoard();
+    }
+    return () => {
+      leaveBoard();
+      setBoardUsers(new Map());
+      setUserCursors(new Map());
+      setBoardName("");
+    };
+  }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]); //getBoard
   useEffect(() => {
     if (params.boardId) {
       joinBoard();
@@ -110,7 +127,17 @@ const Canvas: React.FC = () => {
     setResizedCanvasHeight(window.innerHeight);
     setResizedCanvasWidth(window.innerWidth);
   };
+  const resizeStage = () => {
+    setResizedCanvasHeight(window.innerHeight);
+    setResizedCanvasWidth(window.innerWidth);
+  };
 
+  useEffect(() => {
+    window.addEventListener("resize", resizeStage);
+    return () => {
+      window.removeEventListener("resize", resizeStage);
+    };
+  }, []);
   useEffect(() => {
     window.addEventListener("resize", resizeStage);
     return () => {
@@ -126,13 +153,31 @@ const Canvas: React.FC = () => {
       document.removeEventListener("keydown", redoByShortCutKey);
     };
   }, [historyIndex, history, setHistoryIndex, setNodes, undoByShortCutKey, redoByShortCutKey]);
+  useEffect(() => {
+    document.addEventListener("keydown", undoByShortCutKey);
+    document.addEventListener("keydown", redoByShortCutKey);
+    return () => {
+      document.removeEventListener("keydown", undoByShortCutKey);
+      document.removeEventListener("keydown", redoByShortCutKey);
+    };
+  }, [historyIndex, history, setHistoryIndex, setNodes, undoByShortCutKey, redoByShortCutKey]);
 
   useEffect(() => {
     if (stageRef.current) {
       setStageRef(stageRef);
     }
   }, [setStageRef]);
+  useEffect(() => {
+    if (stageRef.current) {
+      setStageRef(stageRef);
+    }
+  }, [setStageRef]);
 
+  useEffect(() => {
+    if (layerRef.current) {
+      setLayerRef(layerRef);
+    }
+  }, [layerRef]);
   useEffect(() => {
     if (layerRef.current) {
       setLayerRef(layerRef);
@@ -159,9 +204,26 @@ const Canvas: React.FC = () => {
         x: (stage.getPointerPosition()?.x as number) / oldScale - stage.x() / oldScale,
         y: (stage.getPointerPosition()?.y as number) / oldScale - stage.y() / oldScale,
       };
+  const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
+    e.evt.preventDefault();
+    if (boardAction !== BoardAction.Drag) {
+      return;
+    }
+    if (stageRef.current) {
+      const stage = stageRef.current;
+      const scaleBy = 1.05;
+      const oldScale = stageRef.current.scaleX();
+      const mousePointTo = {
+        x: (stage.getPointerPosition()?.x as number) / oldScale - stage.x() / oldScale,
+        y: (stage.getPointerPosition()?.y as number) / oldScale - stage.y() / oldScale,
+      };
 
       const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
+      const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
+      if (newScale > 2 || newScale < 0.1) {
+        return;
+      }
       if (newScale > 2 || newScale < 0.1) {
         return;
       }
@@ -170,7 +232,17 @@ const Canvas: React.FC = () => {
         -(mousePointTo.x - (stage.getPointerPosition()?.x as number) / newScale) * newScale;
       const stageY =
         -(mousePointTo.y - (stage.getPointerPosition()?.y as number) / newScale) * newScale;
+      const stageX =
+        -(mousePointTo.x - (stage.getPointerPosition()?.x as number) / newScale) * newScale;
+      const stageY =
+        -(mousePointTo.y - (stage.getPointerPosition()?.y as number) / newScale) * newScale;
 
+      setStageConfig((prevState) => ({
+        ...prevState,
+        stageScale: newScale,
+        stageX,
+        stageY,
+      }));
       setStageConfig((prevState) => ({
         ...prevState,
         stageScale: newScale,
@@ -185,7 +257,20 @@ const Canvas: React.FC = () => {
       }));
     }
   };
+      setStageStyle((prevState) => ({
+        ...prevState,
+        backgroundSize: `${50 * newScale}px ${50 * newScale}px`,
+        backgroundPosition: `${stageX}px ${stageY}px`,
+      }));
+    }
+  };
 
+  const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
+    if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      const container = stageRef.current.container();
+      if (container) container.style.cursor = "grabbing";
+    }
+  };
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
       const container = stageRef.current.container();
@@ -201,7 +286,21 @@ const Canvas: React.FC = () => {
       }));
     }
   };
+  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
+    if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      setStageStyle((prevState) => ({
+        ...prevState,
+        backgroundPosition: `${e.target.x()}px ${e.target.y()}px`,
+      }));
+    }
+  };
 
+  const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
+    if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      const container = stageRef.current.container();
+      if (container) container.style.cursor = "auto";
+    }
+  };
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
       const container = stageRef.current.container();
@@ -216,7 +315,26 @@ const Canvas: React.FC = () => {
       setDisplayColorPicker(false);
     }
   };
+  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (e.target === stageRef.current) {
+      setSelectedNode(null);
+      setSelectedShapes([]);
+      setDisplayColorPicker(false);
+    }
+  };
 
+  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (e.target !== stageRef.current || boardAction === BoardAction.Drag) {
+      return;
+    }
+    e.evt.preventDefault();
+    if (boardAction === BoardAction.Select) {
+      const X1 = stageRef.current.getRelativePointerPosition()?.x;
+      const Y1 = stageRef.current.getRelativePointerPosition()?.y;
+      setSelectionRectCoords({
+        x1: X1 as number,
+        y1: Y1 as number,
+      });
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.target !== stageRef.current || boardAction === BoardAction.Drag) {
       return;
@@ -299,6 +417,16 @@ const Canvas: React.FC = () => {
     }
   };
 
+  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // user mouse
+    // const uid = authState.user?.uid;
+    // if (uid) {
+    const mouseX = stageRef.current?.getRelativePointerPosition()?.x;
+    const mouseY = stageRef.current?.getRelativePointerPosition()?.y;
+    if (mouseX && mouseY) {
+      updateUserMouse({ x: mouseX, y: mouseY });
+    }
+    // }
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
     // user mouse
     // const uid = authState.user?.uid;
