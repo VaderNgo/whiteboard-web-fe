@@ -1,21 +1,34 @@
-import React from "react";
-import { RegularPolygon } from "react-konva";
-import { Node } from "../../_contexts/boardContext";
+import { Circle, RegularPolygon } from "react-konva";
+import { BoardAction, BoardContext, Node } from "../../_contexts/boardContext";
+import { useContext, useEffect } from "react";
 
 type PolygonShapeProps = {
-    node: Node;
+  node: Node;
+  isHovering: boolean;
 };
 
-const PolygonShape = ({ node }: PolygonShapeProps) => {
-    return (
-        <RegularPolygon
-            radius={node.width / 2}
-            sides={4}
-            fill={node.fillStyle}
-            stroke={node.strokeStyle}
-            strokeWidth={5}
-        />
-    );
+const PolygonShape = ({ node, isHovering }: PolygonShapeProps) => {
+  const { boardAction } = useContext(BoardContext);
+  useEffect(() => {}, [isHovering]);
+
+  const radius = Math.min(node.width, node.height) / 2;
+  const scaleX = node.width / radius;
+  const scaleY = node.height / radius;
+
+  return (
+    <>
+      <RegularPolygon
+        radius={radius}
+        sides={node.sides}
+        fill={node.fillColor}
+        stroke={node.strokeColor}
+        strokeWidth={node.strokeWidth}
+        strokeScaleEnabled={false}
+        scaleX={scaleX}
+        scaleY={scaleY}
+      />
+    </>
+  );
 };
 
 export default PolygonShape;
