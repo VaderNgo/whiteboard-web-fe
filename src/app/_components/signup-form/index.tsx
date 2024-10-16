@@ -64,6 +64,7 @@ export default function SignupForm({ onClose }: { onClose: () => void }) {
     } catch (err: any) {
       const errMessage = err.message;
       setRootType("error");
+      console.error(errMessage);
       if (errMessage.includes("Username")) setError("username", { message: errMessage });
       else if (errMessage.includes("Email")) setError("email", { message: errMessage });
       else setRootMessage("Something went wrong. \nPlease try again later.");

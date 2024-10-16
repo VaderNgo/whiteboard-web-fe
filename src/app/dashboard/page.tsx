@@ -18,7 +18,10 @@ const DashboardPage = () => {
       router.push(`${pathname}?view=inbox`);
     }
 
-    socket.connect();
+    // socket.connect();
+    // if (socket.connected) {
+    //   console.log("Socket connected");
+    // }
   }, [view]);
 
   if (view === "inbox") {
