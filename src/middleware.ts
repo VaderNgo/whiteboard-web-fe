@@ -4,7 +4,7 @@ import { AxiosInstance } from "./lib/axios";
 
 export async function middleware(request: NextRequest) {
   const session = request.cookies.get("connect.sid")?.value;
-  const protectedRoutes = ["/dashboard"];
+  const protectedRoutes = ["/dashboard", "/boards"];
 
   if (protectedRoutes.some((path) => request.nextUrl.pathname.startsWith(path))) {
     // Not logged in

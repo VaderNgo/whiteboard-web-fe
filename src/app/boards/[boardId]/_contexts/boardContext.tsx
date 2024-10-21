@@ -1,9 +1,10 @@
 "use client";
 
+import { PathModel, ShapeModel } from "@/lib/services/queries";
 import Konva from "konva";
 import { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
-import React, { createContext, useMemo, useState } from "react";
+import React, { createContext, useEffect, useMemo, useState } from "react";
 
 export const fills = [
   "#6B7280",
@@ -38,6 +39,8 @@ export enum EditorTab {
 
 type BoardContextProps = {
   children: React.ReactNode;
+  pathsProp: PathModel[];
+  shapesProp: ShapeModel[];
 };
 
 export type Children = {
@@ -327,7 +330,11 @@ type IBoardContext = {
 
 export const BoardContext: React.Context<IBoardContext> = createContext({} as IBoardContext);
 
-export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) => {
+export const BoardContextProvider: React.FC<BoardContextProps> = ({
+  children,
+  shapesProp,
+  pathsProp,
+}) => {
   const [stageRef, setStageRef] = useState<React.RefObject<Konva.Stage> | null>(null);
   const [layerRef, setLayerRef] = useState<React.RefObject<Konva.Layer> | null>(null);
   const [nodes, setNodes] = useState<Map<string, Node>>(new Map());
@@ -373,6 +380,24 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children }) 
     node: null,
     text: null,
   });
+
+  useEffect(() => {
+    // Initialize nodes from shapesProp
+    const initialNodes = new Map<string, Node>();
+    shapesProp.forEach((s) => {
+      const newNode = new Node().setAttrs(s.data);
+      initialNodes.set(newNode.id, newNode);
+    });
+    setNodes(initialNodes);
+
+    // Initialize paths from pathsProp
+    const initialPaths = new Map<string, Path>();
+    pathsProp.forEach((p) => {
+      const newPath = new Path().setAttrs(p.data);
+      initialPaths.set(newPath.id, newPath);
+    });
+    setPaths(initialPaths);
+  }, [shapesProp, pathsProp]);
 
   const value = useMemo(
     () => ({

@@ -24,6 +24,7 @@ import { SocketContext } from "../../_contexts/socketContext";
 import SimpleEditor from "../editor/simple";
 import { EditablePath } from "../path";
 import { calculateEdges } from "../path/functions";
+import { socket } from "@/lib/websocket";
 
 const Canvas: React.FC = () => {
   const {
@@ -69,9 +70,7 @@ const Canvas: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
   const { addToHistory, undoByShortCutKey, redoByShortCutKey } = useHistory();
   const params = useParams<{ boardId: string }>();
-  // const { getRoom, isLoading } = useGetRoom();
-  // const { saveUpdatedNodes } = useSaveRoom();
-  const { joinBoard, leaveBoard, updateBoard, updateUserMouse } = useSocket();
+  const { joinBoard, leaveBoard, updateBoard, updateUserMouse, addNode, addPath } = useSocket();
   const [resizedCanvasWidth, setResizedCanvasWidth] = useState(CANVAS_WIDTH);
   const [resizedCanvasHeight, setResizedCanvasHeight] = useState(CANVAS_HEIGHT);
   const tempShapeRef = useRef<Konva.Shape | null>(null);
@@ -86,11 +85,15 @@ const Canvas: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!socket.connected) {
+      console.log("connecting socket");
+      socket.connect();
+    }
     setBoardId(params.boardId);
     return () => {
       setBoardId(undefined);
     };
-  }, [params.boardId, setBoardId]);
+  }, [params.boardId, setBoardId, socket]);
 
   useEffect(() => {
     if (params.boardId) {
@@ -390,7 +393,7 @@ const Canvas: React.FC = () => {
       });
       return new Map(prevState);
     });
-    updateBoard([newNode], "update");
+    addNode(newNode);
   };
 
   const handleMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -425,7 +428,7 @@ const Canvas: React.FC = () => {
         newPaths.set(finalPath.id, finalPath);
         return newPaths;
       });
-
+      addPath(finalPath);
       setDrawingPath(null);
       setIsDrawingPath(false);
       setBoardAction(BoardAction.Select);

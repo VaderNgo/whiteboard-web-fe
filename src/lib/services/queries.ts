@@ -73,3 +73,30 @@ export function useGetNotifications() {
     queryFn: async () => (await AxiosInstance.get<Notification[]>("/notifications")).data,
   });
 }
+
+export type ShapeModel = {
+  id: string;
+  data: object;
+}
+
+export type PathModel = {
+  id: string;
+  data: object;
+}
+
+export type BoardModel = {
+  id: string;
+  name: string;
+  teamId: string;
+  createdAt: string;
+  shapes: ShapeModel[];
+  paths: PathModel[];
+}
+
+export function useGetBoard(id: string) {
+  return useQuery({
+    queryKey: ["board", id],
+    queryFn: async () => (await AxiosInstance.get<BoardModel>(`/boards/${id}`)).data,
+  });
+}
+
