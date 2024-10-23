@@ -43,7 +43,7 @@ const Toolbar = () => {
     boardAction,
     setBoardAction,
   } = useContext(BoardContext);
-  const { addToHistory, handleRedo, handleUndo } = useHistory();
+  const { handleRedo, handleUndo } = useHistory();
   const { deleteBoardNodes } = useSocket();
 
   enum ToolButtonState {
@@ -97,11 +97,11 @@ const Toolbar = () => {
             }
           });
           updatedNodes.delete(currNode.id);
-          addToHistory({
-            type: "delete",
-            diff: [currNode.id],
-            nodes: updatedNodes,
-          });
+          // addToHistory({
+          //   type: "delete",
+          //   diff: [currNode.id],
+          //   nodes: updatedNodes,
+          // });
           deleteBoardNodes(updatedNodesToSave, [currNode]);
           // saveDeletedNodes(updatedNodesToSave, [currNode]).catch((err) => console.log(err));
         }
@@ -142,11 +142,11 @@ const Toolbar = () => {
             deletedNodesToSave.push(currNode);
           }
         });
-        addToHistory({
-          type: "delete",
-          diff: deletedNodesToSave.map((node) => node.id),
-          nodes: updatedNodes,
-        });
+        // addToHistory({
+        //   type: "delete",
+        //   diff: deletedNodesToSave.map((node) => node.id),
+        //   nodes: updatedNodes,
+        // });
         deleteBoardNodes(updatedNodesToSave, deletedNodesToSave);
         // saveDeletedNodes(updatedNodesToSave, deletedNodesToSave).catch((err) => console.log(err));
         return updatedNodes;

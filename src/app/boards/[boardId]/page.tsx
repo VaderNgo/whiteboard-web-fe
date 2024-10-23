@@ -54,7 +54,7 @@ const BoardPage = () => {
     return <LoadingSpinner />;
   }
 
-  console.log(board);
+  // console.log(board);
 
   return (
     <BoardContextProvider pathsProp={board.paths} shapesProp={board.shapes}>

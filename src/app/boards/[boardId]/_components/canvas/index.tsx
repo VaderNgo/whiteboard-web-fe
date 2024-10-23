@@ -40,9 +40,6 @@ const Canvas: React.FC = () => {
     shapeType,
     setStageRef,
     setDisplayColorPicker,
-    history,
-    historyIndex,
-    setHistoryIndex,
     setBoardId,
     boardId,
     userCursors,
@@ -62,13 +59,15 @@ const Canvas: React.FC = () => {
     setDrawingPath,
     isDrawingPath,
     setIsDrawingPath,
+    undoStack,
+    redoStack,
   } = useContext(BoardContext);
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
   const layerRef = useRef<Konva.Layer>(null);
   const [selectionRectCoords, setSelectionRectCoords] = useState({ x1: 0, y1: 0 });
   const stageRef = useRef<Konva.Stage>(null);
-  const { addToHistory, undoByShortCutKey, redoByShortCutKey } = useHistory();
+  // const { addToHistory, undoByShortCutKey, redoByShortCutKey } = useHistory();
   const params = useParams<{ boardId: string }>();
   const {
     joinBoard,
@@ -95,7 +94,7 @@ const Canvas: React.FC = () => {
 
   useEffect(() => {
     if (!socket.connected) {
-      console.log("connecting socket");
+      // console.log("connecting socket");
       socket.connect();
     }
     setBoardId(params.boardId);
@@ -118,6 +117,11 @@ const Canvas: React.FC = () => {
 
   useEffect(() => {}, [boardAction, tempShapeRef]);
 
+  useEffect(() => {
+    console.log("undoStack", undoStack);
+    console.log("redoStack", redoStack);
+  }, [nodes, paths]);
+
   const resizeStage = () => {
     setResizedCanvasHeight(window.innerHeight);
     setResizedCanvasWidth(window.innerWidth);
@@ -130,14 +134,14 @@ const Canvas: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    document.addEventListener("keydown", undoByShortCutKey);
-    document.addEventListener("keydown", redoByShortCutKey);
-    return () => {
-      document.removeEventListener("keydown", undoByShortCutKey);
-      document.removeEventListener("keydown", redoByShortCutKey);
-    };
-  }, [historyIndex, history, setHistoryIndex, setNodes, undoByShortCutKey, redoByShortCutKey]);
+  // useEffect(() => {
+  // document.addEventListener("keydown", undoByShortCutKey);
+  // document.addEventListener("keydown", redoByShortCutKey);
+  // return () => {
+  // document.removeEventListener("keydown", undoByShortCutKey);
+  // document.removeEventListener("keydown", redoByShortCutKey);
+  // };
+  // }, [historyIndex, history, setHistoryIndex, setNodes, undoByShortCutKey, redoByShortCutKey]);
 
   useEffect(() => {
     if (stageRef.current) {
@@ -223,6 +227,7 @@ const Canvas: React.FC = () => {
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.target === stageRef.current) {
       setSelectedNode(null);
+      setSelectedPath(null);
       setSelectedShapes([]);
       setDisplayColorPicker(false);
     }
@@ -395,11 +400,6 @@ const Canvas: React.FC = () => {
     });
     setNodes((prevState) => {
       prevState.set(newNode.id, newNode);
-      addToHistory({
-        type: "add",
-        diff: [newNode.id],
-        nodes: prevState,
-      });
       return new Map(prevState);
     });
     addNode(newNode);
@@ -479,19 +479,21 @@ const Canvas: React.FC = () => {
                     <Layer ref={layerRef}>
                       {true && (
                         <>
-                          {Array.from(paths.values()).map((path) => (
-                            // console.log(path),
-                            <EditablePath
-                              key={path.id}
-                              initialPath={path}
-                              onChange={(updatedPath) => {
-                                const newPaths = new Map(paths);
-                                newPaths.set(updatedPath.id, updatedPath);
-                                setPaths(newPaths);
-                                updatePath(updatedPath.id, updatedPath);
-                              }}
-                            />
-                          ))}
+                          {Array.from(paths.values()).map((path) => {
+                            if (path.deleted) return null;
+                            return (
+                              <EditablePath
+                                key={path.id}
+                                initialPath={path}
+                                onChange={(updatedPath) => {
+                                  const newPaths = new Map(paths);
+                                  newPaths.set(updatedPath.id, updatedPath);
+                                  setPaths(newPaths);
+                                  updatePath(updatedPath.id, updatedPath);
+                                }}
+                              />
+                            );
+                          })}
                           {drawingPath && (
                             <Line
                               points={drawingPath.points.flatMap((p) => [p.x, p.y])}
@@ -504,8 +506,7 @@ const Canvas: React.FC = () => {
                             nodes.size > 0 &&
                             Array.from(nodes.keys()).map((key) => {
                               const currNode = nodes.get(key);
-                              console.log(currNode);
-                              if (!currNode) return null;
+                              if (!currNode || currNode.deleted) return null;
                               return <Shape key={key} node={currNode} />;
                             })}
                           {selectedShapes && (

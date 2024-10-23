@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import { AlignCenter, Bold, Circle, Highlighter, Link, Square } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { BoardContext, EditorTab } from "../../../_contexts/boardContext";
-import useHistory from "../../../_hooks/useHistory";
 import useSocket from "../../../_hooks/useSocket";
 import { ShapePicker } from "./shapePicker";
 
@@ -18,7 +17,7 @@ const SimpleEditor = () => {
     selectedShapes,
     setNodes,
   } = useContext(BoardContext);
-  const { addToHistory } = useHistory();
+  // const { addToHistory } = useHistory();
   const { updateBoard } = useSocket();
   const [editorPosition, setEditorPosition] = useState<{ left: number; top: number } | null>(null);
   const [editorSize, setEditorSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });

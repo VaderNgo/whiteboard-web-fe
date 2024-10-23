@@ -17,7 +17,8 @@ interface ControlPointsProps {
 }
 
 export function ControlPoints({ path, onChange }: ControlPointsProps) {
-  const { boardAction, setBoardAction, stageRef, nodes } = useContext(BoardContext);
+  const { boardAction, setBoardAction, stageRef, nodes, selectedPath, setSelectedPath } =
+    useContext(BoardContext);
   const sourcePoint = path.points[0];
   const destinationPoint = path.points[path.points.length - 1];
   const source = (
@@ -33,10 +34,12 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
       }}
       onDragStart={() => {
         setBoardAction(BoardAction.DragPath);
+        setSelectedPath(path);
       }}
       onDragEnd={() => {
         setBoardAction(BoardAction.Select);
       }}
+      path={path}
     />
   );
   const destination = (
@@ -52,10 +55,12 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
       }}
       onDragStart={() => {
         setBoardAction(BoardAction.DragPath);
+        setSelectedPath(path);
       }}
       onDragEnd={() => {
         setBoardAction(BoardAction.Select);
       }}
+      path={path}
     />
   );
   const controls = path.edges.map((edge, index) => {
@@ -99,8 +104,8 @@ export function ControlPoints({ path, onChange }: ControlPointsProps) {
   return (
     <>
       {source}
-      {controls}
-      {extrudables}
+      {selectedPath && selectedPath.id === path.id && controls}
+      {selectedPath && selectedPath.id === path.id && extrudables}
       {destination}
     </>
   );

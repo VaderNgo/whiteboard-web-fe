@@ -97,6 +97,8 @@ export class Node {
   strokeWidth: number = 2;
   sides: number = 3;
   anchorPoints: AnchorPoint[] = [];
+
+  deleted: boolean = false;
   setAttrs(obj: Partial<Node>): Node {
     Object.assign(this, obj);
     this.calculateAnchorPoints();
@@ -231,6 +233,8 @@ export class Path {
   startAnchorPoint: { nodeId: string; indexAnchor: number } | null = null;
   endAnchorPoint: { nodeId: string; indexAnchor: number } | null = null;
 
+  deleted: boolean = false;
+
   setAttrs(obj: Partial<Path>): Path {
     Object.assign(this, obj);
     return this;
@@ -257,9 +261,10 @@ export type EditorType = {
 };
 
 export type History = {
-  type: "add" | "delete" | "update";
-  diff: null | string[];
-  nodes: Map<string, Node>;
+  action: "add" | "delete" | "update";
+  type: "node" | "path";
+  nodeData?: Node;
+  pathData?: Path;
 };
 
 export type UserCursor = {
@@ -314,10 +319,10 @@ type IBoardContext = {
   setDisplayColorPicker: React.Dispatch<React.SetStateAction<boolean>>;
   dark: boolean;
   setDark: React.Dispatch<React.SetStateAction<boolean>>;
-  history: History[];
-  setHistory: React.Dispatch<React.SetStateAction<History[]>>;
-  historyIndex: number;
-  setHistoryIndex: React.Dispatch<React.SetStateAction<number>>;
+  undoStack: History[];
+  setUndoStack: React.Dispatch<React.SetStateAction<History[]>>;
+  redoStack: History[];
+  setRedoStack: React.Dispatch<React.SetStateAction<History[]>>;
   boardId: string | undefined;
   setBoardId: React.Dispatch<React.SetStateAction<string | undefined>>;
   userCursors: Map<string, UserCursor>;
@@ -363,14 +368,6 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   const [canDragStage, setCanDragStage] = useState<boolean>(false);
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
   const [dark, setDark] = useState(false);
-  const [history, setHistory] = useState<History[]>([
-    {
-      type: "update",
-      diff: null,
-      nodes: new Map(),
-    },
-  ]);
-  const [historyIndex, setHistoryIndex] = useState<number>(0);
   const [boardId, setBoardId] = useState<string | undefined>();
   const [boardName, setBoardName] = useState<string>("");
   const [userCursors, setUserCursors] = useState<Map<string, UserCursor>>(new Map());
@@ -380,6 +377,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
     node: null,
     text: null,
   });
+  const [undoStack, setUndoStack] = useState<History[]>([]);
+  const [redoStack, setRedoStack] = useState<History[]>([]);
 
   useEffect(() => {
     // Initialize nodes from shapesProp
@@ -392,7 +391,6 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       initialNodes.set(newNode.id, newNode);
     });
     setNodes(initialNodes);
-    console.log(initialNodes);
 
     // Initialize paths from pathsProp
     const initialPaths = new Map<string, Path>();
@@ -440,10 +438,6 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setDisplayColorPicker,
       dark,
       setDark,
-      history,
-      setHistory,
-      historyIndex,
-      setHistoryIndex,
       boardId,
       setBoardId,
       userCursors,
@@ -460,6 +454,10 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setLayerRef,
       editorValue,
       setEditorValue,
+      undoStack,
+      setUndoStack,
+      redoStack,
+      setRedoStack,
     }),
     [
       nodes,
@@ -477,8 +475,6 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       lineStyle,
       displayColorPicker,
       dark,
-      history,
-      historyIndex,
       stageRef,
       boardId,
       userCursors,
@@ -488,6 +484,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       boardAction,
       layerRef,
       editorValue,
+      undoStack,
+      redoStack,
     ]
   );
 

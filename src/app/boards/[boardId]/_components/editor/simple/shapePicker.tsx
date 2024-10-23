@@ -1,5 +1,5 @@
 import { Circle, Hexagon, Square } from "lucide-react";
-import { BoardContext, EditorTab, ShapeType } from "../../../_contexts/boardContext";
+import { BoardContext, EditorTab, History, Node, ShapeType } from "../../../_contexts/boardContext";
 import { useContext, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { SocketContext } from "../../../_contexts/socketContext";
@@ -12,8 +12,9 @@ type ShapePickerProps = {
 };
 
 export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
-  const { selectedNode, setSelectedNode, nodes, setNodes } = useContext(BoardContext);
+  const { selectedNode, setSelectedNode, nodes, setNodes, setUndoStack } = useContext(BoardContext);
   const { updateNode } = useSocket();
+
   useEffect(() => {}, [selectedNode]);
   let shapePickerStyle: React.CSSProperties = {
     position: "absolute",
@@ -23,14 +24,19 @@ export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
 
   const handleShapeTypeChange = (type: ShapeType) => {
     if (selectedNode) {
+      const currNode = new Node().setAttrs({ ...selectedNode });
+      setUndoStack((prev) => {
+        const newHistory = { action: "update", nodeData: currNode, type: "node" };
+        return [...prev, newHistory as History];
+      });
       setNodes((prevState) => {
         const updatedNode = prevState.get(selectedNode.id);
         if (!updatedNode) return prevState;
         updatedNode.shapeType = type;
         updatedNode.calculateAnchorPoints();
+        updateNode(updatedNode.id, updatedNode);
         return new Map(prevState.set(selectedNode.id, updatedNode));
       });
-      updateNode(selectedNode.id, selectedNode);
     }
   };
 

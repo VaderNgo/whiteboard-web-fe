@@ -1,7 +1,7 @@
 import Konva from "konva";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Group, Text } from "react-konva";
-import { BoardContext, Node, Path } from "../../_contexts/boardContext";
+import { BoardContext, History, Node, Path } from "../../_contexts/boardContext";
 import useHistory from "../../_hooks/useHistory";
 import useSocket from "../../_hooks/useSocket";
 import { updatePathAnchors, updatePathsForMovedNode } from "../path/functions/snapping";
@@ -30,6 +30,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     boardAction,
     paths,
     setPaths,
+    setUndoStack,
   } = useContext(BoardContext);
 
   const shapeRef = useRef<Konva.Group>(null);
@@ -37,7 +38,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const { addToHistory } = useHistory();
+  // const { addToHistory } = useHistory();
   const { updateNode, updateUserMouse, updatePath } = useSocket();
   const [groupScale, setGroupScale] = useState({ x: 1, y: 1 });
   const [isHovering, setIsHovering] = useState(false);
@@ -81,7 +82,6 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       });
       updatedNode.calculateAnchorPoints();
       prevState.set(node.id, updatedNode as Node);
-      // updateBoard([updatedNode as Node], "update");
       updateNode(updatedNode.id, updatedNode);
       return new Map(prevState);
     });
@@ -126,11 +126,15 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       });
       updatedNode.calculateAnchorPoints();
       prevState.set(node.id, updatedNode as Node);
-      addToHistory({
-        type: "update",
-        diff: null,
-        nodes: prevState,
-      });
+      // setUndoStack((prev) => {
+      //   const newHistory = { action: "update", nodeData: currNode, type: "node" };
+      //   return [...prev, newHistory as History];
+      // });
+      // addToHistory({
+      //   type: "update",
+      //   diff: null,
+      //   nodes: prevState,
+      // });
       // updateBoard([updatedNode as Node], "update");
       updateNode(updatedNode.id, updatedNode);
       setSelectedNode(updatedNode as Node);
@@ -174,11 +178,16 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
             parents: [...currNode.parents, selectedNode.id],
           };
           prevState.set(currNode.id, updatedCurrNode as Node);
-          addToHistory({
-            type: "update",
-            diff: null,
-            nodes: prevState,
-          });
+          // setUndoStack((prev) => {
+          //   const newHistory = { action: "update", nodeData: currNode, type: "node" };
+          //   prev.push(newHistory as History);
+          //   return prev;
+          // });
+          // addToHistory({
+          //   type: "update",
+          //   diff: null,
+          //   nodes: prevState,
+          // });
           // saveUpdatedNodes([updatedSelectNode, updatedCurrNode]).catch((err) => console.log(err));
           // updateNode(updatedSelectNode.id, updatedSelectNode);
           return new Map(prevState);
@@ -199,6 +208,10 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const handleTransform = () => {
     if (shapeRef.current) {
       const currNode = nodes.get(node.id);
+      // setUndoStack((prev) => {
+      //   const newHistory = { action: "update", nodeData: currNode, type: "node" };
+      //   return [...prev, newHistory as History];
+      // });
       const currGroup = shapeRef.current;
       setNodes((prevState) => {
         if (!currNode) return prevState;
@@ -234,11 +247,12 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         });
         updatedNode.calculateAnchorPoints();
         prevState.set(node.id, updatedNode as Node);
-        addToHistory({
-          type: "update",
-          diff: null,
-          nodes: prevState,
-        });
+
+        // addToHistory({
+        //   type: "update",
+        //   diff: null,
+        //   nodes: prevState,
+        // });
         setSelectedNode(updatedNode as Node);
         // saveUpdatedNodes([updatedNode]).catch((err) => console.log(err));
         updateNode(updatedNode.id, updatedNode);
@@ -287,6 +301,10 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const handleTextChange = (newContent: string) => {
     setNodes((prevState) => {
       const updatedNode = prevState.get(node.id);
+      // setUndoStack((prev) => {
+      //   const newHistory = { action: "update", nodeData: updatedNode, type: "node" };
+      //   return [...prev, newHistory as History];
+      // });
       if (!updatedNode) return prevState;
       updatedNode.text.setAttrs({
         ...node.text,
@@ -302,7 +320,10 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     setNodes((prevState) => {
       const updatedNode = prevState.get(selectedNode!.id);
       if (!updatedNode) return prevState;
-      console.log(updatedNode.text);
+      // setUndoStack((prev) => {
+      //   const newHistory = { action: "update", nodeData: updatedNode, type: "node" };
+      //   return [...prev, newHistory as History];
+      // });
       updatedNode.text.setAttrs({
         fontSize: editorValue.text?.fontSize,
         fontFamily: editorValue.text?.fontFamily,
@@ -348,6 +369,22 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     }, 700);
   };
 
+  const handleDragStart = () => {
+    const currNode = nodes.get(node.id);
+    setUndoStack((prev) => {
+      const newHistory = { action: "update", nodeData: currNode, type: "node" };
+      return [...prev, newHistory as History];
+    });
+  };
+
+  const handleTransformStart = () => {
+    const currNode = nodes.get(node.id);
+    setUndoStack((prev) => {
+      const newHistory = { action: "update", nodeData: currNode, type: "node" };
+      return [...prev, newHistory as History];
+    });
+  };
+
   return (
     <Group
       ref={shapeRef}
@@ -358,9 +395,11 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       draggable={selectedNode?.id == node.id}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
+      onDragStart={handleDragStart}
       onClick={handleClick}
       onTap={handleClick}
       onTransform={handleTransform}
+      onTransformStart={handleTransformStart}
       onTransformEnd={handleTransformEnd}
       onDblClick={startEditting}
       onMouseEnter={startHovering}

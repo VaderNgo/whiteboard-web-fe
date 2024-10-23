@@ -1,6 +1,6 @@
 import { useLoggedInUser } from "@/lib/services/queries";
 import { useCallback, useContext } from "react";
-import { BoardContext, Node, UserCursor, Path } from "../_contexts/boardContext";
+import { BoardContext, Node, UserCursor, Path, History } from "../_contexts/boardContext";
 import {
   AddNodePayload,
   AddPathPayload,
@@ -12,7 +12,7 @@ import {
 
 const useSocket = () => {
   const { socket } = useContext(SocketContext);
-  const { boardId } = useContext(BoardContext);
+  const { boardId, setRedoStack, setUndoStack } = useContext(BoardContext);
   const user = useLoggedInUser();
 
   const joinBoard = useCallback(() => {
@@ -53,6 +53,12 @@ const useSocket = () => {
         boardId,
         data,
       };
+      console.log("addNode", payload);
+      setUndoStack((prev) => {
+        const newHistory = { action: "add", nodeData: data, type: "node" };
+
+        return [...prev, newHistory as History];
+      });
       socket.emit("add-node", payload);
     },
     [socket, boardId]
@@ -65,6 +71,12 @@ const useSocket = () => {
         boardId,
         data,
       };
+      console.log("addPath", data);
+      setUndoStack((prev) => {
+        const newHistory = { action: "add", pathData: data, type: "path" };
+        prev.push(newHistory as History);
+        return prev;
+      });
       socket.emit("add-path", payload);
     },
     [socket, boardId]
@@ -78,6 +90,11 @@ const useSocket = () => {
         nodeId,
         data,
       };
+      // setUndoStack((prev) => {
+      //   const newHistory = { action: "update", nodeData: data, type: "node" };
+      //   prev.push(newHistory as History);
+      //   return prev;
+      // });
       socket.emit("update-node", payload);
     },
     [socket, boardId]
@@ -91,6 +108,7 @@ const useSocket = () => {
         pathId,
         data,
       };
+
       socket.emit("update-path", payload);
     },
     [socket, boardId]
