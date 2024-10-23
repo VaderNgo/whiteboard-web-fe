@@ -2,7 +2,7 @@ import { Vector2d } from "konva/lib/types";
 import React, { useContext, useRef } from "react";
 import { Circle } from "react-konva";
 import { findNearestAnchorPoint } from "./functions/snapping";
-import { BoardContext, Path } from "../../_contexts/boardContext";
+import { BoardContext, History, Path } from "../../_contexts/boardContext";
 import Konva from "konva";
 
 const STROKE_WIDTH = 4;
@@ -36,8 +36,14 @@ export function ControlPoint({
   path,
 }: ControlPointProps) {
   const [isHovered, setIsHovered] = React.useState(false);
-  const { selectedPath, setSelectedPath } = useContext(BoardContext);
+  const { selectedPath, setSelectedPath, setUndoStack, paths } = useContext(BoardContext);
   const anchorRef = useRef<Konva.Circle | null>(null);
+
+  const handleOnDragStart = (e: any) => {
+    if (onDragStart) {
+      onDragStart(e);
+    }
+  };
 
   const dragBoundFunc = (
     pos: { x: number; y: number },
@@ -67,7 +73,7 @@ export function ControlPoint({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       draggable={isDraggable}
-      onDragStart={onDragStart}
+      onDragStart={handleOnDragStart}
       onDragMove={onDragMove}
       onDragEnd={(e) => {
         if (onDragEnd) {

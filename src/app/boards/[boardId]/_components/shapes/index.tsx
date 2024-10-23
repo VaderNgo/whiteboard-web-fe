@@ -320,10 +320,6 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     setNodes((prevState) => {
       const updatedNode = prevState.get(selectedNode!.id);
       if (!updatedNode) return prevState;
-      // setUndoStack((prev) => {
-      //   const newHistory = { action: "update", nodeData: updatedNode, type: "node" };
-      //   return [...prev, newHistory as History];
-      // });
       updatedNode.text.setAttrs({
         fontSize: editorValue.text?.fontSize,
         fontFamily: editorValue.text?.fontFamily,

@@ -56,7 +56,6 @@ const useSocket = () => {
       console.log("addNode", payload);
       setUndoStack((prev) => {
         const newHistory = { action: "add", nodeData: data, type: "node" };
-
         return [...prev, newHistory as History];
       });
       socket.emit("add-node", payload);
@@ -74,8 +73,7 @@ const useSocket = () => {
       console.log("addPath", data);
       setUndoStack((prev) => {
         const newHistory = { action: "add", pathData: data, type: "path" };
-        prev.push(newHistory as History);
-        return prev;
+        return [...prev, newHistory as History];
       });
       socket.emit("add-path", payload);
     },
@@ -90,11 +88,6 @@ const useSocket = () => {
         nodeId,
         data,
       };
-      // setUndoStack((prev) => {
-      //   const newHistory = { action: "update", nodeData: data, type: "node" };
-      //   prev.push(newHistory as History);
-      //   return prev;
-      // });
       socket.emit("update-node", payload);
     },
     [socket, boardId]

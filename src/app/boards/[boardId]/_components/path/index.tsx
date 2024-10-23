@@ -1,10 +1,8 @@
+import { useContext } from "react";
 import { Path } from "react-konva";
 import { BoardContext, Path as PathClass } from "../../_contexts/boardContext";
 import { ControlPoints } from "./controlPoints";
-import { getPathData, updatePathFromTip } from "./functions";
-import { useContext, useEffect } from "react";
-import { handlePathEndpointDrag, updatePathAnchors } from "./functions/snapping";
-import { Vector2d } from "konva/lib/types";
+import { getPathData } from "./functions";
 
 interface EditablePathProps {
   initialPath: PathClass;
