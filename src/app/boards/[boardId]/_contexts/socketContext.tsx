@@ -65,11 +65,7 @@ const WS = process.env.SERVER_HOST || "http://localhost:3001";
 export const SocketContext = createContext<ISocketContext>({} as ISocketContext);
 
 export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }) => {
-  const { setNodes, setBoardUsers, setUserCursors } = useContext(BoardContext);
-
-  const connectionSuccess = () => {
-    console.log("connection successful!");
-  };
+  const { setNodes, setBoardUsers, setUserCursors, setPaths } = useContext(BoardContext);
 
   const getBoardUsers = useCallback(
     (payload: UserJoinedPayload[]) => {
@@ -173,31 +169,88 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     [setNodes]
   );
 
+  const onAddNode = useCallback(
+    (payload: AddNodePayload) => {
+      const { data } = payload;
+      setNodes((prevState) => {
+        prevState.set(data.id, data);
+        return new Map(prevState);
+      });
+    },
+    [setNodes]
+  );
+
+  const onAddPath = useCallback(
+    (payload: AddPathPayload) => {
+      const { data } = payload;
+      setPaths((prevState) => {
+        prevState.set(data.id, data);
+        return new Map(prevState);
+      });
+    },
+    [setPaths]
+  );
+
+  const onUpdateNode = useCallback(
+    (payload: UpdateNodePayload) => {
+      const { nodeId, data } = payload;
+      setNodes((prevState) => {
+        prevState.set(nodeId, data);
+        return new Map(prevState);
+      });
+    },
+    [setNodes]
+  );
+
+  const onUpdatePath = useCallback(
+    (payload: UpdatePathPayload) => {
+      const { pathId, data } = payload;
+      setPaths((prevState) => {
+        prevState.set(pathId, data);
+        return new Map(prevState);
+      });
+    },
+    [setPaths]
+  );
+
   useEffect(() => {
-    socket.on("connection-success", connectionSuccess);
-    socket.on("get-board-users", getBoardUsers);
-    socket.on("user-joined", userJoined);
-    socket.on("user-left", userLeft);
-    socket.on("get-board-update", getBoardUpdate);
-    socket.on("get-board-delete-nodes", getBoardDeleteNodes);
-    socket.on("get-user-mouse-update", getUserMouseUpdate);
+    // socket.on("connection-success", connectionSuccess);
+    // socket.on("get-board-users", getBoardUsers);
+    // socket.on("user-joined", userJoined);
+    // socket.on("user-left", userLeft);
+    // socket.on("get-board-update", getBoardUpdate);
+    // socket.on("get-board-delete-nodes", getBoardDeleteNodes);
+    // socket.on("get-user-mouse-update", getUserMouseUpdate);
+
+    socket.on("add-node", onAddNode);
+    socket.on("add-path", onAddPath);
+    socket.on("update-node", onUpdateNode);
+    socket.on("update-path", onUpdatePath);
 
     return () => {
-      socket.off("connection-success", connectionSuccess);
-      socket.off("get-board-users", getBoardUsers);
-      socket.off("user-joined", userJoined);
-      socket.off("user-left", userLeft);
-      socket.off("get-board-update", getBoardUpdate);
-      socket.off("get-board-delete-nodes", getBoardDeleteNodes);
-      socket.off("get-user-mouse-update", getUserMouseUpdate);
+      // socket.off("connection-success", connectionSuccess);
+      // socket.off("get-board-users", getBoardUsers);
+      // socket.off("user-joined", userJoined);
+      // socket.off("user-left", userLeft);
+      // socket.off("get-board-update", getBoardUpdate);
+      // socket.off("get-board-delete-nodes", getBoardDeleteNodes);
+      // socket.off("get-user-mouse-update", getUserMouseUpdate);
+      socket.off("add-node", onAddNode);
+      socket.off("add-path", onAddPath);
+      socket.off("update-node", onUpdateNode);
+      socket.off("update-path", onUpdatePath);
     };
   }, [
-    getBoardUpdate,
-    getBoardDeleteNodes,
-    userJoined,
-    userLeft,
-    getUserMouseUpdate,
-    getBoardUsers,
+    // getBoardUpdate,
+    // getBoardDeleteNodes,
+    // userJoined,
+    // userLeft,
+    // getUserMouseUpdate,
+    // getBoardUsers,
+    onAddNode,
+    onAddPath,
+    onUpdateNode,
+    onUpdatePath,
   ]);
 
   const value = useMemo(

@@ -2,6 +2,8 @@ import { Circle, Hexagon, Square } from "lucide-react";
 import { BoardContext, EditorTab, ShapeType } from "../../../_contexts/boardContext";
 import { useContext, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { SocketContext } from "../../../_contexts/socketContext";
+import useSocket from "../../../_hooks/useSocket";
 
 type ShapePickerProps = {
   top: number;
@@ -11,6 +13,7 @@ type ShapePickerProps = {
 
 export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
   const { selectedNode, setSelectedNode, nodes, setNodes } = useContext(BoardContext);
+  const { updateNode } = useSocket();
   useEffect(() => {}, [selectedNode]);
   let shapePickerStyle: React.CSSProperties = {
     position: "absolute",
@@ -27,6 +30,7 @@ export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
         updatedNode.calculateAnchorPoints();
         return new Map(prevState.set(selectedNode.id, updatedNode));
       });
+      updateNode(selectedNode.id, selectedNode);
     }
   };
 

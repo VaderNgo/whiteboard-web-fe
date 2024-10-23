@@ -38,7 +38,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const { addToHistory } = useHistory();
-  const { updateBoard, updateUserMouse } = useSocket();
+  const { updateNode, updateUserMouse, updatePath } = useSocket();
   const [groupScale, setGroupScale] = useState({ x: 1, y: 1 });
   const [isHovering, setIsHovering] = useState(false);
 
@@ -81,13 +81,17 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       });
       updatedNode.calculateAnchorPoints();
       prevState.set(node.id, updatedNode as Node);
-      updateBoard([updatedNode as Node], "update");
+      // updateBoard([updatedNode as Node], "update");
+      updateNode(updatedNode.id, updatedNode);
       return new Map(prevState);
     });
     setPaths((prevState) => {
       const updatedPaths = updatePathsForMovedNode(nodes.get(node.id) as Node, prevState, nodes);
       return updatedPaths;
     });
+    for (let path of paths.values()) {
+      updatePath(path.id, path);
+    }
   };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -127,7 +131,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         diff: null,
         nodes: prevState,
       });
-      updateBoard([updatedNode as Node], "update");
+      // updateBoard([updatedNode as Node], "update");
+      updateNode(updatedNode.id, updatedNode);
       setSelectedNode(updatedNode as Node);
       //   saveUp([updatedNode]).catch((err) => console.log(err));
       return new Map(prevState);
@@ -175,7 +180,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
             nodes: prevState,
           });
           // saveUpdatedNodes([updatedSelectNode, updatedCurrNode]).catch((err) => console.log(err));
-          updateBoard([updatedSelectNode as Node, updatedCurrNode as Node], "update");
+          // updateNode(updatedSelectNode.id, updatedSelectNode);
           return new Map(prevState);
         }
         return prevState;
@@ -204,7 +209,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         });
         updatedNode.calculateAnchorPoints();
         prevState.set(node.id, updatedNode as Node);
-        updateBoard([updatedNode as Node], "update");
+        updateNode(updatedNode.id, updatedNode);
         return new Map(prevState);
       });
       setGroupScale({ x: currGroup.scaleX(), y: currGroup.scaleY() });
@@ -236,7 +241,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         });
         setSelectedNode(updatedNode as Node);
         // saveUpdatedNodes([updatedNode]).catch((err) => console.log(err));
-        updateBoard([updatedNode as Node], "update");
+        updateNode(updatedNode.id, updatedNode);
         return new Map(prevState);
       });
       setGroupScale({ x: 1, y: 1 });
@@ -288,7 +293,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
         content: newContent,
       });
       prevState.set(node.id, updatedNode);
-      updateBoard([updatedNode], "update");
+      updateNode(updatedNode.id, updatedNode);
       return new Map(prevState);
     });
   };
@@ -297,6 +302,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     setNodes((prevState) => {
       const updatedNode = prevState.get(selectedNode!.id);
       if (!updatedNode) return prevState;
+      console.log(updatedNode.text);
       updatedNode.text.setAttrs({
         fontSize: editorValue.text?.fontSize,
         fontFamily: editorValue.text?.fontFamily,
@@ -308,7 +314,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
 
       // console.log("updatedNode", updatedNode);
       prevState.set(selectedNode!.id, updatedNode);
-      updateBoard([updatedNode], "update");
+      // updateBoard([updatedNode], "update");
+      updateNode(updatedNode.id, updatedNode);
       return new Map(prevState);
     });
   };

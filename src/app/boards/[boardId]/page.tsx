@@ -33,7 +33,6 @@ const BoardPage = () => {
 
   useEffect(() => {
     if (isError) {
-      // Set a small timeout to ensure the error is not transient
       const timeout = setTimeout(() => {
         router.push("/dashboard");
       }, 3000);

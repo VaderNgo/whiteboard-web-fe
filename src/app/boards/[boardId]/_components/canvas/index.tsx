@@ -70,7 +70,16 @@ const Canvas: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
   const { addToHistory, undoByShortCutKey, redoByShortCutKey } = useHistory();
   const params = useParams<{ boardId: string }>();
-  const { joinBoard, leaveBoard, updateBoard, updateUserMouse, addNode, addPath } = useSocket();
+  const {
+    joinBoard,
+    leaveBoard,
+    updateBoard,
+    updateUserMouse,
+    addNode,
+    addPath,
+    updateNode,
+    updatePath,
+  } = useSocket();
   const [resizedCanvasWidth, setResizedCanvasWidth] = useState(CANVAS_WIDTH);
   const [resizedCanvasHeight, setResizedCanvasHeight] = useState(CANVAS_HEIGHT);
   const tempShapeRef = useRef<Konva.Shape | null>(null);
@@ -470,22 +479,19 @@ const Canvas: React.FC = () => {
                     <Layer ref={layerRef}>
                       {true && (
                         <>
-                          {Array.from(paths.values()).map(
-                            (path) => (
-                              console.log(path),
-                              (
-                                <EditablePath
-                                  key={path.id}
-                                  initialPath={path}
-                                  onChange={(updatedPath) => {
-                                    const newPaths = new Map(paths);
-                                    newPaths.set(updatedPath.id, updatedPath);
-                                    setPaths(newPaths);
-                                  }}
-                                />
-                              )
-                            )
-                          )}
+                          {Array.from(paths.values()).map((path) => (
+                            // console.log(path),
+                            <EditablePath
+                              key={path.id}
+                              initialPath={path}
+                              onChange={(updatedPath) => {
+                                const newPaths = new Map(paths);
+                                newPaths.set(updatedPath.id, updatedPath);
+                                setPaths(newPaths);
+                                updatePath(updatedPath.id, updatedPath);
+                              }}
+                            />
+                          ))}
                           {drawingPath && (
                             <Line
                               points={drawingPath.points.flatMap((p) => [p.x, p.y])}
@@ -498,6 +504,7 @@ const Canvas: React.FC = () => {
                             nodes.size > 0 &&
                             Array.from(nodes.keys()).map((key) => {
                               const currNode = nodes.get(key);
+                              console.log(currNode);
                               if (!currNode) return null;
                               return <Shape key={key} node={currNode} />;
                             })}

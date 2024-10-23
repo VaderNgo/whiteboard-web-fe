@@ -75,6 +75,7 @@ const useSocket = () => {
       if (!socket || !boardId) return;
       const payload = {
         boardId,
+        nodeId,
         data,
       };
       socket.emit("update-node", payload);
@@ -87,6 +88,7 @@ const useSocket = () => {
       if (!socket || !boardId) return;
       const payload = {
         boardId,
+        pathId,
         data,
       };
       socket.emit("update-path", payload);

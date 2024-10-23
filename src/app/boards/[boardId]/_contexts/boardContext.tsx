@@ -385,15 +385,22 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
     // Initialize nodes from shapesProp
     const initialNodes = new Map<string, Node>();
     shapesProp.forEach((s) => {
-      const newNode = new Node().setAttrs(s.data);
+      const text = new Text().setAttrs(s.data.text);
+      const anchorPoints = s.data.anchorPoints.map((ap) => new AnchorPoint().setAttrs(ap));
+      const newNode = new Node().setAttrs({ ...s.data, text, anchorPoints });
+      newNode.calculateAnchorPoints();
       initialNodes.set(newNode.id, newNode);
     });
     setNodes(initialNodes);
+    console.log(initialNodes);
 
     // Initialize paths from pathsProp
     const initialPaths = new Map<string, Path>();
     pathsProp.forEach((p) => {
-      const newPath = new Path().setAttrs(p.data);
+      const edges = p.data.edges.map((e) => new PathEdge().setAttrs(e));
+      const extrudableEdges = p.data.extrudableEdges.map((e) => new PathEdge().setAttrs(e));
+      const points = p.data.points.map((p) => new PathPoint().setAttrs(p));
+      const newPath = new Path().setAttrs({ ...p.data, edges, extrudableEdges, points });
       initialPaths.set(newPath.id, newPath);
     });
     setPaths(initialPaths);

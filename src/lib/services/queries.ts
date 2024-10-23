@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "../axios";
 import { Plan } from "../plans-enum";
+import { Node, Path } from "@/app/boards/[boardId]/_contexts/boardContext";
 
 export type Team = {
   id: string;
@@ -76,12 +77,12 @@ export function useGetNotifications() {
 
 export type ShapeModel = {
   id: string;
-  data: object;
+  data: Node;
 }
 
 export type PathModel = {
   id: string;
-  data: object;
+  data: Path;
 }
 
 export type BoardModel = {
