@@ -1,7 +1,17 @@
 "use client";
 import React, { createContext, useCallback, useContext, useEffect, useMemo } from "react";
 import socketIOClient, { Socket } from "socket.io-client";
-import { Node, BoardContext, BoardUser, UserCursor, Path } from "../_contexts/boardContext";
+import {
+  Node,
+  BoardContext,
+  BoardUser,
+  UserCursor,
+  Path,
+  Text,
+  AnchorPoint,
+  PathEdge,
+  PathPoint,
+} from "../_contexts/boardContext";
 import { socket } from "@/lib/websocket";
 
 type SocketContextProps = {
@@ -58,6 +68,19 @@ export type UpdatePathPayload = {
   boardId: string;
   pathId: string;
   data: Path;
+};
+
+export const convertToNode = (s: Node): Node => {
+  const text = new Text().setAttrs(s.text);
+  const anchorPoints = s.anchorPoints.map((ap) => new AnchorPoint().setAttrs(ap));
+  return new Node().setAttrs({ ...s, text, anchorPoints });
+};
+
+export const convertToPath = (p: Path): Path => {
+  const edges = p.edges.map((e) => new PathEdge().setAttrs(e));
+  const extrudableEdges = p.extrudableEdges.map((e) => new PathEdge().setAttrs(e));
+  const points = p.points.map((p) => new PathPoint().setAttrs(p));
+  return new Path().setAttrs({ ...p, edges, extrudableEdges, points });
 };
 
 const WS = process.env.SERVER_HOST || "http://localhost:3001";
@@ -173,7 +196,8 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     (payload: AddNodePayload) => {
       const { data } = payload;
       setNodes((prevState) => {
-        prevState.set(data.id, data);
+        const newNode = convertToNode(data);
+        prevState.set(newNode.id, newNode);
         return new Map(prevState);
       });
     },
@@ -184,7 +208,8 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     (payload: AddPathPayload) => {
       const { data } = payload;
       setPaths((prevState) => {
-        prevState.set(data.id, data);
+        const newPath = convertToPath(data);
+        prevState.set(newPath.id, newPath);
         return new Map(prevState);
       });
     },
@@ -195,7 +220,8 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     (payload: UpdateNodePayload) => {
       const { nodeId, data } = payload;
       setNodes((prevState) => {
-        prevState.set(nodeId, data);
+        const newNode = convertToNode(data);
+        prevState.set(nodeId, newNode);
         return new Map(prevState);
       });
     },
@@ -206,7 +232,8 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     (payload: UpdatePathPayload) => {
       const { pathId, data } = payload;
       setPaths((prevState) => {
-        prevState.set(pathId, data);
+        const newPath = convertToPath(data);
+        prevState.set(pathId, newPath);
         return new Map(prevState);
       });
     },
