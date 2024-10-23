@@ -10,7 +10,7 @@ interface EditablePathProps {
 }
 
 export function EditablePath({ initialPath, onChange }: EditablePathProps) {
-  const { selectedPath, setSelectedPath, stageRef } = useContext(BoardContext);
+  const { selectedPath, setSelectedPath, stageRef, setSelectedNode } = useContext(BoardContext);
   return (
     <>
       <Path
@@ -18,7 +18,10 @@ export function EditablePath({ initialPath, onChange }: EditablePathProps) {
         stroke={initialPath.strokeColor}
         strokeWidth={initialPath.strokeWidth}
         dash={initialPath.dash}
-        onClick={() => setSelectedPath(initialPath)}
+        onClick={() => {
+          setSelectedPath(initialPath);
+          setSelectedNode(null);
+        }}
         onMouseEnter={(e) => {
           const stage = e.target.getStage();
           if (stage) {

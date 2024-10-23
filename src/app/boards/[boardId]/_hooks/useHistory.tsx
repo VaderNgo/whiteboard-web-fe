@@ -1,6 +1,7 @@
 import { useCallback, useContext } from "react";
 import { History, BoardContext, Node, Path } from "../_contexts/boardContext";
 import useSocket from "./useSocket";
+import { updatePathsForMovedNode } from "../_components/path/functions/snapping";
 
 export const useHistory = () => {
   const { nodes, setNodes, undoStack, redoStack, setUndoStack, setRedoStack, paths, setPaths } =
@@ -46,6 +47,17 @@ export const useHistory = () => {
             return [...prev, newHistory as History];
           });
           updateNode(node.id, node);
+          setPaths((prevState) => {
+            const updatedPaths = updatePathsForMovedNode(
+              nodes.get(node.id) as Node,
+              prevState,
+              nodes
+            );
+            return updatedPaths;
+          });
+          for (let path of paths.values()) {
+            updatePath(path.id, path);
+          }
           break;
         }
         case "delete": {
@@ -115,7 +127,7 @@ export const useHistory = () => {
         }
       }
     }
-  }, [setNodes, addNode, addPath, updateNode, updatePath, nodes, undoStack, setRedoStack]);
+  }, [nodes, paths]);
 
   const handleRedo = useCallback(() => {
     if (redoStack.length === 0) {
@@ -147,16 +159,27 @@ export const useHistory = () => {
           if (!node) return;
           console.log("redo update", node);
           const currentNode = nodes.get(node.id);
+          setUndoStack((prev) => {
+            const newHistory = { action: "update", nodeData: currentNode, type: "node" };
+            return [...prev, newHistory as History];
+          });
           setNodes((prev) => {
             const updatedNode = new Node().setAttrs({ ...node });
             prev.set(node.id, updatedNode);
             return new Map(prev);
           });
-          setUndoStack((prev) => {
-            const newHistory = { action: "update", nodeData: currentNode, type: "node" };
-            return [...prev, newHistory as History];
-          });
           updateNode(node.id, node);
+          setPaths((prevState) => {
+            const updatedPaths = updatePathsForMovedNode(
+              nodes.get(node.id) as Node,
+              prevState,
+              nodes
+            );
+            return updatedPaths;
+          });
+          for (let path of paths.values()) {
+            updatePath(path.id, path);
+          }
           break;
         }
         case "delete": {
@@ -226,7 +249,7 @@ export const useHistory = () => {
         }
       }
     }
-  }, [setNodes, addNode, addPath, updateNode, updatePath, nodes, redoStack, setUndoStack]);
+  }, [nodes, paths]);
 
   const undoByShortCutKey = useCallback(
     (e: KeyboardEvent) => {

@@ -20,7 +20,7 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import { BoardAction, BoardContext, Node } from "../../_contexts/boardContext";
+import { BoardAction, BoardContext, History, Node, Path } from "../../_contexts/boardContext";
 import useSocket from "../../_hooks/useSocket";
 import { ToolButton } from "./tool-button";
 
@@ -30,8 +30,6 @@ const Toolbar = () => {
   const {
     nodes,
     setNodes,
-    history,
-    historyIndex,
     selectedNode,
     selectedShapes,
     setSelectedNode,
@@ -42,9 +40,13 @@ const Toolbar = () => {
     setCanDragStage,
     boardAction,
     setBoardAction,
+    setSelectedPath,
+    selectedPath,
+    setUndoStack,
+    setPaths,
   } = useContext(BoardContext);
   const { handleRedo, handleUndo } = useHistory();
-  const { deleteBoardNodes } = useSocket();
+  const { updateNode, updatePath } = useSocket();
 
   enum ToolButtonState {
     Select = "select",
@@ -66,92 +68,35 @@ const Toolbar = () => {
   }
   const [selectState, setSelectState] = useState<ToolButtonState>(ToolButtonState.Select);
   const [isShapesOpen, setIsShapesOpen] = useState(false);
-
   const handleNodeDelete = () => {
     if (selectedNode) {
-      setNodes((prevState) => {
-        const updatedNodesToSave: Node[] = [];
-        const updatedNodes = new Map(prevState);
-        const currNode = nodes.get(selectedNode.id);
-        if (currNode) {
-          currNode.parents.forEach((parent) => {
-            const parentNode = nodes.get(parent);
-            if (parentNode) {
-              const updatedParent = {
-                ...parentNode,
-                children: parentNode.children.filter((child) => child.id !== currNode.id),
-              };
-              updatedNodes.set(parent, updatedParent);
-              updatedNodesToSave.push(updatedParent);
-            }
-          });
-          currNode.children.forEach((child) => {
-            const childNode = nodes.get(child.id);
-            if (childNode) {
-              const updatedChild = {
-                ...childNode,
-                parents: childNode.parents.filter((parent) => parent !== currNode.id),
-              };
-              updatedNodes.set(child.id, updatedChild);
-              updatedNodesToSave.push(updatedChild);
-            }
-          });
-          updatedNodes.delete(currNode.id);
-          // addToHistory({
-          //   type: "delete",
-          //   diff: [currNode.id],
-          //   nodes: updatedNodes,
-          // });
-          deleteBoardNodes(updatedNodesToSave, [currNode]);
-          // saveDeletedNodes(updatedNodesToSave, [currNode]).catch((err) => console.log(err));
-        }
-        return updatedNodes;
+      const node = new Node().setAttrs({ ...selectedNode, deleted: true });
+      console.log("delete node");
+      setNodes((prev) => {
+        return new Map(prev.set(node.id, node));
       });
-    } else if (selectedShapes) {
-      setNodes((prevState) => {
-        const updatedNodesToSave: Node[] = [];
-        const deletedNodesToSave: Node[] = [];
-        const updatedNodes = new Map(prevState);
-        selectedShapes.forEach((shape) => {
-          const key = shape.id();
-          const currNode = nodes.get(key);
-          if (currNode) {
-            currNode.parents.forEach((parent) => {
-              const parentNode = updatedNodes.get(parent);
-              if (parentNode) {
-                const updatedParent = {
-                  ...parentNode,
-                  children: parentNode.children.filter((child) => child.id !== currNode.id),
-                };
-                updatedNodes.set(parent, updatedParent);
-                updatedNodesToSave.push(updatedParent);
-              }
-            });
-            currNode.children.forEach((child) => {
-              const childNode = updatedNodes.get(child.id);
-              if (childNode) {
-                const updatedChild = {
-                  ...childNode,
-                  parents: childNode.parents.filter((parent) => parent !== currNode.id),
-                };
-                updatedNodes.set(child.id, updatedChild);
-                updatedNodesToSave.push(updatedChild);
-              }
-            });
-            updatedNodes.delete(currNode.id);
-            deletedNodesToSave.push(currNode);
-          }
-        });
-        // addToHistory({
-        //   type: "delete",
-        //   diff: deletedNodesToSave.map((node) => node.id),
-        //   nodes: updatedNodes,
-        // });
-        deleteBoardNodes(updatedNodesToSave, deletedNodesToSave);
-        // saveDeletedNodes(updatedNodesToSave, deletedNodesToSave).catch((err) => console.log(err));
-        return updatedNodes;
+      updateNode(node.id, node);
+      setUndoStack((prev) => {
+        const newHistory = { action: "delete", nodeData: node, type: "node" };
+        return [...prev, newHistory as History];
+      });
+    } else if (selectedPath) {
+      console.log("delete path");
+      const path = new Path().setAttrs({ ...selectedPath, deleted: true });
+      setPaths((prev) => {
+        const updatedPath = prev.get(path.id);
+        if (!updatedPath) return prev;
+        updatedPath.setAttrs({ deleted: true });
+        return new Map(prev.set(path.id, updatedPath));
+      });
+      updatePath(path.id, path);
+      setUndoStack((prev) => {
+        const newHistory = { action: "delete", pathData: path, type: "path" };
+        return [...prev, newHistory as History];
       });
     }
+
+    setSelectedPath(null);
     setSelectedNode(null);
     setSelectedShapes([]);
   };

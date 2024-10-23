@@ -36,7 +36,8 @@ export function ControlPoint({
   path,
 }: ControlPointProps) {
   const [isHovered, setIsHovered] = React.useState(false);
-  const { selectedPath, setSelectedPath, setUndoStack, paths } = useContext(BoardContext);
+  const { selectedPath, setSelectedPath, setUndoStack, paths, setSelectedNode } =
+    useContext(BoardContext);
   const anchorRef = useRef<Konva.Circle | null>(null);
 
   const handleOnDragStart = (e: any) => {
@@ -83,6 +84,7 @@ export function ControlPoint({
       onClick={() => {
         if (type === "tip") {
           setSelectedPath(path!);
+          setSelectedNode(null);
         }
       }}
       dragBoundFunc={(pos) => dragBoundFunc(pos, axis as "x" | "y", anchorRef, type) as Vector2d}
