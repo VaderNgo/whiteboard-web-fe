@@ -39,7 +39,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const { updateNode, updateUserMouse, updatePath } = useSocket();
+  const { updateNode, updatePath } = useSocket();
   const [groupScale, setGroupScale] = useState({ x: 1, y: 1 });
   const [isHovering, setIsHovering] = useState(false);
 
@@ -67,7 +67,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       const mouseY = stageRef.current?.getRelativePointerPosition()?.y;
 
       if (mouseX && mouseY) {
-        updateUserMouse({ x: mouseX, y: mouseY });
+        // updateUserMouse({ x: mouseX, y: mouseY });
       }
     }
 

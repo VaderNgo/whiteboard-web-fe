@@ -69,16 +69,7 @@ const Canvas: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
   // const { addToHistory, undoByShortCutKey, redoByShortCutKey } = useHistory();
   const params = useParams<{ boardId: string }>();
-  const {
-    joinBoard,
-    leaveBoard,
-    updateBoard,
-    updateUserMouse,
-    addNode,
-    addPath,
-    updateNode,
-    updatePath,
-  } = useSocket();
+  const { joinBoard, leaveBoard, addNode, addPath, updateNode, updatePath } = useSocket();
   const [resizedCanvasWidth, setResizedCanvasWidth] = useState(CANVAS_WIDTH);
   const [resizedCanvasHeight, setResizedCanvasHeight] = useState(CANVAS_HEIGHT);
   const tempShapeRef = useRef<Konva.Shape | null>(null);
@@ -114,6 +105,10 @@ const Canvas: React.FC = () => {
       setBoardName("");
     };
   }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]); //getBoard
+
+  useEffect(() => {
+    console.log("boardUsers updated:", boardUsers);
+  }, [boardUsers]);
 
   useEffect(() => {}, [boardAction, tempShapeRef]);
 
@@ -322,7 +317,7 @@ const Canvas: React.FC = () => {
     const mouseX = stageRef.current?.getRelativePointerPosition()?.x;
     const mouseY = stageRef.current?.getRelativePointerPosition()?.y;
     if (mouseX && mouseY) {
-      updateUserMouse({ x: mouseX, y: mouseY });
+      // updateUserMouse({ x: mouseX, y: mouseY });
     }
     // }
 
@@ -540,13 +535,14 @@ const Canvas: React.FC = () => {
                                   const currUser = boardUsers.get(key);
                                   if (!currUserCursor || !currUser) return null;
                                   return (
-                                    <Cursor
-                                      key={key}
-                                      x={currUserCursor.x}
-                                      y={currUserCursor.y}
-                                      color={currUser.color}
-                                      name={currUser.name}
-                                    />
+                                    // <Cursor
+                                    //   key={key}
+                                    //   x={currUserCursor.x}
+                                    //   y={currUserCursor.y}
+                                    //   // color={currUser.color}
+                                    //   // name={currUser.name}
+                                    // />
+                                    <></>
                                   );
                                 })}
                             </>

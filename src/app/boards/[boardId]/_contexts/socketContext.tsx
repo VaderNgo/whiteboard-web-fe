@@ -13,6 +13,7 @@ import {
   PathPoint,
 } from "../_contexts/boardContext";
 import { socket } from "@/lib/websocket";
+import { LoggedInUser } from "@/lib/services/queries";
 
 type SocketContextProps = {
   children: React.ReactNode;
@@ -22,30 +23,9 @@ type ISocketContext = {
   socket: Socket;
 };
 
-export type UpdateBoardTypes = "update" | "history";
-
-export type UpdateBoardPayload = {
-  boardId: string;
-  type: UpdateBoardTypes;
-  data: Node[];
-};
-
-export type DeleteBoardNodesPayload = {
-  boardId: string;
-  data: {
-    nodesToUpdate: Node[];
-    nodesToDelete: Node[];
-  };
-};
-
 export type UserJoinedPayload = {
   socketId: string;
-  user: BoardUser;
-};
-
-export type GetUserMouseUpdatePayload = {
-  socketId: string;
-  userCursor: UserCursor;
+  user: LoggedInUser;
 };
 
 export type AddNodePayload = {
@@ -88,108 +68,38 @@ const WS = process.env.SERVER_HOST || "http://localhost:3001";
 export const SocketContext = createContext<ISocketContext>({} as ISocketContext);
 
 export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }) => {
-  const { setNodes, setBoardUsers, setUserCursors, setPaths } = useContext(BoardContext);
+  const { setNodes, setBoardUsers, setPaths, boardUsers } = useContext(BoardContext);
 
-  const getBoardUsers = useCallback(
-    (payload: UserJoinedPayload[]) => {
-      const userCursors: Map<string, UserCursor> = new Map();
-      const roomUsers: Map<string, BoardUser> = new Map();
-      payload.forEach((user) => {
-        roomUsers.set(user.socketId, user.user);
-        userCursors.set(user.socketId, { x: 0, y: 0 });
+  const onGetBoardUsers = useCallback(
+    (payload: { socketId: string; user: LoggedInUser }[]) => {
+      setBoardUsers((prevState) => {
+        return new Map(payload.map(({ socketId, user }) => [socketId, user]));
       });
-      setBoardUsers(roomUsers);
-      setUserCursors(userCursors);
     },
-    [setBoardUsers, setUserCursors]
+    [setBoardUsers]
   );
 
-  const userJoined = useCallback(
+  const onUserJoined = useCallback(
     (payload: UserJoinedPayload) => {
-      const { socketId, user } = payload;
       setBoardUsers((prevState) => {
-        prevState.set(socketId, user);
-        return new Map(prevState);
-      });
-      setUserCursors((prevState) => {
-        prevState.set(socketId, { x: 0, y: 0 });
+        prevState.set(payload.socketId, payload.user);
         return new Map(prevState);
       });
     },
-    [setBoardUsers, setUserCursors]
+    [setBoardUsers]
   );
 
-  const userLeft = useCallback(
-    ({ socketId }: { socketId: string }) => {
+  const onUserLeft = useCallback(
+    (socketId: string) => {
       setBoardUsers((prevState) => {
-        prevState.delete(socketId);
-        return new Map(prevState);
+        const updatedState = new Map(prevState);
+        updatedState.delete(socketId);
+        return updatedState;
       });
-      setUserCursors((prevState) => {
-        prevState.delete(socketId);
-        return new Map(prevState);
-      });
-    },
-    [setBoardUsers, setUserCursors]
-  );
 
-  const getBoardUpdate = useCallback(
-    (payload: UpdateBoardPayload) => {
-      const { data } = payload;
-      if (payload.type === "update") {
-        if (data) {
-          data.forEach((node) => {
-            setNodes((prevState) => {
-              prevState.set(node.id, node);
-              return new Map(prevState);
-            });
-          });
-        }
-      }
-      if (payload.type === "history") {
-        if (data) {
-          const updatedNodes: Map<string, Node> = new Map();
-          data.forEach((node) => {
-            updatedNodes.set(node.id, node);
-          });
-          setNodes(updatedNodes);
-        }
-      }
+      console.log("user left", socketId);
     },
-    [setNodes]
-  );
-
-  // get-user-mouse-update
-  const getUserMouseUpdate = useCallback(
-    (payload: GetUserMouseUpdatePayload) => {
-      const { socketId, userCursor } = payload;
-      setUserCursors((prevState) => {
-        prevState.set(socketId, userCursor);
-        return new Map(prevState);
-      });
-    },
-    [setUserCursors]
-  );
-
-  // get-room-delete-nodes
-  const getBoardDeleteNodes = useCallback(
-    (payload: DeleteBoardNodesPayload) => {
-      const { data } = payload;
-      if (data) {
-        const { nodesToUpdate, nodesToDelete } = data;
-        setNodes((prevState) => {
-          const updatedNodes = new Map(prevState);
-          nodesToUpdate.forEach((node) => {
-            updatedNodes.set(node.id, node);
-          });
-          nodesToDelete.forEach((node) => {
-            updatedNodes.delete(node.id);
-          });
-          return updatedNodes;
-        });
-      }
-    },
-    [setNodes]
+    [setBoardUsers]
   );
 
   const onAddNode = useCallback(
@@ -241,44 +151,24 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
   );
 
   useEffect(() => {
-    // socket.on("connection-success", connectionSuccess);
-    // socket.on("get-board-users", getBoardUsers);
-    // socket.on("user-joined", userJoined);
-    // socket.on("user-left", userLeft);
-    // socket.on("get-board-update", getBoardUpdate);
-    // socket.on("get-board-delete-nodes", getBoardDeleteNodes);
-    // socket.on("get-user-mouse-update", getUserMouseUpdate);
-
     socket.on("add-node", onAddNode);
     socket.on("add-path", onAddPath);
     socket.on("update-node", onUpdateNode);
     socket.on("update-path", onUpdatePath);
+    socket.on("board-users", onGetBoardUsers);
+    socket.on("user-joined", onUserJoined);
+    socket.on("user-left", onUserLeft);
 
     return () => {
-      // socket.off("connection-success", connectionSuccess);
-      // socket.off("get-board-users", getBoardUsers);
-      // socket.off("user-joined", userJoined);
-      // socket.off("user-left", userLeft);
-      // socket.off("get-board-update", getBoardUpdate);
-      // socket.off("get-board-delete-nodes", getBoardDeleteNodes);
-      // socket.off("get-user-mouse-update", getUserMouseUpdate);
       socket.off("add-node", onAddNode);
       socket.off("add-path", onAddPath);
       socket.off("update-node", onUpdateNode);
       socket.off("update-path", onUpdatePath);
+      socket.off("board-users", onGetBoardUsers);
+      socket.off("user-joined", onUserJoined);
+      socket.off("user-left", onUserLeft);
     };
-  }, [
-    // getBoardUpdate,
-    // getBoardDeleteNodes,
-    // userJoined,
-    // userLeft,
-    // getUserMouseUpdate,
-    // getBoardUsers,
-    onAddNode,
-    onAddPath,
-    onUpdateNode,
-    onUpdatePath,
-  ]);
+  }, [onAddNode, onAddPath, onUpdateNode, onUpdatePath, onGetBoardUsers, onUserJoined, onUserLeft]);
 
   const value = useMemo(
     () => ({

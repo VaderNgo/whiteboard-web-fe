@@ -1,6 +1,6 @@
 "use client";
 
-import { PathModel, ShapeModel } from "@/lib/services/queries";
+import { LoggedInUser, PathModel, ShapeModel } from "@/lib/services/queries";
 import Konva from "konva";
 import { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
@@ -276,6 +276,7 @@ export type BoardUser = {
   name: string | null;
   avatarUrl: string | null;
   color: string;
+  role: string | null;
 };
 
 type IBoardContext = {
@@ -327,8 +328,8 @@ type IBoardContext = {
   setBoardId: React.Dispatch<React.SetStateAction<string | undefined>>;
   userCursors: Map<string, UserCursor>;
   setUserCursors: React.Dispatch<React.SetStateAction<Map<string, UserCursor>>>;
-  boardUsers: Map<string, BoardUser>;
-  setBoardUsers: React.Dispatch<React.SetStateAction<Map<string, BoardUser>>>;
+  boardUsers: Map<string, LoggedInUser>;
+  setBoardUsers: React.Dispatch<React.SetStateAction<Map<string, LoggedInUser>>>;
   boardName: string;
   setBoardName: React.Dispatch<React.SetStateAction<string>>;
 };
@@ -371,7 +372,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   const [boardId, setBoardId] = useState<string | undefined>();
   const [boardName, setBoardName] = useState<string>("");
   const [userCursors, setUserCursors] = useState<Map<string, UserCursor>>(new Map());
-  const [boardUsers, setBoardUsers] = useState<Map<string, BoardUser>>(new Map());
+  const [boardUsers, setBoardUsers] = useState<Map<string, LoggedInUser>>(new Map());
   const [boardAction, setBoardAction] = useState<BoardAction>(BoardAction.Select);
   const [editorValue, setEditorValue] = useState<EditorType>({
     node: null,
@@ -477,8 +478,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       dark,
       stageRef,
       boardId,
-      userCursors,
       boardUsers,
+      userCursors,
       boardName,
       canDragStage,
       boardAction,

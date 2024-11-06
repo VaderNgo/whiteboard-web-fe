@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import Canvas from "./_components/canvas";
 import { BoardContextProvider } from "./_contexts/boardContext";
 import { SocketContextProvider } from "./_contexts/socketContext";
+import useSocket from "./_hooks/useSocket";
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -30,6 +31,7 @@ const BoardPage = () => {
   const router = useRouter();
   const params = useParams<{ boardId: string }>();
   const { data: board, isLoading, isError, error } = useGetBoard(params.boardId);
+  const { leaveBoard } = useSocket();
 
   useEffect(() => {
     if (isError) {
@@ -53,8 +55,6 @@ const BoardPage = () => {
     router.push("/dashboard");
     return <LoadingSpinner />;
   }
-
-  // console.log(board);
 
   return (
     <BoardContextProvider pathsProp={board.paths} shapesProp={board.shapes}>

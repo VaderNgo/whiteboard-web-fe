@@ -1,18 +1,11 @@
 import { useLoggedInUser } from "@/lib/services/queries";
 import { useCallback, useContext } from "react";
 import { BoardContext, Node, UserCursor, Path, History } from "../_contexts/boardContext";
-import {
-  AddNodePayload,
-  AddPathPayload,
-  DeleteBoardNodesPayload,
-  SocketContext,
-  UpdateBoardPayload,
-  UpdateBoardTypes,
-} from "../_contexts/socketContext";
+import { AddNodePayload, AddPathPayload, SocketContext } from "../_contexts/socketContext";
 
 const useSocket = () => {
   const { socket } = useContext(SocketContext);
-  const { boardId, setRedoStack, setUndoStack } = useContext(BoardContext);
+  const { boardId, setUndoStack } = useContext(BoardContext);
   const user = useLoggedInUser();
 
   const joinBoard = useCallback(() => {
@@ -24,27 +17,6 @@ const useSocket = () => {
     if (!socket || !boardId) return;
     socket.emit("leaveBoard", { boardId });
   }, [socket, boardId]);
-
-  const updateUserMouse = useCallback(
-    (userCursor: UserCursor) => {
-      if (!socket || !boardId) return;
-      socket.emit("update-user-mouse", { boardId, userCursor });
-    },
-    [socket, boardId]
-  );
-
-  const updateBoard = useCallback(
-    (data: Node[], type: UpdateBoardTypes) => {
-      if (!socket || !boardId) return;
-      const payload: UpdateBoardPayload = {
-        boardId,
-        type: type,
-        data,
-      };
-      socket.emit("update-board", payload);
-    },
-    [socket, boardId]
-  );
 
   const addNode = useCallback(
     (data: Node) => {
@@ -107,24 +79,9 @@ const useSocket = () => {
     [socket, boardId]
   );
 
-  const deleteBoardNodes = useCallback(
-    (nodesToUpdate: Node[], nodesToDelete: Node[]) => {
-      if (!socket || !boardId) return;
-      const payload: DeleteBoardNodesPayload = {
-        boardId,
-        data: { nodesToUpdate, nodesToDelete },
-      };
-      socket.emit("delete-board-nodes", payload);
-    },
-    [socket, boardId]
-  );
-
   return {
     joinBoard,
     leaveBoard,
-    updateUserMouse,
-    updateBoard,
-    deleteBoardNodes,
     addNode,
     addPath,
     updateNode,

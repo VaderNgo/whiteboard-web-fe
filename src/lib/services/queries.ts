@@ -29,6 +29,7 @@ export type LoggedInUser = {
   accountPlan: Plan;
 };
 
+
 export function useLoggedInUser() {
   return useQuery({
     queryKey: ["user"],
