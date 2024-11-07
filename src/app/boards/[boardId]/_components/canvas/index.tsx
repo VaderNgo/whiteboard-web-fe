@@ -25,6 +25,7 @@ import SimpleEditor from "../editor/simple";
 import { EditablePath } from "../path";
 import { calculateEdges } from "../path/functions";
 import { socket } from "@/lib/websocket";
+import { Participants } from "../participants";
 
 const Canvas: React.FC = () => {
   const {
@@ -441,6 +442,7 @@ const Canvas: React.FC = () => {
 
   return (
     <>
+      <Participants />
       <SimpleEditor />
       <Toolbar />
       <BoardContext.Consumer>

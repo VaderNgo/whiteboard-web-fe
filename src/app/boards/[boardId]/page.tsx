@@ -51,10 +51,10 @@ const BoardPage = () => {
     return <ErrorState error={error as Error} />;
   }
 
-  if (!board) {
-    router.push("/dashboard");
-    return <LoadingSpinner />;
-  }
+  // if (!board) {
+  //   router.push("/dashboard");
+  //   return <LoadingSpinner />;
+  // }
 
   return (
     <BoardContextProvider pathsProp={board.paths} shapesProp={board.shapes}>
