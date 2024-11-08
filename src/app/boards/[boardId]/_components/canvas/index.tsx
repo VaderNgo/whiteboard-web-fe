@@ -25,8 +25,8 @@ import SimpleEditor from "../editor/simple";
 import { EditablePath } from "../path";
 import { calculateEdges } from "../path/functions";
 import { socket } from "@/lib/websocket";
-import { Participants } from "../participants";
-
+import Participants from "../participants";
+import ZoomBar from "../zoombar";
 const Canvas: React.FC = () => {
   const {
     nodes,
@@ -442,7 +442,6 @@ const Canvas: React.FC = () => {
 
   return (
     <>
-      <Participants />
       <SimpleEditor />
       <Toolbar />
       <BoardContext.Consumer>
@@ -559,6 +558,8 @@ const Canvas: React.FC = () => {
           </SocketContext.Consumer>
         )}
       </BoardContext.Consumer>
+      <Participants />
+      <ZoomBar />
     </>
   );
 };

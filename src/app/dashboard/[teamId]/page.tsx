@@ -2,7 +2,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { Board } from "./_components/board";
 import { CreateBoardButton } from "./_components/create-board-btn";
-import { useGetTeams } from "@/lib/services/queries";
+import { useGetTeamBoards, useGetTeams } from "@/lib/services/queries";
 import { PlanTag } from "@/components/plan-tag";
 import { LoaderCircle } from "lucide-react";
 
@@ -10,6 +10,8 @@ export default function TeamPage() {
   const { teamId } = useParams<{ teamId: string }>();
   const router = useRouter();
   const getTeams = useGetTeams();
+  const teamBoards = useGetTeamBoards(teamId);
+  console.log(teamBoards.data);
 
   if (getTeams.isLoading)
     return (
@@ -39,10 +41,10 @@ export default function TeamPage() {
 
       {/* Grid display */}
       <div className="flex flex-wrap gap-5 items-center justify-center">
-        {[...Array(10)].map((_, index) => (
-          <Board key={index} />
+        {teamBoards.data?.map((board, index) => (
+          <Board key={index} name={board.name} />
         ))}
-        <CreateBoardButton />
+        <CreateBoardButton disabled={false} label="Add board" />
       </div>
     </div>
   );

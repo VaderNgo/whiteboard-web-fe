@@ -102,3 +102,14 @@ export function useGetBoard(id: string) {
   });
 }
 
+export function useGetTeamBoards(teamId: string) {
+  return useQuery<BoardModel[]>({
+    queryKey: ['boards', teamId],
+    queryFn: async () => {
+      if (!teamId) throw new Error('Team ID is required');
+      return (await AxiosInstance.get<BoardModel[]>(`/teams/${teamId}/boards`)).data;
+    },
+    enabled: !!teamId,
+  });
+}
+
