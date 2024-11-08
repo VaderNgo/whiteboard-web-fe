@@ -71,7 +71,6 @@ const Toolbar = () => {
   const handleNodeDelete = () => {
     if (selectedNode) {
       const node = new Node().setAttrs({ ...selectedNode, deleted: true });
-      console.log("delete node");
       setNodes((prev) => {
         return new Map(prev.set(node.id, node));
       });
@@ -81,7 +80,6 @@ const Toolbar = () => {
         return [...prev, newHistory as History];
       });
     } else if (selectedPath) {
-      console.log("delete path");
       const path = new Path().setAttrs({ ...selectedPath, deleted: true });
       setPaths((prev) => {
         const updatedPath = prev.get(path.id);
@@ -137,7 +135,7 @@ const Toolbar = () => {
         setShapeType("Ellipse");
         break;
       case ToolButtonState.Line:
-        setShapeType("Path");
+        // setShapeType("");
         break;
     }
   };

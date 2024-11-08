@@ -41,8 +41,6 @@ export const Member = ({
 }: MemberProps) => {
   const removeMember = useRemoveMember();
 
-  console.log("name", name, permission);
-
   const handleRemoveMember = async () => {
     try {
       if (role !== "PENDING") await removeMember.mutateAsync({ teamId: teamId, memberId: userId });

@@ -7,6 +7,7 @@ import Canvas from "./_components/canvas";
 import { BoardContextProvider } from "./_contexts/boardContext";
 import { SocketContextProvider } from "./_contexts/socketContext";
 import useSocket from "./_hooks/useSocket";
+import { useQueryClient } from "@tanstack/react-query";
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -30,8 +31,16 @@ const ErrorState = ({ error }: { error: Error }) => (
 const BoardPage = () => {
   const router = useRouter();
   const params = useParams<{ boardId: string }>();
+  console.log("boardId", params.boardId);
   const { data: board, isLoading, isError, error } = useGetBoard(params.boardId);
-  const { leaveBoard } = useSocket();
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return () => {
+      queryClient.invalidateQueries({ queryKey: ["board", params.boardId] });
+    };
+  }, [queryClient, params.boardId]);
 
   useEffect(() => {
     if (isError) {
@@ -51,10 +60,10 @@ const BoardPage = () => {
     return <ErrorState error={error as Error} />;
   }
 
-  // if (!board) {
-  //   router.push("/dashboard");
-  //   return <LoadingSpinner />;
-  // }
+  if (!board) {
+    router.push("/dashboard");
+    return <LoadingSpinner />;
+  }
 
   return (
     <BoardContextProvider pathsProp={board.paths} shapesProp={board.shapes}>

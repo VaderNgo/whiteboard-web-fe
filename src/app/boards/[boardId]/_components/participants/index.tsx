@@ -14,7 +14,6 @@ const Participants = () => {
     const newVisibleCollaborators = usersArray.slice(0, 2);
     setExtraCount(newExtraCount);
     setVisibleCollaborators(newVisibleCollaborators);
-    console.log(extraCount);
   }, [boardUsers]);
 
   return (

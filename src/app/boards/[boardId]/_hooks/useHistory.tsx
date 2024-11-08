@@ -10,7 +10,6 @@ export const useHistory = () => {
 
   const handleUndo = useCallback(() => {
     if (undoStack.length === 0) {
-      console.log("undoStack is empty");
       return;
     }
     const history = undoStack.pop();
@@ -35,7 +34,6 @@ export const useHistory = () => {
         case "update": {
           const node = history.nodeData;
           if (!node) return;
-          console.log("undo update", node);
           const currentNode = nodes.get(node.id);
           setNodes((prev) => {
             const updatedNode = new Node().setAttrs({ ...node });
@@ -96,7 +94,6 @@ export const useHistory = () => {
         case "update": {
           const path = history.pathData;
           if (!path) return;
-          console.log("redo update", path);
           const currentPath = paths.get(path.id);
           setPaths((prev) => {
             const updatedPath = new Path().setAttrs({ ...path });
@@ -131,7 +128,6 @@ export const useHistory = () => {
 
   const handleRedo = useCallback(() => {
     if (redoStack.length === 0) {
-      console.log("redoStack is empty");
       return;
     }
     const history = redoStack.pop();
@@ -142,7 +138,6 @@ export const useHistory = () => {
           const node = history.nodeData;
           if (!node) return;
           node.setAttrs({ deleted: false });
-          console.log("redo add", node);
           setNodes((prev) => {
             prev.set(node.id, node);
             return new Map(prev);
@@ -157,7 +152,6 @@ export const useHistory = () => {
         case "update": {
           const node = history.nodeData;
           if (!node) return;
-          console.log("redo update", node);
           const currentNode = nodes.get(node.id);
           setUndoStack((prev) => {
             const newHistory = { action: "update", nodeData: currentNode, type: "node" };
@@ -218,7 +212,6 @@ export const useHistory = () => {
         case "update": {
           const path = history.pathData;
           if (!path) return;
-          console.log("redo update", path);
           const currentPath = paths.get(path.id);
           setPaths((prev) => {
             const updatedPath = new Path().setAttrs({ ...path });

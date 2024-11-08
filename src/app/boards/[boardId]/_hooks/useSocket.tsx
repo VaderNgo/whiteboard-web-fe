@@ -25,7 +25,6 @@ const useSocket = () => {
         boardId,
         data,
       };
-      console.log("addNode", payload);
       setUndoStack((prev) => {
         const newHistory = { action: "add", nodeData: data, type: "node" };
         return [...prev, newHistory as History];
@@ -42,7 +41,6 @@ const useSocket = () => {
         boardId,
         data,
       };
-      console.log("addPath", data);
       setUndoStack((prev) => {
         const newHistory = { action: "add", pathData: data, type: "path" };
         return [...prev, newHistory as History];

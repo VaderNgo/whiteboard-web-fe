@@ -107,16 +107,11 @@ const Canvas: React.FC = () => {
     };
   }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]); //getBoard
 
-  useEffect(() => {
-    console.log("boardUsers updated:", boardUsers);
-  }, [boardUsers]);
+  useEffect(() => {}, [boardUsers]);
 
   useEffect(() => {}, [boardAction, tempShapeRef]);
 
-  useEffect(() => {
-    console.log("undoStack", undoStack);
-    console.log("redoStack", redoStack);
-  }, [nodes, paths]);
+  useEffect(() => {}, [nodes, paths]);
 
   const resizeStage = () => {
     setResizedCanvasHeight(window.innerHeight);

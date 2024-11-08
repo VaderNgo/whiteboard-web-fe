@@ -104,7 +104,6 @@ export function useUpdatePermission() {
       return await AxiosInstance.put(`/teams/${data.teamId}/members/`, data);
     },
     onSuccess: (_, variables) => {
-      console.log("variables teamid", variables.teamId);
       queryClient.invalidateQueries({
         queryKey: ["team-members", { teamId: variables.teamId }]
       });
