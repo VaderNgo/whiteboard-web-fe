@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { EllipsisVertical, Trash, XCircle } from "lucide-react";
+import { Crown, EllipsisVertical, Trash, Trash2, UserX, XCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,6 +7,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRemoveMember } from "@/lib/services/mutations";
+import { Popover, PopoverContent } from "@/components/ui/popover";
+import { PopoverTrigger } from "@radix-ui/react-popover";
+import { PermissionEditor } from "@/app/dashboard/[teamId]/_components/permission-editor";
+import { Permission } from "@/lib/permission-enum";
 
 type MemberProps = {
   teamId: string;
@@ -14,9 +18,12 @@ type MemberProps = {
   name: string;
   role?: string;
   email: string;
+  permission?: Permission;
   className?: string;
   userId: string;
   showActions?: boolean;
+  onMessage?: (message: string) => void;
+  onError?: (message: string) => void;
 };
 
 export const Member = ({
@@ -24,12 +31,17 @@ export const Member = ({
   avatarUrl,
   name,
   role,
+  permission,
   email,
   className,
   userId,
-  showActions = true,
+  showActions,
+  onError,
+  onMessage,
 }: MemberProps) => {
   const removeMember = useRemoveMember();
+
+  console.log("name", name, permission);
 
   const handleRemoveMember = async () => {
     try {
@@ -43,34 +55,45 @@ export const Member = ({
     <div className={cn("flex w-full gap-2 items-center", className)}>
       <img src={avatarUrl} className="rounded-full aspect-square object-cover h-full" />
       <div className="flex-1 flex flex-col">
-        <p className="font-semibold">{name}</p>
+        <div className="w-full h-full flex flex-row space-x-2 items-center">
+          <p className="font-semibold">{name}</p>
+          {role == "OWNER" && <Crown size={15} fill="yellow" />}
+        </div>
         <p className="text-sm text-muted-foreground">{email}</p>
       </div>
-      <p className="text-sm text-muted-foreground">{role}</p>
 
       {role !== "OWNER" && showActions && (
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <EllipsisVertical size={16} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem disabled={removeMember.isPending} onClick={handleRemoveMember}>
-              <div className="flex gap-2 items-center text-red-500 font-bold cursor-pointer">
-                {role !== "PENDING" && (
-                  <>
-                    <Trash /> Remove member
-                  </>
-                )}
+        <>
+          <PermissionEditor
+            teamId={teamId}
+            userId={userId}
+            currentPermission={permission!}
+            onError={onError!}
+            onSuccess={onMessage!}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Trash2 size={20} stroke="red" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem disabled={removeMember.isPending} onClick={handleRemoveMember}>
+                <div className="flex gap-2 items-center text-red-500 font-bold cursor-pointer">
+                  {role !== "PENDING" && (
+                    <>
+                      <UserX /> Are you sure to remove this member?
+                    </>
+                  )}
 
-                {role === "PENDING" && (
-                  <>
-                    <XCircle /> Cancel
-                  </>
-                )}
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                  {role === "PENDING" && (
+                    <>
+                      <XCircle /> Cancel
+                    </>
+                  )}
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
       )}
     </div>
   );

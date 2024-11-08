@@ -97,6 +97,21 @@ export function useRemoveMember() {
   });
 }
 
+export function useUpdatePermission() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { teamId: string, userId: string, permission: string }) => {
+      return await AxiosInstance.put(`/teams/${data.teamId}/members/`, data);
+    },
+    onSuccess: (_, variables) => {
+      console.log("variables teamid", variables.teamId);
+      queryClient.invalidateQueries({
+        queryKey: ["team-members", { teamId: variables.teamId }]
+      });
+    }
+  })
+}
+
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
   return useMutation({

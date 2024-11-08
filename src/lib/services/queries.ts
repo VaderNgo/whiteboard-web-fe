@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "../axios";
 import { Plan } from "../plans-enum";
 import { Node, Path } from "@/app/boards/[boardId]/_contexts/boardContext";
+import { Permission } from "../permission-enum";
 
 export type Team = {
   id: string;
@@ -27,6 +28,7 @@ export type LoggedInUser = {
   avatar: string;
   createdAt: string;
   accountPlan: Plan;
+  permission?: Permission;
 };
 
 
@@ -43,6 +45,7 @@ export type TeamMember = {
   email: string;
   avatar: string;
   role: string;
+  permission?: Permission;
 };
 
 export type TeamMembersResponse = {
@@ -52,7 +55,7 @@ export type TeamMembersResponse = {
 
 export function useGetTeamMembers(teamId: string) {
   return useQuery({
-    queryKey: ["team-members", { teamId: teamId.toString() }],
+    queryKey: ["team-members", { teamId: teamId }],
     queryFn: async () => {
       if (!teamId) return { currentMembers: [], pendingMembers: [] };
       return (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`)).data;

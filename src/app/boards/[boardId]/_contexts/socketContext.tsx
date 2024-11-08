@@ -81,6 +81,7 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
 
   const onUserJoined = useCallback(
     (payload: UserJoinedPayload) => {
+      console.log("user joined", payload.user);
       setBoardUsers((prevState) => {
         prevState.set(payload.socketId, payload.user);
         return new Map(prevState);

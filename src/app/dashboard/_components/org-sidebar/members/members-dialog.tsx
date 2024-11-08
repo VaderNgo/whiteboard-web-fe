@@ -1,24 +1,18 @@
-import { LoaderCircle, Mail, Search, Users } from "lucide-react";
-
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  LoggedInUser,
-  TeamMembersResponse,
-  useGetTeamMembers,
-  useLoggedInUser,
-} from "@/lib/services/queries";
+import { useInviteMember } from "@/lib/services/mutations";
+import { LoggedInUser, TeamMembersResponse, useGetTeamMembers } from "@/lib/services/queries";
+import { cn } from "@/lib/utils";
+import { DialogTitle } from "@radix-ui/react-dialog";
+import { AxiosError } from "axios";
+import { LoaderCircle, Mail, Search, Users } from "lucide-react";
 import { useState } from "react";
 import { Member } from "./member";
-import { useInviteMember } from "@/lib/services/mutations";
-import { AxiosError } from "axios";
-import { DialogTitle } from "@radix-ui/react-dialog";
-import { cn } from "@/lib/utils";
 
 export const MembersDialog = ({
   teamId,
-  teamMembers,
+  // teamMembers,
   loggedInUser,
   teamOwnerId,
 }: {
@@ -32,7 +26,8 @@ export const MembersDialog = ({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const inviteMember = useInviteMember();
-
+  const data = useGetTeamMembers(teamId);
+  const teamMembers = data.data;
   const filteredCurrentMembers = searchInput
     ? teamMembers?.currentMembers.filter((member) =>
         member.name.toLowerCase().includes(searchInput.toLowerCase())
@@ -65,6 +60,16 @@ export const MembersDialog = ({
         setError("Cannot invite user. You cannot invite yourself");
       else setError("An error occurred while sending the invitation.");
     }
+  };
+
+  const handleError = (message: string) => {
+    setSuccess("");
+    setError(message);
+  };
+
+  const handleSuccess = (message: string) => {
+    setError("");
+    setSuccess(message);
   };
 
   return (
@@ -133,17 +138,21 @@ export const MembersDialog = ({
               return 0;
             })
             .map((member) => (
-              <Member
-                teamId={teamId}
-                userId={member.id.toString()}
-                key={member.id}
-                avatarUrl={member.avatar}
-                name={member.name}
-                email={member.email}
-                role={member.role}
-                className="h-12"
-                showActions={loggedInUser ? loggedInUser.id === teamOwnerId : false}
-              />
+              <div key={member.id} className="flex items-center justify-between">
+                <Member
+                  teamId={teamId}
+                  userId={member.id.toString()}
+                  avatarUrl={member.avatar}
+                  name={member.name}
+                  email={member.email}
+                  role={member.role}
+                  permission={member.permission}
+                  className="h-12"
+                  showActions={loggedInUser ? loggedInUser.id === teamOwnerId : false}
+                  onMessage={handleSuccess}
+                  onError={handleError}
+                />
+              </div>
             ))}
 
           {filteredPendingMembers?.map((member) => (
