@@ -145,6 +145,9 @@ const Toolbar = () => {
       case ToolButtonState.Note:
         setShapeType("Note");
         break;
+      case ToolButtonState.Text:
+        setShapeType("Text");
+        break;
     }
   };
 
@@ -237,18 +240,6 @@ const Toolbar = () => {
             }}
             isActive={false}
           />
-          {/* <ToolButton
-            label="Pen"
-            icon={PencilIcon}
-            onClick={() => setSelectState(ToolButtonState.Pencil)}
-            isActive={selectState === ToolButtonState.Pencil}
-          /> */}
-          {/* <ToolButton
-            label="Comment"
-            icon={MessageSquareMore}
-            onClick={() => {}}
-            isActive={false}
-          /> */}
         </div>
         <div className="z-10 bg-white rounded-md p-1.5 flex flex-col items-center shadow-md">
           <ToolButton label="Undo" icon={Undo2Icon} onClick={() => handleUndo()} isActive={false} />

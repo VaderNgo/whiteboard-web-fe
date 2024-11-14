@@ -11,6 +11,7 @@ import EllipseShape from "./ellipseShape";
 import PolygonShape from "./polygonShape";
 import RectShape from "./rectShape";
 import NoteShape from "./noteShape";
+import TextShape from "./textShape";
 
 type ShapeProps = {
   node: Node;
@@ -382,6 +383,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       {node.shapeType === "Ellipse" && <EllipseShape node={node} isHovering={isHovering} />}
       {node.shapeType === "Polygon" && <PolygonShape node={node} isHovering={isHovering} />}
       {node.shapeType === "Note" && <NoteShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Text" && <TextShape node={node} isHovering={isHovering} />}
       {isEditing ? (
         <TextEditor
           initialText={node.text.content}

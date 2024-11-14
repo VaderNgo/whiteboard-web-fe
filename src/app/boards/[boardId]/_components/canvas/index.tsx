@@ -12,6 +12,7 @@ import {
   Path,
   PathPoint,
   ShapeType,
+  Text,
 } from "../../_contexts/boardContext";
 
 import Cursor from "../cursor";
@@ -282,6 +283,16 @@ const Canvas: React.FC = () => {
             fill: "#FFF9B2",
           });
           break;
+        case "Text":
+          shape = new Konva.Rect({
+            x: X1,
+            y: Y1,
+            width: 50,
+            height: 50,
+            stroke: "black",
+            dash: [10, 5],
+          });
+          break;
         default:
           shape = new Konva.Rect({
             x: X1,
@@ -351,6 +362,7 @@ const Canvas: React.FC = () => {
         switch (shapeType) {
           case "Rect":
           case "Note":
+          case "Text":
             tempShapeRef.current.setAttrs({
               width: mouseX! - shapeX!,
               height: mouseY! - shapeY!,
@@ -431,6 +443,16 @@ const Canvas: React.FC = () => {
           height: tempShapeRef.current?.attrs.height,
           fillColor: tempShapeRef.current?.attrs.fill,
           shapeType: "Note" as ShapeType,
+        };
+        break;
+      case "Text":
+        shapeAttribute = {
+          x: tempShapeRef.current?.attrs.x,
+          y: tempShapeRef.current?.attrs.y,
+          width: tempShapeRef.current?.attrs.width,
+          height: tempShapeRef.current?.attrs.height,
+          text: new Text().setAttrs({ content: "Place your text here !" }),
+          shapeType: "Text" as ShapeType,
         };
         break;
       default:
