@@ -10,6 +10,7 @@ import { Anchor } from "./anchor";
 import EllipseShape from "./ellipseShape";
 import PolygonShape from "./polygonShape";
 import RectShape from "./rectShape";
+import NoteShape from "./noteShape";
 
 type ShapeProps = {
   node: Node;
@@ -377,6 +378,10 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           boardAction={boardAction}
         />
       ))}
+      {node.shapeType === "Rect" && <RectShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Ellipse" && <EllipseShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Polygon" && <PolygonShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Note" && <NoteShape node={node} isHovering={isHovering} />}
       {isEditing ? (
         <TextEditor
           initialText={node.text.content}
@@ -411,9 +416,6 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           y={getTextY()}
         />
       )}
-      {node.shapeType === "Rect" && <RectShape node={node} isHovering={isHovering} />}
-      {node.shapeType === "Ellipse" && <EllipseShape node={node} isHovering={isHovering} />}
-      {node.shapeType === "Polygon" && <PolygonShape node={node} isHovering={isHovering} />}
     </Group>
   );
 };

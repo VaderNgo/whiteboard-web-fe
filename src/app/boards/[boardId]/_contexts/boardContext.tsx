@@ -20,7 +20,7 @@ export const fills = [
 export const CANVAS_WIDTH = window.innerWidth;
 export const CANVAS_HEIGHT = window.innerHeight;
 
-export type ShapeType = "Rect" | "Ellipse" | "Polygon";
+export type ShapeType = "Rect" | "Ellipse" | "Polygon" | "Note" | "Text";
 
 export enum EditorTab {
   SHAPE_PICKER = "shape_picker",
@@ -152,7 +152,7 @@ export class Node {
           position: { x: 0, y: -this.height / 2 },
         }),
       ];
-    } else {
+    } else if (this.shapeType === "Polygon") {
       if (this.sides == 3) {
         this.anchorPoints = [
           new AnchorPoint().setAttrs({

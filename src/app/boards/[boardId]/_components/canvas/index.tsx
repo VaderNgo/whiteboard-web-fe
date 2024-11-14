@@ -273,6 +273,15 @@ const Canvas: React.FC = () => {
             strokeWidth: 3,
           });
           break;
+        case "Note":
+          shape = new Konva.Rect({
+            x: X1,
+            y: Y1,
+            width: 200,
+            height: 100,
+            fill: "#FFF9B2",
+          });
+          break;
         default:
           shape = new Konva.Rect({
             x: X1,
@@ -341,6 +350,7 @@ const Canvas: React.FC = () => {
         const { x: shapeX, y: shapeY } = tempShapeRef.current!.attrs;
         switch (shapeType) {
           case "Rect":
+          case "Note":
             tempShapeRef.current.setAttrs({
               width: mouseX! - shapeX!,
               height: mouseY! - shapeY!,
@@ -411,6 +421,16 @@ const Canvas: React.FC = () => {
           height: tempShapeRef.current?.attrs.radius * tempShapeRef.current?.attrs.scaleY,
           sides: polygonSides,
           shapeType: "Polygon" as ShapeType,
+        };
+        break;
+      case "Note":
+        shapeAttribute = {
+          x: tempShapeRef.current?.attrs.x,
+          y: tempShapeRef.current?.attrs.y,
+          width: tempShapeRef.current?.attrs.width,
+          height: tempShapeRef.current?.attrs.height,
+          fillColor: tempShapeRef.current?.attrs.fill,
+          shapeType: "Note" as ShapeType,
         };
         break;
       default:

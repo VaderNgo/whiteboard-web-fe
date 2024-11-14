@@ -18,7 +18,6 @@ const SimpleEditor = () => {
     setNodes,
   } = useContext(BoardContext);
   // const { addToHistory } = useHistory();
-  const { updateBoard } = useSocket();
   const [editorPosition, setEditorPosition] = useState<{ left: number; top: number } | null>(null);
   const [editorSize, setEditorSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const [editorRef, setEditorRef] = useState<HTMLDivElement | null>(null);
@@ -87,20 +86,21 @@ const SimpleEditor = () => {
       <div
         ref={setEditorRef}
         className={cn(
-          "z-10 absolute hidden w-fit h-fit flex-row bg-white p-2 gap-5 items-center rounded-md top-10 left-10 caret-transparent select-none shadow-md",
+          "z-10 absolute hidden w-fit h-fit flex-row bg-white p-2 px-7 gap-5 items-center rounded-md top-10 left-10 caret-transparent select-none shadow-md",
           selectedNode && selectedShapes.length === 1 && "flex"
         )}
         style={editorStyle}
       >
-        <Hint label="shape" side="top" sideOffset={10}>
-          <div
-            className="flex flex-row justify-center items-center cursor-pointer"
-            onClick={() => handleTabChange(EditorTab.SHAPE_PICKER)}
-          >
-            {editorValue.node?.shapeType === "Rect" ? <Square /> : <Circle />}
-          </div>
-        </Hint>
-
+        {selectedNode.shapeType != "Note" && (
+          <Hint label="shape" side="top" sideOffset={10}>
+            <div
+              className="flex flex-row justify-center items-center cursor-pointer"
+              onClick={() => handleTabChange(EditorTab.SHAPE_PICKER)}
+            >
+              {editorValue.node?.shapeType === "Rect" ? <Square /> : <Circle />}
+            </div>
+          </Hint>
+        )}
         <Hint label="font" side="top" sideOffset={10}>
           <div
             className="flex flex-row justify-center items-center cursor-pointer"

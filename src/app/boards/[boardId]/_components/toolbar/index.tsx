@@ -106,10 +106,11 @@ const Toolbar = () => {
     if (
       [
         ToolButtonState.Rectangle,
-        // ToolButtonState.Shapes,
         ToolButtonState.Ellipse,
         ToolButtonState.Triangle,
         ToolButtonState.Diamond,
+        ToolButtonState.Note,
+        ToolButtonState.Text,
       ].includes(tool)
     ) {
       setBoardAction(BoardAction.DrawShape);
@@ -141,6 +142,9 @@ const Toolbar = () => {
         setShapeType("Polygon");
         setPolygonSides(4);
         break;
+      case ToolButtonState.Note:
+        setShapeType("Note");
+        break;
     }
   };
 
@@ -156,30 +160,6 @@ const Toolbar = () => {
     <>
       {isShapesOpen && (
         <div className="z-10 absolute top-[55%] -translate-y-[50%] left-20 flex flex-col bg-white pt-1 rounded-lg shadow-md">
-          {/* <div className="bg-white rouned-md px-1.5 pt-1.5 flex flex-row items-center">
-            <ToolButton
-              label="Line"
-              icon={MinusIcon}
-              side="top"
-              onClick={() => handleToolButtonClick(ToolButtonState.Line)}
-              isActive={selectState === ToolButtonState.Line}
-            />
-            <ToolButton
-              label="Arrow Line"
-              side="top"
-              icon={MoveUpRightIcon}
-              onClick={() => setSelectState(ToolButtonState.ArrowLine)}
-              isActive={selectState === ToolButtonState.ArrowLine}
-            />
-            <ToolButton
-              label="Arrow Line 2"
-              side="top"
-              icon={TrendingUpIcon}
-              onClick={() => setSelectState(ToolButtonState.ArrowLine2)}
-              isActive={selectState === ToolButtonState.ArrowLine2}
-            />
-          </div> */}
-          {/* <hr className="w-[80%] border-black opacity-55 m-auto p-0.5" /> */}
           <div className="bg-white rouned-md px-1.5 flex flex-row items-center">
             <ToolButton
               label="Rectangle"
@@ -233,13 +213,13 @@ const Toolbar = () => {
           <ToolButton
             label="Text"
             icon={Type}
-            onClick={() => setSelectState(ToolButtonState.Text)}
+            onClick={() => handleToolButtonClick(ToolButtonState.Text)}
             isActive={selectState === ToolButtonState.Text}
           />
           <ToolButton
             label="Sticky Note"
             icon={StickyNoteIcon}
-            onClick={() => setSelectState(ToolButtonState.Note)}
+            onClick={() => handleToolButtonClick(ToolButtonState.Note)}
             isActive={selectState === ToolButtonState.Note}
           />
           <ToolButton
