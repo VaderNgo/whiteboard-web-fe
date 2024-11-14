@@ -1,6 +1,15 @@
 import { Hint } from "@/components/hint";
 import { cn } from "@/lib/utils";
-import { AlignCenter, Bold, Circle, Highlighter, Link, Square } from "lucide-react";
+import {
+  AlignCenter,
+  Bold,
+  Circle,
+  Highlighter,
+  Italic,
+  Link,
+  Square,
+  WholeWord,
+} from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { BoardContext, EditorTab } from "../../../_contexts/boardContext";
 import useSocket from "../../../_hooks/useSocket";
@@ -70,13 +79,31 @@ const SimpleEditor = () => {
     setActiveTab(tab);
   };
 
+  const handleFontStyleToggle = () => {
+    let newFontStyle;
+    switch (selectedNode.text.fontStyle) {
+      case "normal":
+        newFontStyle = "bold";
+        break;
+      case "bold":
+        newFontStyle = "italic";
+        break;
+      case "italic":
+        newFontStyle = "normal";
+        break;
+    }
+    handleEditorValueChange("fontStyle", newFontStyle);
+  };
+
   const handleEditorValueChange = (key: string, value: any) => {
     let node = editorValue.node;
     let text = editorValue.text;
     if (node && text) {
-      if (["fontSize", "fontFamily", "textColor"].includes(key)) text.setAttrs({ [key]: value });
+      if (["fontSize", "fontFamily", "textColor", "fontStyle"].includes(key))
+        text.setAttrs({ [key]: value });
       else node.setAttrs({ [key]: value });
     }
+    console.log(text);
     setEditorValue({ node, text });
   };
 
@@ -128,8 +155,29 @@ const SimpleEditor = () => {
         </Hint>
 
         <div className="flex flex-row justify-center items-center cursor-pointer gap-5">
-          <Hint label="Bold" side="top" sideOffset={10}>
-            <Bold />
+          <Hint label={"Font Style: " + selectedNode.text.fontStyle} side="top" sideOffset={10}>
+            <div
+              className="flex flex-row justify-center items-center"
+              onClick={() => {
+                handleFontStyleToggle();
+              }}
+            >
+              {selectedNode.text.fontStyle === "normal" && (
+                <>
+                  <WholeWord />
+                </>
+              )}
+              {selectedNode.text.fontStyle === "italic" && (
+                <>
+                  <Italic size={23} />
+                </>
+              )}
+              {selectedNode.text.fontStyle === "bold" && (
+                <>
+                  <Bold />
+                </>
+              )}
+            </div>
           </Hint>
           <Hint label="Align" side="top" sideOffset={10}>
             <AlignCenter />

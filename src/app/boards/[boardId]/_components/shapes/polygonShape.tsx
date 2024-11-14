@@ -8,8 +8,8 @@ type PolygonShapeProps = {
 };
 
 const PolygonShape = ({ node, isHovering }: PolygonShapeProps) => {
-  const { boardAction } = useContext(BoardContext);
-  useEffect(() => {}, [isHovering]);
+  const { boardAction, selectedNode } = useContext(BoardContext);
+  useEffect(() => {}, [isHovering, selectedNode]);
 
   const radius = Math.min(node.width, node.height) / 2;
   const scaleX = node.width / radius;

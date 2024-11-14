@@ -10,6 +10,9 @@ interface TextEditorProps {
   fontFamily: string;
   textColor: string;
   padding: number;
+  alignContent: string;
+  textAlign: "left" | "right" | "center" | "justify";
+  fontStyle: string;
   onTextChange: (newText: string) => void;
   onFinishEditing: () => void;
 }
@@ -22,6 +25,9 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   fontSize,
   fontFamily,
   padding,
+  alignContent,
+  textAlign,
+  fontStyle,
   textColor,
   onTextChange,
   onFinishEditing,
@@ -57,19 +63,22 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       >
         <textarea
           ref={textareaRef}
+          contentEditable={true}
           style={{
             position: "absolute",
             width: "100%",
             height: "100%",
             fontSize: `${fontSize}px`,
-            alignContent: "center",
-            textAlign: "center",
+            alignContent: alignContent,
+            textAlign: textAlign as "left" | "right" | "center" | "justify",
             fontFamily,
             color: textColor,
             overflow: "hidden",
             background: "none",
             lineHeight: "1.2",
             outline: "none",
+            fontWeight: fontStyle === "bold" ? "bold" : "normal",
+            fontStyle: fontStyle,
           }}
           defaultValue={initialText}
           onBlur={handleBlur}

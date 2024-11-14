@@ -393,6 +393,9 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           height={getTextHeight()}
           fontSize={node.text.fontSize}
           textColor={node.text.textColor}
+          textAlign={node.text.align as "left" | "right" | "center" | "justify"}
+          alignContent={node.text.verticalAlign}
+          fontStyle={node.text.fontStyle}
           fontFamily={"Arial"}
           padding={node.shapeType === "Polygon" ? 20 : 10}
           onTextChange={handleTextChange}
@@ -406,8 +409,9 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           fontFamily={"Arial"}
           fill={node.text.textColor}
           padding={node.shapeType === "Polygon" ? 20 : 10}
-          align="center"
-          verticalAlign="middle"
+          align={node.text.align}
+          fontStyle={node.text.fontStyle}
+          verticalAlign={node.text.verticalAlign}
           fillAfterStrokeEnabled={true}
           strokeScaleEnabled={false}
           scaleX={1 / groupScale.x}

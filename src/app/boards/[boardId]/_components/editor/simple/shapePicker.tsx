@@ -1,9 +1,10 @@
-import { Circle, Hexagon, Square } from "lucide-react";
+import { Circle, Diamond, Hexagon, Square, Triangle } from "lucide-react";
 import { BoardContext, EditorTab, History, Node, ShapeType } from "../../../_contexts/boardContext";
 import { useContext, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { SocketContext } from "../../../_contexts/socketContext";
 import useSocket from "../../../_hooks/useSocket";
+import { set } from "react-hook-form";
 
 type ShapePickerProps = {
   top: number;
@@ -12,7 +13,8 @@ type ShapePickerProps = {
 };
 
 export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
-  const { selectedNode, setSelectedNode, nodes, setNodes, setUndoStack } = useContext(BoardContext);
+  const { selectedNode, setSelectedNode, nodes, setNodes, setUndoStack, setPolygonSides } =
+    useContext(BoardContext);
   const { updateNode } = useSocket();
 
   useEffect(() => {}, [selectedNode]);
@@ -37,6 +39,7 @@ export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
         updateNode(updatedNode.id, updatedNode);
         return new Map(prevState.set(selectedNode.id, updatedNode));
       });
+      setSelectedNode(null);
     }
   };
 
@@ -52,20 +55,20 @@ export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
         <div className="flex flex-col gap-y-2">
           <Circle onClick={() => handleShapeTypeChange("Ellipse")} className="cursor-pointer" />
           <Square onClick={() => handleShapeTypeChange("Rect")} className="cursor-pointer" />
-          <Hexagon onClick={() => handleShapeTypeChange("Polygon")} className="cursor-pointer" />
-          <Hexagon />
-        </div>
-        <div className="flex flex-col gap-y-2">
-          <Circle />
-          <Square />
-          <Hexagon />
-          <Hexagon />
-        </div>
-        <div className="flex flex-col gap-y-2">
-          <Circle />
-          <Square />
-          <Hexagon />
-          <Hexagon />
+          <Triangle
+            onClick={() => {
+              setPolygonSides(3);
+              handleShapeTypeChange("Polygon");
+            }}
+            className="cursor-pointer"
+          />
+          <Diamond
+            onClick={() => {
+              setPolygonSides(4);
+              handleShapeTypeChange("Polygon");
+            }}
+            className="cursor-pointer"
+          />
         </div>
       </div>
     </>

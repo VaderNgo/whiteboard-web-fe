@@ -61,6 +61,7 @@ export class Text {
   content: string = "";
   fontSize: number = 12;
   fontFamily: string = "Arial";
+  fontStyle: string = "normal"; // normal, bold, italic , italic bold
   align: string = "left";
   verticalAlign: string = "top";
   textColor: string = "black";
