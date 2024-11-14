@@ -171,7 +171,7 @@ export class Node {
             position: { x: -this.width / Math.sqrt(3), y: 0 },
           }),
         ];
-      } else if (this.sides == 4) {
+      } else if (this.sides >= 4) {
         this.anchorPoints = [
           new AnchorPoint().setAttrs({
             nodeId: this.id,
@@ -300,6 +300,8 @@ type IBoardContext = {
   setCanDragStage: React.Dispatch<React.SetStateAction<boolean>>;
   shapeType: ShapeType;
   setShapeType: React.Dispatch<React.SetStateAction<ShapeType>>;
+  polygonSides: number;
+  setPolygonSides: React.Dispatch<React.SetStateAction<number>>;
   fillStyle: string;
   setFillStyle: React.Dispatch<React.SetStateAction<string>>;
   strokeStyle: string;
@@ -350,6 +352,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   const [drawingPath, setDrawingPath] = useState<Path | null>(null);
   const [isDrawingPath, setIsDrawingPath] = useState<boolean>(false);
   const [shapeType, setShapeType] = useState<ShapeType>("Rect");
+  const [polygonSides, setPolygonSides] = useState<number>(3);
   const [fillStyle, setFillStyle] = useState<string>("#fff");
   const [strokeStyle, setStrokeStyle] = useState<string>("#000");
   const [lineStyle, setLineStyle] = useState<string>("#000");
@@ -423,6 +426,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setIsDrawingPath,
       shapeType,
       setShapeType,
+      polygonSides,
+      setPolygonSides,
       fillStyle,
       setFillStyle,
       strokeStyle,
@@ -471,6 +476,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       stageConfig,
       stageStyle,
       shapeType,
+      polygonSides,
       fillStyle,
       strokeStyle,
       lineStyle,

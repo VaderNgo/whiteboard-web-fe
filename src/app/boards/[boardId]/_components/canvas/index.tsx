@@ -11,6 +11,7 @@ import {
   Node,
   Path,
   PathPoint,
+  ShapeType,
 } from "../../_contexts/boardContext";
 
 import Cursor from "../cursor";
@@ -62,6 +63,7 @@ const Canvas: React.FC = () => {
     setIsDrawingPath,
     undoStack,
     redoStack,
+    polygonSides,
   } = useContext(BoardContext);
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
@@ -260,12 +262,12 @@ const Canvas: React.FC = () => {
             strokeWidth: 1,
           });
           break;
-        case "Rect":
-          shape = new Konva.Rect({
+        case "Polygon":
+          shape = new Konva.RegularPolygon({
             x: X1,
             y: Y1,
-            width: 50,
-            height: 50,
+            sides: polygonSides,
+            radius: 50,
             fill: "transparent",
             stroke: "black",
             strokeWidth: 3,
@@ -345,9 +347,26 @@ const Canvas: React.FC = () => {
             });
             break;
           case "Ellipse":
+            const radiusX = Math.abs(mouseX! - shapeX!);
+            const radiusY = Math.abs(mouseY! - shapeY!);
+            const radius = Math.max(radiusX, radiusY);
             tempShapeRef.current.setAttrs({
-              radiusX: Math.abs(mouseX! - shapeX!) / 2,
-              radiusY: Math.abs(mouseY! - shapeY!) / 2,
+              radiusX: radius,
+              radiusY: radius,
+              strokeScaleEnabled: false,
+            });
+            break;
+          case "Polygon":
+            const widthT = Math.abs(mouseX! - shapeX!);
+            const heightT = Math.abs(mouseY! - shapeY!);
+            const radiusT = Math.min(widthT, heightT) / 2;
+            const scaleX = widthT / radiusT;
+            const scaleY = heightT / radiusT;
+            tempShapeRef.current.setAttrs({
+              radius: radiusT,
+              scaleX,
+              scaleY,
+              strokeScaleEnabled: false,
             });
             break;
         }
@@ -372,23 +391,41 @@ const Canvas: React.FC = () => {
 
   const addDrawnShape = () => {
     if (!tempShapeRef.current) return;
-    const shapeAttribute = {
-      x: tempShapeRef.current?.attrs.x + tempShapeRef.current?.attrs.width / 2,
-      y: tempShapeRef.current?.attrs.y + tempShapeRef.current?.attrs.height / 2,
-      width: tempShapeRef.current?.attrs.width,
-      height: tempShapeRef.current?.attrs.height,
-    };
+    let shapeAttribute;
+    console.log(tempShapeRef.current.attrs);
     switch (shapeType) {
-      case "Rect":
-        break;
       case "Ellipse":
+        shapeAttribute = {
+          x: tempShapeRef.current?.attrs.x,
+          y: tempShapeRef.current?.attrs.y,
+          width: tempShapeRef.current?.attrs.radiusX * 2,
+          height: tempShapeRef.current?.attrs.radiusY * 2,
+          shapeType: "Ellipse" as ShapeType,
+        };
+        break;
+      case "Polygon":
+        shapeAttribute = {
+          x: tempShapeRef.current?.attrs.x,
+          y: tempShapeRef.current?.attrs.y,
+          width: tempShapeRef.current?.attrs.radius * tempShapeRef.current?.attrs.scaleX,
+          height: tempShapeRef.current?.attrs.radius * tempShapeRef.current?.attrs.scaleY,
+          sides: polygonSides,
+          shapeType: "Polygon" as ShapeType,
+        };
         break;
       default:
+        shapeAttribute = {
+          x: tempShapeRef.current?.attrs.x + tempShapeRef.current?.attrs.width / 2,
+          y: tempShapeRef.current?.attrs.y + tempShapeRef.current?.attrs.height / 2,
+          width: tempShapeRef.current?.attrs.width,
+          height: tempShapeRef.current?.attrs.height,
+        };
         break;
     }
     const newNode: Node = new Node().setAttrs({
       ...shapeAttribute,
     });
+    console.log(newNode);
     setNodes((prevState) => {
       prevState.set(newNode.id, newNode);
       return new Map(prevState);

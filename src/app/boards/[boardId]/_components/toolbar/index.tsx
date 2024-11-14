@@ -18,6 +18,7 @@ import {
   Triangle,
   Type,
   Undo2Icon,
+  WaypointsIcon,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { BoardAction, BoardContext, History, Node, Path } from "../../_contexts/boardContext";
@@ -44,6 +45,7 @@ const Toolbar = () => {
     selectedPath,
     setUndoStack,
     setPaths,
+    setPolygonSides,
   } = useContext(BoardContext);
   const { handleRedo, handleUndo } = useHistory();
   const { updateNode, updatePath } = useSocket();
@@ -106,16 +108,13 @@ const Toolbar = () => {
         ToolButtonState.Rectangle,
         // ToolButtonState.Shapes,
         ToolButtonState.Ellipse,
+        ToolButtonState.Triangle,
+        ToolButtonState.Diamond,
       ].includes(tool)
     ) {
       setBoardAction(BoardAction.DrawShape);
     } else if (
-      [
-        ToolButtonState.Line,
-        // ToolButtonState.Shapes,
-        ToolButtonState.ArrowLine,
-        ToolButtonState.ArrowLine2,
-      ].includes(tool)
+      [ToolButtonState.Line, ToolButtonState.ArrowLine, ToolButtonState.ArrowLine2].includes(tool)
     ) {
       setBoardAction(BoardAction.DrawLine);
     }
@@ -134,8 +133,13 @@ const Toolbar = () => {
       case ToolButtonState.Ellipse:
         setShapeType("Ellipse");
         break;
-      case ToolButtonState.Line:
-        // setShapeType("");
+      case ToolButtonState.Triangle:
+        setShapeType("Polygon");
+        setPolygonSides(3);
+        break;
+      case ToolButtonState.Diamond:
+        setShapeType("Polygon");
+        setPolygonSides(4);
         break;
     }
   };
@@ -150,9 +154,9 @@ const Toolbar = () => {
 
   return (
     <>
-      {true && (
-        <div className="z-10 absolute top-[50%] -translate-y-[50%] left-20 flex flex-col bg-white">
-          <div className="bg-white rouned-md px-1.5 pt-1.5 flex flex-row items-center">
+      {isShapesOpen && (
+        <div className="z-10 absolute top-[55%] -translate-y-[50%] left-20 flex flex-col bg-white pt-1 rounded-lg shadow-md">
+          {/* <div className="bg-white rouned-md px-1.5 pt-1.5 flex flex-row items-center">
             <ToolButton
               label="Line"
               icon={MinusIcon}
@@ -174,8 +178,8 @@ const Toolbar = () => {
               onClick={() => setSelectState(ToolButtonState.ArrowLine2)}
               isActive={selectState === ToolButtonState.ArrowLine2}
             />
-          </div>
-          <hr className="w-[80%] border-black opacity-55 m-auto p-0.5" />
+          </div> */}
+          {/* <hr className="w-[80%] border-black opacity-55 m-auto p-0.5" /> */}
           <div className="bg-white rouned-md px-1.5 flex flex-row items-center">
             <ToolButton
               label="Rectangle"
@@ -188,37 +192,23 @@ const Toolbar = () => {
               label="Ellipse"
               side="top"
               icon={Circle}
-              onClick={() => setSelectState(ToolButtonState.Ellipse)}
+              onClick={() => handleToolButtonClick(ToolButtonState.Ellipse)}
               isActive={selectState === ToolButtonState.Ellipse}
-            />
-            <ToolButton
-              label="Hexagon"
-              side="top"
-              icon={Hexagon}
-              onClick={() => setSelectState(ToolButtonState.Hexagon)}
-              isActive={selectState === ToolButtonState.Hexagon}
             />
           </div>
           <div className="bg-white rouned-md px-1.5 pb-1.5 flex flex-row items-center">
             <ToolButton
-              label="Pentagon"
-              side="top"
-              icon={Pentagon}
-              onClick={() => setSelectState(ToolButtonState.Pentagon)}
-              isActive={selectState === ToolButtonState.Pentagon}
-            />
-            <ToolButton
               label="Triangle"
               side="top"
               icon={Triangle}
-              onClick={() => setSelectState(ToolButtonState.Triangle)}
+              onClick={() => handleToolButtonClick(ToolButtonState.Triangle)}
               isActive={selectState === ToolButtonState.Triangle}
             />
             <ToolButton
               label="Diamond"
               side="top"
               icon={Diamond}
-              onClick={() => setSelectState(ToolButtonState.Diamond)}
+              onClick={() => handleToolButtonClick(ToolButtonState.Diamond)}
               isActive={selectState === ToolButtonState.Diamond}
             />
           </div>
@@ -253,23 +243,32 @@ const Toolbar = () => {
             isActive={selectState === ToolButtonState.Note}
           />
           <ToolButton
-            label="Shapes"
-            icon={Shapes}
-            onClick={() => handleToolButtonClick(ToolButtonState.Shapes)}
-            isActive={selectState === ToolButtonState.Shapes}
+            label="Path"
+            icon={WaypointsIcon}
+            onClick={() => handleToolButtonClick(ToolButtonState.Line)}
+            isActive={selectState === ToolButtonState.Line}
           />
           <ToolButton
+            label="Shapes"
+            icon={Shapes}
+            onClick={() => {
+              setIsShapesOpen(!isShapesOpen);
+              handleToolButtonClick(ToolButtonState.Shapes);
+            }}
+            isActive={false}
+          />
+          {/* <ToolButton
             label="Pen"
             icon={PencilIcon}
             onClick={() => setSelectState(ToolButtonState.Pencil)}
             isActive={selectState === ToolButtonState.Pencil}
-          />
-          <ToolButton
+          /> */}
+          {/* <ToolButton
             label="Comment"
             icon={MessageSquareMore}
             onClick={() => {}}
             isActive={false}
-          />
+          /> */}
         </div>
         <div className="z-10 bg-white rounded-md p-1.5 flex flex-col items-center shadow-md">
           <ToolButton label="Undo" icon={Undo2Icon} onClick={() => handleUndo()} isActive={false} />
