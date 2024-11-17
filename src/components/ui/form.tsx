@@ -9,6 +9,7 @@ interface InputFieldProps {
   register: any;
   name: string;
   validationOptions?: RegisterOptions;
+  className?: string;
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -18,12 +19,13 @@ export const InputField: React.FC<InputFieldProps> = ({
   register,
   name,
   validationOptions,
+  className,
 }) => (
-  <div className="w-full">
-    <h3 className="font-medium">{label}</h3>
+  <div className={cn("w-full", className)}>
+    <h3 className="mb-1">{label}</h3>
     <input
       type={type}
-      className="border border-black rounded-sm p-2 w-full"
+      className="border border-black rounded-sm p-1 px-2 w-full"
       {...register(name, validationOptions)}
     />
     {errorMessage && <p className="text-red-500 text-sm mt-1">{errorMessage}</p>}
@@ -32,10 +34,16 @@ export const InputField: React.FC<InputFieldProps> = ({
 
 interface FormProps {
   children: React.ReactNode;
+  className?: string;
 }
 
-export const Form: React.FC<FormProps> = ({ children }) => (
-  <form className="pointer-events-auto font-mono flex flex-col items-center w-full gap-5">
+export const Form: React.FC<FormProps> = ({ children, className }: FormProps) => (
+  <form
+    className={cn(
+      "pointer-events-auto font-mono flex flex-col items-center w-full gap-5",
+      className
+    )}
+  >
     {children}
   </form>
 );

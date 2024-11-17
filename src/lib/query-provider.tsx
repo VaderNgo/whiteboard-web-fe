@@ -25,7 +25,7 @@ export const QueryProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleTeamMemberUpdated = (teamId: string) => {
-    client.invalidateQueries({ queryKey: ["team-members", { teamId: teamId.toString() }] });
+    client.invalidateQueries({ queryKey: ["team-members", teamId.toString()] });
   };
 
   const handleRemovedFromTeam = (teamId: string) => {

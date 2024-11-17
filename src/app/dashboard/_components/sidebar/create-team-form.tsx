@@ -90,7 +90,11 @@ export default function CreateTeamForm({
           className="mt-4 p-2 bg-blue-500 text-white rounded-sm font-bold disabled:opacity-50 w-32 flex items-center justify-center"
           onClick={handleSubmit(onSubmit)}
         >
-          {created ? <LoaderCircle className="animate-spin text-white" /> : "Create"}
+          {createTeam.isPending || created ? (
+            <LoaderCircle className="animate-spin text-white" />
+          ) : (
+            "Create"
+          )}
         </button>
       </Form>
     </FormContainer>
