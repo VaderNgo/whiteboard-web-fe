@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "../axios";
 import { Plan } from "../plans-enum";
+import { Node, Path } from "@/app/boards/[boardId]/_contexts/boardContext";
+import { Permission } from "../permission-enum";
 
 export type Team = {
   id: string;
@@ -26,7 +28,9 @@ export type LoggedInUser = {
   avatar: string;
   createdAt: string;
   accountPlan: Plan;
+  permission?: Permission;
 };
+
 
 export function useLoggedInUser() {
   return useQuery({
@@ -41,6 +45,7 @@ export type TeamMember = {
   email: string;
   avatar: string;
   role: string;
+  permission?: Permission;
 };
 
 export type TeamMembersResponse = {
@@ -50,7 +55,7 @@ export type TeamMembersResponse = {
 
 export function useGetTeamMembers(teamId: string) {
   return useQuery({
-    queryKey: ["team-members", teamId.toString()],
+    queryKey: ["team-members", { teamId: teamId }],
     queryFn: async () => {
       if (!teamId) return { currentMembers: [], pendingMembers: [] };
       return (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`)).data;
@@ -73,3 +78,41 @@ export function useGetNotifications() {
     queryFn: async () => (await AxiosInstance.get<Notification[]>("/notifications")).data,
   });
 }
+
+export type ShapeModel = {
+  id: string;
+  data: Node;
+}
+
+export type PathModel = {
+  id: string;
+  data: Path;
+}
+
+export type BoardModel = {
+  id: string;
+  name: string;
+  teamId: string;
+  createdAt: string;
+  shapes: ShapeModel[];
+  paths: PathModel[];
+}
+
+export function useGetBoard(id: string) {
+  return useQuery({
+    queryKey: ["board", id],
+    queryFn: async () => (await AxiosInstance.get<BoardModel>(`/boards/${id}`)).data,
+  });
+}
+
+export function useGetTeamBoards(teamId: string) {
+  return useQuery<BoardModel[]>({
+    queryKey: ['boards', teamId],
+    queryFn: async () => {
+      if (!teamId) throw new Error('Team ID is required');
+      return (await AxiosInstance.get<BoardModel[]>(`/teams/${teamId}/boards`)).data;
+    },
+    enabled: !!teamId,
+  });
+}
+

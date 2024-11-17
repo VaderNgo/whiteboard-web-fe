@@ -13,12 +13,9 @@ const DashboardPage = () => {
   const view = searchParams.get("view");
 
   useEffect(() => {
-    // Set default to inbox view
     if (!view) {
       router.push(`${pathname}?view=inbox`);
     }
-
-    socket.connect();
   }, [view]);
 
   if (view === "inbox") {

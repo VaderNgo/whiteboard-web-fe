@@ -144,6 +144,20 @@ export function useRemoveMember() {
   });
 }
 
+export function useUpdatePermission() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { teamId: string, userId: string, permission: string }) => {
+      return await AxiosInstance.put(`/teams/${data.teamId}/members/`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["team-members", { teamId: variables.teamId }]
+      });
+    }
+  })
+}
+
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -213,6 +227,19 @@ export function useChangePassword() {
         oldPassword: data.oldPassword,
         newPassword: data.newPassword,
       });
+    },
+  });
+}
+
+export function useCreateBoard() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { name: string; teamId: number }) => {
+      return (await AxiosInstance.post(`/boards`, data)).data;
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
     },
   });
 }

@@ -1,12 +1,12 @@
 "use client";
-import { useLoggedInUser, useGetTeams, useGetTeamMembers } from "@/lib/services/queries";
-import { Inbox, History, Star } from "lucide-react";
+import { useGetTeamMembers, useGetTeams, useLoggedInUser } from "@/lib/services/queries";
+import { History, Inbox, Star } from "lucide-react";
 import { useParams } from "next/navigation";
+import { DisbandDialog } from "./disband-dialog";
 import { LeaveDialog } from "./leave-dialog";
 import { MembersDialog } from "./members/members-dialog";
-import { SettingsDialog } from "./settings-dialog";
 import ParamNavButton from "./nav-btn";
-import { DisbandDialog } from "./disband-dialog";
+import { SettingsDialog } from "./settings-dialog";
 
 export const OrgSidebar = () => {
   const loggedInUser = useLoggedInUser();
