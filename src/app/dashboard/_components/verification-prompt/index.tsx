@@ -3,11 +3,13 @@
 import { useLoggedInUser } from "@/lib/services/queries";
 import { socket } from "@/lib/websocket";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 export default function VerificationPrompt() {
   const user = useLoggedInUser();
   const queryClient = useQueryClient();
+  const pathName = usePathname();
   const websocket = socket;
 
   useEffect(() => {
@@ -21,6 +23,10 @@ export default function VerificationPrompt() {
       websocket.off("account_updated");
     };
   }, []);
+
+  if (!pathName.includes("/dashboard")) {
+    return null;
+  }
 
   if (user.data?.id && !user.data.emailVerified && !user.isLoading) {
     return (

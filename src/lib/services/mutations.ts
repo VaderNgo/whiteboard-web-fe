@@ -2,6 +2,28 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosInstance } from "../axios";
 import { RegiterBodyType } from "@/app/_components/signup-form";
 
+export function useVerifyEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (token: string) => {
+      return await AxiosInstance.post(`/auth/verify-email`, { token: token });
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    }
+  });
+}
+
+export function useResendConfirmationEmail() {
+  return useMutation({
+    mutationFn: async () => {
+      return await AxiosInstance.get(`/auth/resend-email`);
+    }
+  })
+}
+
+
 export function useCreateAccount() {
   return useMutation({
     mutationFn: async (data: RegiterBodyType) => {
