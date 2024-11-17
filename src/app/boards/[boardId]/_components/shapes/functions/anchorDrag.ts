@@ -22,8 +22,8 @@ export function handleAnchorDragStart(
   const currentAnchor = node.anchorPoints[index];
   const initialPoint = new PathPoint().setAttrs({
     command: "M",
-    x: currentAnchor[0], // anchor's x coordination
-    y: currentAnchor[1], // anchor's y coordination
+    x: currentAnchor.position.x,
+    y: currentAnchor.position.y,
   });
   setDrawingPath(
     new Path().setAttrs({
@@ -65,4 +65,4 @@ export function handleAnchorDragEnd(
   e: Konva.KonvaEventObject<DragEvent>,
   nodeId: string,
   index: number
-) {}
+) { }

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/lib/query-provider";
 import VerificationPrompt from "./dashboard/_components/verification-prompt";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,8 +21,10 @@ export default function RootLayout({
     <QueryProvider>
       <html lang="en">
         <body className={`${inter.className} h-screen w-screen relative overflow-x-hidden`}>
-          <VerificationPrompt />
-          {children}
+          <Suspense>
+            <VerificationPrompt />
+            {children}
+          </Suspense>
         </body>
       </html>
     </QueryProvider>

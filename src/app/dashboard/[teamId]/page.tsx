@@ -44,7 +44,7 @@ export default function TeamPage() {
       {/* Grid display */}
       <div className="flex flex-wrap gap-5 items-center justify-center">
         {teamBoards.data?.map((board, index) => (
-          <div onClick={() => handleBoardClick(board.id)}>
+          <div key={index} onClick={() => handleBoardClick(board.id)}>
             <Board key={index} name={board.name} />
           </div>
         ))}

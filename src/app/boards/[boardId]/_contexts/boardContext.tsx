@@ -223,7 +223,7 @@ export class PathEdge {
 export class Path {
   id: string = nanoid();
   dragging: null | string = null;
-  activeDrag: object = { extruded: false };
+  activeDrag: { extruded: boolean } = { extruded: false };
   edges: PathEdge[] = [];
   extrudableEdges: PathEdge[] = [];
   points: PathPoint[] = [];

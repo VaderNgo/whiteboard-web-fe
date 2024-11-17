@@ -40,11 +40,11 @@ export function updatePathFromExtrude(path: Path, edge: PathEdge, position: Vect
   if (!path.activeDrag || !path.activeDrag.extruded) {
     // Create the new edge using the current axis position and the other axis value from the next or previous point depending on
     // if the extruding edge is at the start or end
-    const newCommand = {
+    const newCommand = new PathPoint().setAttrs({
       command: "L",
-      [axis]: position[axis],
+      [axis]: position[axis as "x" | "y"],
       [otherAxis]: newPoints[edge.points[nodeToUpdate]][otherAxis],
-    };
+    });
     // Add that new line command into the array after the first line
     newPoints.splice(edge.points[1], 0, newCommand);
     // Set extruded to true so we don't create anymore new edges during the active drag
