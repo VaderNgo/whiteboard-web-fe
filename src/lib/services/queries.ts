@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { AxiosInstance } from "../axios";
 import { Plan } from "../plans-enum";
-import { Node, Path } from "@/app/boards/[boardId]/_contexts/boardContext";
+import { Node, Path, StageConfig } from "@/app/boards/[boardId]/_contexts/boardContext";
 import { Permission } from "../permission-enum";
 
 export type Team = {
@@ -96,12 +96,24 @@ export type BoardModel = {
   createdAt: string;
   shapes: ShapeModel[];
   paths: PathModel[];
+  presentation: { user: LoggedInUser, data: StageConfig } | null;
+}
+
+export type UserBoard = {
+  data: StageConfig
 }
 
 export function useGetBoard(id: string) {
   return useQuery({
     queryKey: ["board", id],
     queryFn: async () => (await AxiosInstance.get<BoardModel>(`/boards/${id}`)).data,
+  });
+}
+
+export function useGetUserBoard(boardId: string) {
+  return useQuery({
+    queryKey: ["userBoard", boardId],
+    queryFn: async () => (await AxiosInstance.get<UserBoard>(`/boards/${boardId}/userBoard`)).data,
   });
 }
 

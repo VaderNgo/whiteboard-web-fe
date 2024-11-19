@@ -11,6 +11,7 @@ import {
   AnchorPoint,
   PathEdge,
   PathPoint,
+  StageConfig,
 } from "../_contexts/boardContext";
 import { socket } from "@/lib/websocket";
 import { LoggedInUser } from "@/lib/services/queries";
@@ -50,6 +51,11 @@ export type UpdatePathPayload = {
   data: Path;
 };
 
+export type PresentationsPayload = {
+  user: LoggedInUser;
+  data: StageConfig;
+};
+
 export const convertToNode = (s: Node): Node => {
   const text = new Text().setAttrs(s.text);
   const anchorPoints = s.anchorPoints.map((ap) => new AnchorPoint().setAttrs(ap));
@@ -68,22 +74,24 @@ const WS = process.env.SERVER_HOST || "http://localhost:3001";
 export const SocketContext = createContext<ISocketContext>({} as ISocketContext);
 
 export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }) => {
-  const { setNodes, setBoardUsers, setPaths, boardUsers } = useContext(BoardContext);
+  const { setNodes, setBoardUsers, setPaths, boardUsers, setPresentation } =
+    useContext(BoardContext);
 
   const onGetBoardUsers = useCallback(
-    (payload: { socketId: string; user: LoggedInUser }[]) => {
+    (payload: { socketId: string; enhancedUser: LoggedInUser }[]) => {
+      console.log("boardUsers: ", payload);
       setBoardUsers((prevState) => {
-        return new Map(payload.map(({ socketId, user }) => [socketId, user]));
+        return new Map(payload.map(({ socketId, enhancedUser }) => [socketId, enhancedUser]));
       });
     },
     [setBoardUsers]
   );
 
   const onUserJoined = useCallback(
-    (payload: UserJoinedPayload) => {
+    (payload: { socketId: string; enhancedUser: LoggedInUser }[]) => {
+      console.log("boardUsers: ", payload);
       setBoardUsers((prevState) => {
-        prevState.set(payload.socketId, payload.user);
-        return new Map(prevState);
+        return new Map(payload.map(({ socketId, enhancedUser }) => [socketId, enhancedUser]));
       });
     },
     [setBoardUsers]
@@ -91,6 +99,7 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
 
   const onUserLeft = useCallback(
     (socketId: string) => {
+      console.log("userLeft: ", socketId);
       setBoardUsers((prevState) => {
         const updatedState = new Map(prevState);
         updatedState.delete(socketId);
@@ -148,6 +157,38 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     [setPaths]
   );
 
+  const onStartPresentation = useCallback(
+    (payload: PresentationsPayload) => {
+      setPresentation(payload);
+    },
+    [setPresentation]
+  );
+
+  const onEndPresentation = useCallback(() => {
+    console.log("presentation ended");
+  }, []);
+
+  const onJoinPresentation = useCallback(
+    (payload: { socketId: string; enhancedUser: LoggedInUser }[]) => {
+      console.log("presentation joined", payload);
+    },
+    []
+  );
+  const onLeavePresentation = useCallback((socketId: string) => {
+    console.log("presentation left", socketId);
+  }, []);
+
+  const onDragWhilePresenting = useCallback((payload: PresentationsPayload) => {
+    console.log("drag while presenting", payload);
+  }, []);
+
+  const onGetPresentationUsers = useCallback(
+    (payload: { socketId: string; enhancedUser: LoggedInUser }[]) => {
+      console.log("presentation users", payload);
+    },
+    []
+  );
+
   useEffect(() => {
     socket.on("add-node", onAddNode);
     socket.on("add-path", onAddPath);
@@ -156,7 +197,12 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     socket.on("board-users", onGetBoardUsers);
     socket.on("user-joined", onUserJoined);
     socket.on("user-left", onUserLeft);
-
+    socket.on("start-presentation", onStartPresentation);
+    socket.on("end-presentation", onEndPresentation);
+    socket.on("join-presentation", onJoinPresentation);
+    socket.on("leave-presentation", onLeavePresentation);
+    socket.on("drag-while-presenting", onDragWhilePresenting);
+    socket.on("presentation-users", onGetPresentationUsers);
     return () => {
       socket.off("add-node", onAddNode);
       socket.off("add-path", onAddPath);
@@ -165,8 +211,28 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
       socket.off("board-users", onGetBoardUsers);
       socket.off("user-joined", onUserJoined);
       socket.off("user-left", onUserLeft);
+      socket.off("start-presentation", onStartPresentation);
+      socket.off("end-presentation", onEndPresentation);
+      socket.off("join-presentation", onJoinPresentation);
+      socket.off("leave-presentation", onLeavePresentation);
+      socket.off("drag-while-presenting", onDragWhilePresenting);
+      socket.off("presentation-users", onGetPresentationUsers);
     };
-  }, [onAddNode, onAddPath, onUpdateNode, onUpdatePath, onGetBoardUsers, onUserJoined, onUserLeft]);
+  }, [
+    onAddNode,
+    onAddPath,
+    onUpdateNode,
+    onUpdatePath,
+    onGetBoardUsers,
+    onUserJoined,
+    onUserLeft,
+    onStartPresentation,
+    onEndPresentation,
+    onJoinPresentation,
+    onLeavePresentation,
+    onDragWhilePresenting,
+    onGetPresentationUsers,
+  ]);
 
   const value = useMemo(
     () => ({

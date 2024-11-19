@@ -1,5 +1,5 @@
 "use client";
-import { useGetBoard } from "@/lib/services/queries";
+import { useGetBoard, useGetUserBoard } from "@/lib/services/queries";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -31,14 +31,14 @@ const ErrorState = ({ error }: { error: Error }) => (
 const BoardPage = () => {
   const router = useRouter();
   const params = useParams<{ boardId: string }>();
-  console.log("boardId", params.boardId);
   const { data: board, isLoading, isError, error } = useGetBoard(params.boardId);
-
+  const { data: userBoard } = useGetUserBoard(params.boardId);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     return () => {
       queryClient.invalidateQueries({ queryKey: ["board", params.boardId] });
+      queryClient.invalidateQueries({ queryKey: ["userBoard", params.boardId] });
     };
   }, [queryClient, params.boardId]);
 
@@ -65,8 +65,15 @@ const BoardPage = () => {
     return <LoadingSpinner />;
   }
 
+  console.log(board);
+
   return (
-    <BoardContextProvider pathsProp={board.paths} shapesProp={board.shapes}>
+    <BoardContextProvider
+      pathsProp={board.paths}
+      shapesProp={board.shapes}
+      presentationProp={board.presentation}
+      // userBoard={userBoard?.data}
+    >
       <SocketContextProvider>
         <Canvas />
       </SocketContextProvider>

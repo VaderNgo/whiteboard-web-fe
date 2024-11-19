@@ -5,6 +5,7 @@ import Konva from "konva";
 import { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import React, { createContext, useEffect, useMemo, useState } from "react";
+import { PresentationsPayload } from "./socketContext";
 
 export const fills = [
   "#6B7280",
@@ -41,6 +42,7 @@ type BoardContextProps = {
   children: React.ReactNode;
   pathsProp: PathModel[];
   shapesProp: ShapeModel[];
+  presentationProp: PresentationsPayload | null;
 };
 
 export type Children = {
@@ -335,6 +337,10 @@ type IBoardContext = {
   setBoardUsers: React.Dispatch<React.SetStateAction<Map<string, LoggedInUser>>>;
   boardName: string;
   setBoardName: React.Dispatch<React.SetStateAction<string>>;
+  presentation: PresentationsPayload | null;
+  setPresentation: React.Dispatch<React.SetStateAction<PresentationsPayload | null>>;
+  isJoinedPresentation: boolean;
+  setIsJoinedPresentation: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const BoardContext: React.Context<IBoardContext> = createContext({} as IBoardContext);
@@ -343,6 +349,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   children,
   shapesProp,
   pathsProp,
+  presentationProp,
 }) => {
   const [stageRef, setStageRef] = useState<React.RefObject<Konva.Stage> | null>(null);
   const [layerRef, setLayerRef] = useState<React.RefObject<Konva.Layer> | null>(null);
@@ -363,6 +370,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
     stageX: 0,
     stageY: 0,
   });
+  const [presentation, setPresentation] = useState<PresentationsPayload | null>(null);
+  const [isJoinedPresentation, setIsJoinedPresentation] = useState<boolean>(false);
   const [stageStyle, setStageStyle] = useState<StageStyle>({
     backgroundColor: "#e2e8f0",
     opacity: 0.8,
@@ -409,6 +418,11 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
     setPaths(initialPaths);
   }, [shapesProp, pathsProp]);
 
+  useEffect(() => {
+    if (presentationProp) {
+      setPresentation(presentationProp);
+    }
+  }, [presentationProp]);
   const value = useMemo(
     () => ({
       stageRef,
@@ -465,8 +479,14 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setUndoStack,
       redoStack,
       setRedoStack,
+      presentation,
+      setPresentation,
+      isJoinedPresentation,
+      setIsJoinedPresentation,
     }),
     [
+      presentation,
+      isJoinedPresentation,
       nodes,
       paths,
       selectedNode,

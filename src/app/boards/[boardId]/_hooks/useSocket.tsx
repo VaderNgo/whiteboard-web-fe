@@ -1,11 +1,17 @@
 import { useLoggedInUser } from "@/lib/services/queries";
 import { useCallback, useContext } from "react";
 import { BoardContext, Node, UserCursor, Path, History } from "../_contexts/boardContext";
-import { AddNodePayload, AddPathPayload, SocketContext } from "../_contexts/socketContext";
+import {
+  AddNodePayload,
+  AddPathPayload,
+  PresentationsPayload,
+  SocketContext,
+} from "../_contexts/socketContext";
 
 const useSocket = () => {
   const { socket } = useContext(SocketContext);
-  const { boardId, setUndoStack } = useContext(BoardContext);
+  const { boardId, setUndoStack, isJoinedPresentation, setIsJoinedPresentation } =
+    useContext(BoardContext);
   const user = useLoggedInUser();
 
   const joinBoard = useCallback(() => {
@@ -77,6 +83,37 @@ const useSocket = () => {
     [socket, boardId]
   );
 
+  const startPresentation = useCallback(
+    (data: PresentationsPayload) => {
+      socket.emit("start-presentation", { boardId, data });
+      setIsJoinedPresentation(true);
+    },
+    [socket, boardId]
+  );
+
+  const joinPresentation = useCallback(() => {
+    if (!socket || !boardId || !user) return;
+    socket.emit("join-presentation", boardId);
+    setIsJoinedPresentation(true);
+  }, [socket, boardId]);
+
+  const leavePresentation = useCallback(() => {
+    if (!socket || !boardId) return;
+    socket.emit("leave-presentation", boardId);
+  }, [socket, boardId]);
+
+  const endPresentation = useCallback(() => {
+    if (!socket || !boardId) return;
+    socket.emit("end-presentation");
+  }, [socket, boardId]);
+
+  const dragWhilePresenting = useCallback(
+    (data: PresentationsPayload) => {
+      socket.emit("drag-while-presenting", { boardId, data });
+    },
+    [socket, boardId]
+  );
+
   return {
     joinBoard,
     leaveBoard,
@@ -84,6 +121,11 @@ const useSocket = () => {
     addPath,
     updateNode,
     updatePath,
+    startPresentation,
+    joinPresentation,
+    leavePresentation,
+    endPresentation,
+    dragWhilePresenting,
   };
 };
 

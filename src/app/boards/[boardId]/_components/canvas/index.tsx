@@ -29,6 +29,7 @@ import { calculateEdges } from "../path/functions";
 import { socket } from "@/lib/websocket";
 import Participants from "../participants";
 import ZoomBar from "../zoombar";
+import GridLayer from "../layer/grid";
 const Canvas: React.FC = () => {
   const {
     nodes,
@@ -89,7 +90,6 @@ const Canvas: React.FC = () => {
 
   useEffect(() => {
     if (!socket.connected) {
-      // console.log("connecting socket");
       socket.connect();
     }
     setBoardId(params.boardId);
@@ -121,11 +121,22 @@ const Canvas: React.FC = () => {
     setResizedCanvasWidth(window.innerWidth);
   };
 
+  // useEffect(() => {
+  //   window.addEventListener("resize", resizeStage);
+  //   return () => {
+  //     window.removeEventListener("resize", resizeStage);
+  //   };
+  // }, []);
+
   useEffect(() => {
-    window.addEventListener("resize", resizeStage);
-    return () => {
-      window.removeEventListener("resize", resizeStage);
+    const updateSize = () => {
+      resizeStage();
     };
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+
+    return () => window.removeEventListener("resize", updateSize);
   }, []);
 
   // useEffect(() => {
@@ -141,7 +152,7 @@ const Canvas: React.FC = () => {
     if (stageRef.current) {
       setStageRef(stageRef);
     }
-  }, [setStageRef]);
+  }, [stageRef]);
 
   useEffect(() => {
     if (layerRef.current) {
@@ -215,6 +226,16 @@ const Canvas: React.FC = () => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
       const container = stageRef.current.container();
       if (container) container.style.cursor = "auto";
+      const newPosition = {
+        x: e.target.x(),
+        y: e.target.y(),
+      };
+
+      setStageConfig((prevState) => ({
+        ...prevState,
+        stageX: newPosition.x,
+        stageY: newPosition.y,
+      }));
     }
   };
 
@@ -524,7 +545,8 @@ const Canvas: React.FC = () => {
             {(socketContextValue) => (
               <Stage
                 onContextMenu={(e) => e.evt.preventDefault()}
-                style={stageStyle}
+                // style={stageStyle}
+                style={{ opacity: 0.8, backgroundColor: "#e2e8f0" }}
                 ref={stageRef}
                 className=" absolute top-0 overflow-hidden"
                 scaleX={stageConfig.stageScale}
@@ -546,6 +568,7 @@ const Canvas: React.FC = () => {
               >
                 <BoardContext.Provider value={roomContextValue}>
                   <SocketContext.Provider value={socketContextValue}>
+                    <GridLayer />
                     <Layer ref={layerRef}>
                       {true && (
                         <>
