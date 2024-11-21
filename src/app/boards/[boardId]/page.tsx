@@ -1,13 +1,11 @@
 "use client";
-import { useGetBoard, useGetUserBoard } from "@/lib/services/queries";
-import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useGetBoard } from "@/lib/services/queries";
+import { useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Canvas from "./_components/canvas";
 import { BoardContextProvider } from "./_contexts/boardContext";
 import { SocketContextProvider } from "./_contexts/socketContext";
-import useSocket from "./_hooks/useSocket";
-import { useQueryClient } from "@tanstack/react-query";
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -32,7 +30,6 @@ const BoardPage = () => {
   const router = useRouter();
   const params = useParams<{ boardId: string }>();
   const { data: board, isLoading, isError, error } = useGetBoard(params.boardId);
-  const { data: userBoard } = useGetUserBoard(params.boardId);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -65,14 +62,23 @@ const BoardPage = () => {
     return <LoadingSpinner />;
   }
 
-  console.log(board);
+  const participantsMap = board.presentation?.participants
+    ? new Map(board.presentation!.participants.map((p) => [p.socketId, p.user]))
+    : new Map();
+
+  const presentationProp = board.presentation
+    ? {
+        presentation: board.presentation.presentation,
+        participants: participantsMap,
+        presenter: board.presentation.presenter,
+      }
+    : null;
 
   return (
     <BoardContextProvider
       pathsProp={board.paths}
       shapesProp={board.shapes}
-      presentationProp={board.presentation}
-      // userBoard={userBoard?.data}
+      presentationProp={presentationProp}
     >
       <SocketContextProvider>
         <Canvas />

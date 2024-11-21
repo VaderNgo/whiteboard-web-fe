@@ -5,7 +5,7 @@ import Konva from "konva";
 import { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import React, { createContext, useEffect, useMemo, useState } from "react";
-import { PresentationsPayload } from "./socketContext";
+import { PresentationState } from "./socketContext";
 
 export const fills = [
   "#6B7280",
@@ -42,7 +42,7 @@ type BoardContextProps = {
   children: React.ReactNode;
   pathsProp: PathModel[];
   shapesProp: ShapeModel[];
-  presentationProp: PresentationsPayload | null;
+  presentationProp: PresentationState | null;
 };
 
 export type Children = {
@@ -337,8 +337,8 @@ type IBoardContext = {
   setBoardUsers: React.Dispatch<React.SetStateAction<Map<string, LoggedInUser>>>;
   boardName: string;
   setBoardName: React.Dispatch<React.SetStateAction<string>>;
-  presentation: PresentationsPayload | null;
-  setPresentation: React.Dispatch<React.SetStateAction<PresentationsPayload | null>>;
+  presentation: PresentationState | null;
+  setPresentation: React.Dispatch<React.SetStateAction<PresentationState | null>>;
   isJoinedPresentation: boolean;
   setIsJoinedPresentation: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -370,7 +370,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
     stageX: 0,
     stageY: 0,
   });
-  const [presentation, setPresentation] = useState<PresentationsPayload | null>(null);
+  const [presentation, setPresentation] = useState<PresentationState | null>(null);
   const [isJoinedPresentation, setIsJoinedPresentation] = useState<boolean>(false);
   const [stageStyle, setStageStyle] = useState<StageStyle>({
     backgroundColor: "#e2e8f0",
@@ -423,6 +423,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setPresentation(presentationProp);
     }
   }, [presentationProp]);
+
   const value = useMemo(
     () => ({
       stageRef,

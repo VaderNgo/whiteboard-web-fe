@@ -3,6 +3,7 @@ import { AxiosInstance } from "../axios";
 import { Plan } from "../plans-enum";
 import { Node, Path, StageConfig } from "@/app/boards/[boardId]/_contexts/boardContext";
 import { Permission } from "../permission-enum";
+import { PresentationState } from "@/app/boards/[boardId]/_contexts/socketContext";
 
 export type Team = {
   id: string;
@@ -96,7 +97,13 @@ export type BoardModel = {
   createdAt: string;
   shapes: ShapeModel[];
   paths: PathModel[];
-  presentation: { user: LoggedInUser, data: StageConfig } | null;
+  presentation: PresentationStateTemp | null;
+}
+
+export type PresentationStateTemp = {
+  participants: { socketId: string; user: LoggedInUser }[];
+  presentation: StageConfig | null;
+  presenter: LoggedInUser | null;
 }
 
 export type UserBoard = {

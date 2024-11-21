@@ -1,9 +1,4 @@
-import { ChevronDown, Play, Presentation } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
-import { BoardContext } from "../../_contexts/boardContext";
-import { LoggedInUser, useLoggedInUser } from "@/lib/services/queries";
-import useSocket from "../../_hooks/useSocket";
-import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+import { Button } from "@/components/ui/button";
 import {
   DialogContent,
   DialogDescription,
@@ -11,8 +6,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { LoggedInUser, useLoggedInUser } from "@/lib/services/queries";
+import { Dialog } from "@radix-ui/react-dialog";
+import { ChevronDown, Play } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+import { BoardContext } from "../../_contexts/boardContext";
+import useSocket from "../../_hooks/useSocket";
 
 const Participants = () => {
   const {
@@ -26,13 +25,12 @@ const Participants = () => {
   const [visibleCollaborators, setVisibleCollaborators] = useState<LoggedInUser[]>([]);
   const [extraCount, setExtraCount] = useState(0);
   const owner = useLoggedInUser();
-  const { startPresentation, joinPresentation } = useSocket();
+  const { startPresentation, joinPresentation, leavePresentation, endPresentation } = useSocket();
   const [isDialogOpen, setIsDialogOpen] = useState(true);
   useEffect(() => {
     const usersArray = Array.from(boardUsers.values());
     const newExtraCount = usersArray.length > 2 ? usersArray.length - 2 : 0;
     const newVisibleCollaborators = usersArray.slice(0, 2);
-    console.log("visible", newVisibleCollaborators);
     setExtraCount(newExtraCount);
     setVisibleCollaborators(newVisibleCollaborators);
   }, [boardUsers]);
@@ -40,36 +38,73 @@ const Participants = () => {
   const handlePresentationClick = (type: number) => {
     switch (type) {
       case 0:
-        startPresentation({ user: owner.data!, data: stageConfig });
+        startPresentation(stageConfig);
         break;
       case 1:
         joinPresentation();
         break;
+      case 2:
+        leavePresentation();
+        break;
+      case 3:
+        endPresentation();
+        break;
     }
   };
 
-  useEffect(() => {}, [presentation, isJoinedPresentation]);
+  useEffect(() => {
+    console.log(presentation);
+    console.log(presentation?.participants);
+  }, [presentation]);
 
   return (
     <>
       <div className="absolute z-10 h-12 top-2 right-2 bg-white rounded-e-md flex items-center shadow-md">
         <div className="flex h-full w-full justify-center items-center space-x-3 p-2">
           <div className="aspect-square h-full rounded flex justify-center items-center">
-            <button className=" h-full rounded-sm bg-gray-200 flex flex-row justify-center items-center space-x-2 p-3">
-              <Play size={15} fill="black" />
-              {!presentation && !isJoinedPresentation && (
-                <span className="text-sm" onClick={() => handlePresentationClick(0)}>
-                  Present
-                </span>
+            {!presentation && (
+              <button
+                className=" h-full rounded-sm bg-gray-200 flex flex-row justify-center items-center space-x-2 p-3"
+                onClick={() => handlePresentationClick(0)}
+              >
+                <Play size={15} fill="black" />
+                <span className="text-sm">Present</span>
+              </button>
+            )}
+            {presentation &&
+              presentation.presenter?.id !== owner.data?.id &&
+              presentation.participants
+                .values()
+                .find((enhancedUser) => enhancedUser.id === owner.data?.id) === undefined && (
+                <button
+                  className=" h-full rounded-sm bg-gray-200 flex flex-row justify-center items-center space-x-2 p-3"
+                  onClick={() => handlePresentationClick(1)}
+                >
+                  <Play size={15} fill="black" />
+                  <span className="text-sm">Join</span>
+                </button>
               )}
-              {presentation &&
-                presentation?.user.id !== owner.data?.id &&
-                !isJoinedPresentation && (
-                  <span className="text-sm" onClick={() => handlePresentationClick(1)}>
-                    Join
-                  </span>
-                )}
-            </button>
+            {presentation && presentation?.presenter?.id === owner.data?.id && (
+              <button
+                className=" h-full rounded-sm bg-red-500 text-white flex flex-row justify-center items-center space-x-2 p-3"
+                onClick={() => handlePresentationClick(3)}
+              >
+                <span className="text-sm">End</span>
+              </button>
+            )}
+            {presentation &&
+              presentation?.presenter?.id !== owner.data?.id &&
+              presentation.participants.size !== 0 &&
+              presentation.participants
+                .values()
+                .find((enhancedUser) => enhancedUser.id === owner.data?.id) !== undefined && (
+                <button
+                  className=" h-full rounded-sm bg-red-500 text-white flex flex-row justify-center items-center space-x-2 p-3"
+                  onClick={() => handlePresentationClick(2)}
+                >
+                  <span className="text-sm">Leave</span>
+                </button>
+              )}
           </div>
 
           <div className="relative flex items-center space-x-1">
@@ -113,7 +148,13 @@ const Participants = () => {
       <Dialog
         open={
           isDialogOpen &&
-          !!(presentation && presentation?.user.id !== owner.data?.id && !isJoinedPresentation)
+          !!(
+            presentation &&
+            presentation?.presenter?.id !== owner.data?.id &&
+            presentation.participants
+              .values()
+              .find((enhancedUser) => enhancedUser.id === owner.data?.id) === undefined
+          )
         }
         onOpenChange={setIsDialogOpen}
       >
@@ -121,7 +162,7 @@ const Participants = () => {
           <DialogHeader>
             <DialogTitle className="font-bold text-2xl">
               Presentation started{" "}
-              <span className="text-blue-800">by {presentation?.user.username}</span>
+              <span className="text-blue-800">by {presentation?.presenter!.username}</span>
             </DialogTitle>
             <DialogDescription>
               <div className="w-full flex justify-center">
@@ -129,11 +170,14 @@ const Participants = () => {
               </div>
               <div className="w-full flex flex-row justify-center items-center">
                 <div className="z-20 w-10 h-10 rounded-full flex justify-center items-center border-2 border-yellow-500">
-                  <img src={presentation?.user.avatar} className="w-full h-full rounded-full" />
+                  <img
+                    src={presentation?.presenter!.avatar}
+                    className="w-full h-full rounded-full"
+                  />
                 </div>
                 <div className="z-10 w-10 h-10 rounded-full flex justify-center items-center border-2 border-yellow-600 -ml-4 bg-gray-200"></div>
                 <span className="text-gray-500 text-xl ml-3">
-                  {presentation?.user.username} is waiting for people to join
+                  {presentation?.presenter!.username} is waiting for people to join
                 </span>
               </div>
             </DialogDescription>
@@ -142,7 +186,7 @@ const Participants = () => {
             <Button className="bg-gray-400" onClick={() => setIsDialogOpen(false)}>
               Not Now
             </Button>
-            <Button className="bg-blue-500" type="submit" autoFocus>
+            <Button className="bg-blue-500" onClick={() => handlePresentationClick(1)}>
               Join
             </Button>
           </DialogFooter>

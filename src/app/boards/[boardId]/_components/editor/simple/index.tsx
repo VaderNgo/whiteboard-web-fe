@@ -103,7 +103,6 @@ const SimpleEditor = () => {
         text.setAttrs({ [key]: value });
       else node.setAttrs({ [key]: value });
     }
-    console.log(text);
     setEditorValue({ node, text });
   };
 

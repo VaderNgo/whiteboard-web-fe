@@ -435,7 +435,6 @@ const Canvas: React.FC = () => {
   const addDrawnShape = () => {
     if (!tempShapeRef.current) return;
     let shapeAttribute;
-    console.log(tempShapeRef.current.attrs);
     switch (shapeType) {
       case "Ellipse":
         shapeAttribute = {
@@ -488,7 +487,6 @@ const Canvas: React.FC = () => {
     const newNode: Node = new Node().setAttrs({
       ...shapeAttribute,
     });
-    console.log(newNode);
     setNodes((prevState) => {
       prevState.set(newNode.id, newNode);
       return new Map(prevState);
