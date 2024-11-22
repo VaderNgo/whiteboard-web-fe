@@ -24,16 +24,31 @@ const Participants = () => {
   } = useContext(BoardContext);
   const [visibleCollaborators, setVisibleCollaborators] = useState<LoggedInUser[]>([]);
   const [extraCount, setExtraCount] = useState(0);
+  const [extraCountParticipant, setExtraCountParticipant] = useState(0);
+  const [visibleParticipants, setVisibleParticipants] = useState<LoggedInUser[]>([]);
   const owner = useLoggedInUser();
   const { startPresentation, joinPresentation, leavePresentation, endPresentation } = useSocket();
   const [isDialogOpen, setIsDialogOpen] = useState(true);
   useEffect(() => {
-    const usersArray = Array.from(boardUsers.values());
+    const usersArray = Array.from(boardUsers.values()).filter((user) => user.id !== owner.data?.id);
     const newExtraCount = usersArray.length > 2 ? usersArray.length - 2 : 0;
     const newVisibleCollaborators = usersArray.slice(0, 2);
     setExtraCount(newExtraCount);
     setVisibleCollaborators(newVisibleCollaborators);
   }, [boardUsers]);
+
+  useEffect(() => {
+    if (presentation) {
+      const participantsArray = Array.from(presentation.participants.values()).filter(
+        (user) => user.id !== owner.data?.id
+      );
+      const newExtraCountParticipant =
+        participantsArray.length > 2 ? participantsArray.length - 2 : 0;
+      const newVisibleParticipants = participantsArray.slice(0, 2);
+      setExtraCountParticipant(newExtraCountParticipant);
+      setVisibleParticipants(newVisibleParticipants);
+    }
+  }, [presentation]);
 
   const handlePresentationClick = (type: number) => {
     switch (type) {
@@ -168,17 +183,42 @@ const Participants = () => {
               <div className="w-full flex justify-center">
                 <img src={`/gif/meeting.gif`} className="size-28" />
               </div>
-              <div className="w-full flex flex-row justify-center items-center">
-                <div className="z-20 w-10 h-10 rounded-full flex justify-center items-center border-2 border-yellow-500">
-                  <img
-                    src={presentation?.presenter!.avatar}
-                    className="w-full h-full rounded-full"
-                  />
+              <div className="w-full flex flex-row justify-center items-center gap-x-5">
+                <div className="flex flex-row items-center">
+                  <div className="z-40 w-10 h-10 rounded-full flex justify-center items-center border-2 border-yellow-500">
+                    <img
+                      src={presentation?.presenter!.avatar}
+                      className="w-full h-full rounded-full"
+                    />
+                  </div>
+                  <div className="relative -ml-4 flex">
+                    {visibleParticipants
+                      .filter((participant) => participant.id !== owner.data?.id)
+                      .map((participant, index) => (
+                        <div
+                          key={participant.id || index}
+                          className={`w-10 h-10 rounded-full flex justify-center items-center ${
+                            index === 0 ? "z-20" : "z-10 -ml-2"
+                          } border-2 border-yellow-500`}
+                        >
+                          <img
+                            src={participant.avatar}
+                            alt={`collaborator-${index}`}
+                            className="w-full h-full rounded-full"
+                          />
+                        </div>
+                      ))}
+
+                    {extraCountParticipant > 0 && (
+                      <div className="w-10 h-10 bg-white rounded-full flex justify-center items-center z-30 -ml-2 border-2 border-gray-400">
+                        <span className="text-sm">+{extraCountParticipant}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="z-10 w-10 h-10 rounded-full flex justify-center items-center border-2 border-yellow-600 -ml-4 bg-gray-200"></div>
-                <span className="text-gray-500 text-xl ml-3">
-                  {presentation?.presenter!.username} is waiting for people to join
-                </span>
+                <div className="flex items-center">
+                  <span>already joined the presentation. Do you want to join?</span>
+                </div>
               </div>
             </DialogDescription>
           </DialogHeader>

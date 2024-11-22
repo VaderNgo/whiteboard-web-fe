@@ -198,11 +198,19 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
   );
 
   const onLeavePresentation = useCallback(
-    (socketId: string) => {
+    (payload: { participants: { socketId: string; enhancedUser: LoggedInUser }[] }) => {
+      console.log("Leave presentation", payload);
       setPresentation((prev) => {
         if (!prev) return null;
-        prev.participants.delete(socketId);
-        return prev;
+        return {
+          ...prev,
+          participants:
+            payload.participants.length !== 0
+              ? new Map(
+                  payload.participants.map(({ socketId, enhancedUser }) => [socketId, enhancedUser])
+                )
+              : new Map(),
+        };
       });
     },
     [setPresentation]

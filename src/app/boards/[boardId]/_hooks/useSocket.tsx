@@ -117,14 +117,12 @@ const useSocket = () => {
     if (!socket || !boardId) return;
     socket.emit("leave-presentation", boardId);
     setPresentation(null);
-    setIsJoinedPresentation(false);
   }, [socket, boardId, setIsJoinedPresentation]);
 
   const endPresentation = useCallback(() => {
     if (!socket || !boardId || presentation?.presenter!.id != user.data?.id) return;
     socket.emit("end-presentation", boardId);
     setPresentation(null);
-    setIsJoinedPresentation(false);
   }, [socket, boardId, presentation, user, setIsJoinedPresentation]);
 
   const dragWhilePresenting = useCallback(
