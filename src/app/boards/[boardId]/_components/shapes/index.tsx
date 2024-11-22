@@ -12,6 +12,7 @@ import PolygonShape from "./polygonShape";
 import RectShape from "./rectShape";
 import NoteShape from "./noteShape";
 import TextShape from "./textShape";
+import { useLoggedInUser } from "@/lib/services/queries";
 
 type ShapeProps = {
   node: Node;
@@ -34,6 +35,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     setPaths,
     setUndoStack,
     setSelectedPath,
+    presentation,
+    setPresentation,
   } = useContext(BoardContext);
 
   const shapeRef = useRef<Konva.Group>(null);
@@ -44,6 +47,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const { updateNode, updatePath } = useSocket();
   const [groupScale, setGroupScale] = useState({ x: 1, y: 1 });
   const [isHovering, setIsHovering] = useState(false);
+  const { data: loggedUser } = useLoggedInUser();
 
   useEffect(() => {
     shapeRef.current?.setAttr("id", node.id);
@@ -136,6 +140,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   };
 
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (presentation && presentation.presenter && loggedUser?.id !== presentation?.presenter.id)
+      return;
     if (isEditing) return;
     if (isHovering) setIsHovering(false);
     if (e.evt.shiftKey) {
@@ -303,6 +309,8 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   };
 
   const startEditting = () => {
+    if (presentation && presentation.presenter && loggedUser?.id !== presentation?.presenter.id)
+      return;
     setIsEditing(true);
     setSelectedNode(node);
     setSelectedPath(null);

@@ -82,6 +82,7 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     boardUsers,
     setPresentation,
     setIsJoinedPresentation,
+    setBoardAction,
   } = useContext(BoardContext);
 
   const { data } = useLoggedInUser();
@@ -170,12 +171,14 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
         participants: new Map(),
         presenter: payload.presenter,
       });
+      setIsJoinedPresentation(true);
     },
     [setPresentation]
   );
 
   const onEndPresentation = useCallback(() => {
     setPresentation(null);
+    setIsJoinedPresentation(false);
   }, [setPresentation]);
 
   const onJoinPresentation = useCallback(
@@ -199,13 +202,12 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
 
   const onLeavePresentation = useCallback(
     (payload: { participants: { socketId: string; enhancedUser: LoggedInUser }[] }) => {
-      console.log("Leave presentation", payload);
       setPresentation((prev) => {
         if (!prev) return null;
         return {
           ...prev,
           participants:
-            payload.participants.length !== 0
+            payload.participants && payload.participants.length !== 0
               ? new Map(
                   payload.participants.map(({ socketId, enhancedUser }) => [socketId, enhancedUser])
                 )

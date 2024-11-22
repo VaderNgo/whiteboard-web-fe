@@ -7,6 +7,7 @@ import {
   Path,
   History,
   StageConfig,
+  BoardAction,
 } from "../_contexts/boardContext";
 import { AddNodePayload, AddPathPayload, SocketContext } from "../_contexts/socketContext";
 
@@ -20,12 +21,14 @@ const useSocket = () => {
     presentation,
     stageConfig,
     setPresentation,
+    setBoardAction,
   } = useContext(BoardContext);
   const user = useLoggedInUser();
 
   const joinBoard = useCallback(() => {
     if (!socket || !boardId || !user) return;
     socket.emit("joinBoard", boardId);
+    setBoardAction(BoardAction.Select);
   }, [socket, boardId]); // authenState.user
 
   const leaveBoard = useCallback(() => {
@@ -104,6 +107,7 @@ const useSocket = () => {
         participants: new Map(),
         presenter: user.data!,
       });
+      setIsJoinedPresentation(true);
     },
     [socket, boardId, user]
   );
@@ -111,18 +115,20 @@ const useSocket = () => {
   const joinPresentation = useCallback(() => {
     if (!socket || !boardId || !user) return;
     socket.emit("join-presentation", boardId);
+    setIsJoinedPresentation(true);
   }, [socket, boardId, user]);
 
   const leavePresentation = useCallback(() => {
     if (!socket || !boardId) return;
     socket.emit("leave-presentation", boardId);
-    setPresentation(null);
+    setIsJoinedPresentation(false);
   }, [socket, boardId, setIsJoinedPresentation]);
 
   const endPresentation = useCallback(() => {
     if (!socket || !boardId || presentation?.presenter!.id != user.data?.id) return;
     socket.emit("end-presentation", boardId);
     setPresentation(null);
+    setIsJoinedPresentation(false);
   }, [socket, boardId, presentation, user, setIsJoinedPresentation]);
 
   const dragWhilePresenting = useCallback(
@@ -130,10 +136,7 @@ const useSocket = () => {
       if (!socket || !boardId || presentation?.presenter!.id != user.data?.id) return;
       socket.emit("drag-while-presenting", {
         boardId,
-        data: {
-          ...data,
-          user, // Include presenter information
-        },
+        data,
       });
     },
     [socket, boardId, presentation, user]

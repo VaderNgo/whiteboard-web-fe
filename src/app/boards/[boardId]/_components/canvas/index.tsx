@@ -30,6 +30,7 @@ import { socket } from "@/lib/websocket";
 import Participants from "../participants";
 import ZoomBar from "../zoombar";
 import GridLayer from "../layer/grid";
+import { useLoggedInUser } from "@/lib/services/queries";
 const Canvas: React.FC = () => {
   const {
     nodes,
@@ -45,7 +46,6 @@ const Canvas: React.FC = () => {
     setStageRef,
     setDisplayColorPicker,
     setBoardId,
-    boardId,
     userCursors,
     boardUsers,
     setBoardUsers,
@@ -57,27 +57,28 @@ const Canvas: React.FC = () => {
     selectedNode,
     paths,
     setPaths,
-    selectedPath,
     setSelectedPath,
     drawingPath,
     setDrawingPath,
     isDrawingPath,
     setIsDrawingPath,
-    undoStack,
-    redoStack,
     polygonSides,
+    setPresentation,
+    presentation,
+    isJoinedPresentation,
   } = useContext(BoardContext);
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
   const layerRef = useRef<Konva.Layer>(null);
   const [selectionRectCoords, setSelectionRectCoords] = useState({ x1: 0, y1: 0 });
   const stageRef = useRef<Konva.Stage>(null);
-  // const { addToHistory, undoByShortCutKey, redoByShortCutKey } = useHistory();
   const params = useParams<{ boardId: string }>();
-  const { joinBoard, leaveBoard, addNode, addPath, updateNode, updatePath } = useSocket();
+  const { joinBoard, leaveBoard, addNode, addPath, updateNode, updatePath, dragWhilePresenting } =
+    useSocket();
   const [resizedCanvasWidth, setResizedCanvasWidth] = useState(CANVAS_WIDTH);
   const [resizedCanvasHeight, setResizedCanvasHeight] = useState(CANVAS_HEIGHT);
   const tempShapeRef = useRef<Konva.Shape | null>(null);
+  const { data: loggedUser } = useLoggedInUser();
   useEffect(() => {}, [drawingPath, nodes]);
 
   const createStepPathPoints = (start: PathPoint, end: { x: number; y: number }): PathPoint[] => {
@@ -120,13 +121,6 @@ const Canvas: React.FC = () => {
     setResizedCanvasHeight(window.innerHeight);
     setResizedCanvasWidth(window.innerWidth);
   };
-
-  // useEffect(() => {
-  //   window.addEventListener("resize", resizeStage);
-  //   return () => {
-  //     window.removeEventListener("resize", resizeStage);
-  //   };
-  // }, []);
 
   useEffect(() => {
     const updateSize = () => {
@@ -172,6 +166,8 @@ const Canvas: React.FC = () => {
     if (boardAction !== BoardAction.Drag) {
       return;
     }
+    console.log(presentation?.presenter?.username);
+    console.log("stageConfig", stageConfig);
     if (stageRef.current) {
       const stage = stageRef.current;
       const scaleBy = 1.05;
@@ -191,6 +187,13 @@ const Canvas: React.FC = () => {
         -(mousePointTo.x - (stage.getPointerPosition()?.x as number) / newScale) * newScale;
       const stageY =
         -(mousePointTo.y - (stage.getPointerPosition()?.y as number) / newScale) * newScale;
+
+      dragWhilePresenting({
+        ...stageConfig,
+        stageX,
+        stageY,
+        stageScale: newScale,
+      });
       setStageConfig((prevState) => ({
         ...prevState,
         stageScale: newScale,
@@ -198,16 +201,20 @@ const Canvas: React.FC = () => {
         stageY,
       }));
 
-      setStageStyle((prevState) => ({
-        ...prevState,
-        backgroundSize: `${50 * newScale}px ${50 * newScale}px`,
-        backgroundPosition: `${stageX}px ${stageY}px`,
-      }));
+      // setStageStyle((prevState) => ({
+      //   ...prevState,
+      //   backgroundSize: `${50 * newScale}px ${50 * newScale}px`,
+      //   backgroundPosition: `${stageX}px ${stageY}px`,
+      // }));
     }
   };
 
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      if (presentation && presentation.presenter && presentation.presenter.id !== loggedUser?.id) {
+        console.log("can not drag");
+        return;
+      }
       const container = stageRef.current.container();
       if (container) container.style.cursor = "grabbing";
     }
@@ -215,15 +222,41 @@ const Canvas: React.FC = () => {
 
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      if (presentation && presentation.presenter && presentation.presenter.id !== loggedUser?.id) {
+        console.log("can not drag");
+        return;
+      }
       setStageStyle((prevState) => ({
         ...prevState,
         backgroundPosition: `${e.target.x()}px ${e.target.y()}px`,
       }));
+      const newPosition = {
+        x: e.target.x(),
+        y: e.target.y(),
+      };
+
+      setStageConfig((prevState) => ({
+        ...prevState,
+        stageX: newPosition.x,
+        stageY: newPosition.y,
+      }));
+
+      if (presentation && presentation.presenter && presentation.presenter.id === loggedUser?.id) {
+        dragWhilePresenting({
+          stageX: newPosition.x,
+          stageY: newPosition.y,
+          stageScale: stageConfig.stageScale,
+        });
+      }
     }
   };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
+      if (presentation && presentation.presenter && presentation.presenter.id !== loggedUser?.id) {
+        console.log("can not drag");
+        return;
+      }
       const container = stageRef.current.container();
       if (container) container.style.cursor = "auto";
       const newPosition = {
@@ -236,6 +269,14 @@ const Canvas: React.FC = () => {
         stageX: newPosition.x,
         stageY: newPosition.y,
       }));
+
+      if (presentation && presentation.presenter && presentation.presenter.id === loggedUser?.id) {
+        dragWhilePresenting({
+          stageX: newPosition.x,
+          stageY: newPosition.y,
+          stageScale: stageConfig.stageScale,
+        });
+      }
     }
   };
 
@@ -547,10 +588,30 @@ const Canvas: React.FC = () => {
                 style={{ opacity: 0.8, backgroundColor: "#e2e8f0" }}
                 ref={stageRef}
                 className=" absolute top-0 overflow-hidden"
-                scaleX={stageConfig.stageScale}
-                scaleY={stageConfig.stageScale}
-                x={stageConfig.stageX}
-                y={stageConfig.stageY}
+                scaleX={
+                  isJoinedPresentation &&
+                  presentation?.presentation &&
+                  presentation.presenter?.id !== loggedUser?.id
+                    ? presentation.presentation.stageScale
+                    : stageConfig.stageScale
+                }
+                scaleY={
+                  isJoinedPresentation &&
+                  presentation?.presentation &&
+                  presentation.presenter?.id !== loggedUser?.id
+                    ? presentation.presentation.stageScale
+                    : stageConfig.stageScale
+                }
+                x={
+                  isJoinedPresentation && presentation?.presentation
+                    ? presentation.presentation.stageX
+                    : stageConfig.stageX
+                }
+                y={
+                  isJoinedPresentation && presentation?.presentation
+                    ? presentation.presentation.stageY
+                    : stageConfig.stageY
+                }
                 width={resizedCanvasWidth}
                 height={resizedCanvasHeight}
                 draggable={boardAction === BoardAction.Drag}

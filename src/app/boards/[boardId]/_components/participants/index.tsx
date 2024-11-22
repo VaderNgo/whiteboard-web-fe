@@ -68,8 +68,9 @@ const Participants = () => {
   };
 
   useEffect(() => {
-    console.log(presentation);
-    console.log(presentation?.participants);
+    console.log("presentation", presentation);
+    console.log("isJoinedPresentation", isJoinedPresentation);
+    console.log("participants", presentation?.participants);
   }, [presentation]);
 
   return (

@@ -1,43 +1,35 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { Layer, Line } from "react-konva";
 import { BoardContext } from "../../../_contexts/boardContext";
 
 interface GridLayerProps {
   baseGridSize?: number;
-  gridLevels?: number;
-  gridOutsizePercentage?: number;
 }
 
-const GridLayer: React.FC<GridLayerProps> = ({
-  baseGridSize = 100,
-  gridLevels = 3,
-  gridOutsizePercentage = 0.2,
-}) => {
-  const { stageRef, stageConfig } = useContext(BoardContext);
+const GridLayer: React.FC<GridLayerProps> = ({ baseGridSize = 100 }) => {
+  const { stageRef, stageConfig, presentation } = useContext(BoardContext);
   const [lines, setLines] = useState<JSX.Element[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Memoize updateGrid to prevent recreation
   const updateGrid = useCallback(() => {
-    if (!stageRef?.current) {
-      return;
-    }
+    if (!stageRef?.current) return;
 
     const stage = stageRef.current;
     const scale = Math.max(stage.scaleX(), stage.scaleY());
 
-    // Calculate the visible area
+    // Force scale to 1 if it's close to 1 on first render
+    const safeScale = Math.abs(scale - 1) < 0.01 ? 1 : scale;
+
     const transform = stage.getAbsoluteTransform().copy().invert();
     const topLeftCorner = transform.point({ x: 0, y: 0 });
 
-    const currentLevel = calculateGridLevel(scale);
+    const currentLevel = calculateGridLevel(safeScale);
     const allLines: JSX.Element[] = [];
 
     // Generate multiple grid levels
     for (let levelOffset = -1; levelOffset <= 1; levelOffset++) {
       const level = currentLevel + levelOffset;
-      const gridSize = getGridSizeForLevel(level, scale);
-      const opacity = getOpacityForLevel(level, scale);
+      const gridSize = getGridSizeForLevel(level, safeScale);
+      const opacity = getOpacityForLevel(level, safeScale);
 
       const points = calculatePoints(topLeftCorner, gridSize);
       const gridLines = createGridLines(gridSize, opacity, points);
@@ -47,85 +39,25 @@ const GridLayer: React.FC<GridLayerProps> = ({
     setLines(allLines);
   }, [stageRef?.current, baseGridSize]);
 
-  // Initial mount effect with RAF loop
+  // Trigger grid update on multiple events
   useEffect(() => {
-    let rafId: number;
-    let attempts = 0;
-    const maxAttempts = 10;
+    if (!stageRef?.current) return;
 
-    const tryInitialize = () => {
-      if (!stageRef?.current || attempts >= maxAttempts) return;
+    // Immediate update
+    const initialUpdateTimeout = setTimeout(updateGrid, 0);
 
-      const stage = stageRef.current;
-      if (stage.width() && stage.height()) {
-        updateGrid();
-        setIsInitialized(true);
-      } else {
-        attempts++;
-        rafId = requestAnimationFrame(tryInitialize);
-      }
-    };
-
-    tryInitialize();
+    // Additional update after a short delay to handle potential async rendering
+    const delayedUpdateTimeout = setTimeout(updateGrid, 100);
 
     return () => {
-      if (rafId) cancelAnimationFrame(rafId);
+      clearTimeout(initialUpdateTimeout);
+      clearTimeout(delayedUpdateTimeout);
     };
-  }, [stageRef?.current, updateGrid]);
-
-  // Set up event listeners after initialization
-  useEffect(() => {
-    if (!isInitialized || !stageRef?.current) return;
-
-    const stage = stageRef.current;
-
-    // Create a debounced update function
-    let dragTimeout: NodeJS.Timeout;
-    const debouncedUpdate = () => {
-      clearTimeout(dragTimeout);
-      dragTimeout = setTimeout(() => {
-        updateGrid();
-      }, 16); // Approximately one frame at 60fps
-    };
-
-    // Handle drag events
-    const handleDrag = () => {
-      debouncedUpdate();
-    };
-
-    // Handle scale events
-    const handleScale = () => {
-      updateGrid();
-    };
-
-    // Add event listeners
-    stage.on("dragmove", handleDrag);
-    stage.on("scale", handleScale);
-    stage.on("scaleend", handleScale);
-
-    // Force initial update
-    updateGrid();
-
-    return () => {
-      clearTimeout(dragTimeout);
-      if (stage) {
-        stage.off("dragmove", handleDrag);
-        stage.off("scale", handleScale);
-        stage.off("scaleend", handleScale);
-      }
-    };
-  }, [isInitialized, stageRef?.current, updateGrid]);
-
-  // Update when stage config changes
-  useEffect(() => {
-    if (stageConfig && isInitialized) {
-      updateGrid();
-    }
-  }, [stageConfig, updateGrid, isInitialized]);
+  }, [stageRef?.current, updateGrid, stageConfig, presentation]);
 
   const calculateGridLevel = (scale: number): number => {
-    const logScale = Math.log2(scale);
-    return Math.floor(logScale);
+    const adjustedScale = Math.max(Math.min(scale, 1.9), 0.2);
+    return Math.floor(Math.log2(adjustedScale));
   };
 
   const getGridSizeForLevel = (level: number, scale: number): number => {
@@ -135,10 +67,12 @@ const GridLayer: React.FC<GridLayerProps> = ({
 
   const getOpacityForLevel = (level: number, scale: number): number => {
     const baseOpacity = 0.3;
-    const scaleLog = Math.log2(scale);
+    const scaleLog = Math.log2(Math.max(Math.min(scale, 1.9), 0.2));
     const fractionalPart = scaleLog - Math.floor(scaleLog);
 
-    // Fade between levels
+    // Ensure some opacity at scale 1
+    if (Math.abs(scale - 1) < 0.01) return baseOpacity;
+
     if (fractionalPart > 0.7) return baseOpacity * (1 - (fractionalPart - 0.7) / 0.3);
     if (fractionalPart < 0.3) return baseOpacity * (fractionalPart / 0.3);
     return baseOpacity;
@@ -148,7 +82,6 @@ const GridLayer: React.FC<GridLayerProps> = ({
     if (!stageRef?.current) return { startX: 0, endX: 0, startY: 0, endY: 0 };
     const stage = stageRef.current;
 
-    // Add extra padding to ensure grid covers the entire visible area
     const padding = gridSize * 3;
 
     const startX = Math.floor(corner.x / gridSize) * gridSize - padding;
