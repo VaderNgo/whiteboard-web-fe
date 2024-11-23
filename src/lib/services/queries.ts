@@ -64,6 +64,8 @@ export function useGetTeamMembers(teamId: string) {
   });
 }
 
+
+
 export type Notification = {
   id: number;
   type: string;
@@ -97,6 +99,7 @@ export type BoardModel = {
   createdAt: string;
   shapes: ShapeModel[];
   paths: PathModel[];
+  owner: LoggedInUser;
   presentation: PresentationStateTemp | null;
 }
 
@@ -107,7 +110,9 @@ export type PresentationStateTemp = {
 }
 
 export type UserBoard = {
-  data: StageConfig
+  user: LoggedInUser;
+  data: StageConfig,
+  permission: Permission,
 }
 
 export function useGetBoard(id: string) {
@@ -117,10 +122,11 @@ export function useGetBoard(id: string) {
   });
 }
 
-export function useGetUserBoard(boardId: string) {
+export function useGetUsersBoard(boardId: string) {
   return useQuery({
-    queryKey: ["userBoard", boardId],
-    queryFn: async () => (await AxiosInstance.get<UserBoard>(`/boards/${boardId}/userBoard`)).data,
+    queryKey: ["users-board", boardId],
+    queryFn: async () => (await AxiosInstance.get<UserBoard[]>(`/boards/${boardId}/users-board`)).data,
+    enabled: !!boardId,
   });
 }
 

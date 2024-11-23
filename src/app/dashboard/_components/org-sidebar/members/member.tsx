@@ -1,16 +1,14 @@
-import { cn } from "@/lib/utils";
-import { Crown, EllipsisVertical, Trash, Trash2, UserX, XCircle } from "lucide-react";
+import { PermissionEditor } from "@/app/dashboard/[teamId]/_components/permission-editor";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRemoveMember } from "@/lib/services/mutations";
-import { Popover, PopoverContent } from "@/components/ui/popover";
-import { PopoverTrigger } from "@radix-ui/react-popover";
-import { PermissionEditor } from "@/app/dashboard/[teamId]/_components/permission-editor";
 import { Permission } from "@/lib/permission-enum";
+import { useRemoveMember } from "@/lib/services/mutations";
+import { cn } from "@/lib/utils";
+import { Crown, Trash2, UserX, XCircle } from "lucide-react";
 
 type MemberProps = {
   teamId: string;

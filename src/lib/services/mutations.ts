@@ -158,6 +158,20 @@ export function useUpdatePermission() {
   })
 }
 
+export function useUpdateUserBoardPermission() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { boardId: string, userId: number, permission: string }) => {
+      return await AxiosInstance.patch(`/boards/${data.boardId}/users-board`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["users-board", { boardId: variables.boardId }]
+      });
+    }
+  })
+}
+
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
   return useMutation({

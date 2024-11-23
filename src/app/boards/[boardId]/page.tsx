@@ -75,11 +75,7 @@ const BoardPage = () => {
     : null;
 
   return (
-    <BoardContextProvider
-      pathsProp={board.paths}
-      shapesProp={board.shapes}
-      presentationProp={presentationProp}
-    >
+    <BoardContextProvider boardProp={board}>
       <SocketContextProvider>
         <Canvas />
       </SocketContextProvider>

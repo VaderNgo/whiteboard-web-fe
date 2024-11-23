@@ -8,10 +8,20 @@ import {
 } from "@/components/ui/dialog";
 import { LoggedInUser, useLoggedInUser } from "@/lib/services/queries";
 import { Dialog } from "@radix-ui/react-dialog";
-import { ChevronDown, Play } from "lucide-react";
+import {
+  ChevronDown,
+  DoorOpen,
+  MonitorDown,
+  MonitorPlay,
+  MonitorUp,
+  MonitorX,
+  Play,
+  Users,
+} from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { BoardContext } from "../../_contexts/boardContext";
 import useSocket from "../../_hooks/useSocket";
+import BoardMembers from "./boardMembers";
 
 const Participants = () => {
   const {
@@ -29,6 +39,7 @@ const Participants = () => {
   const owner = useLoggedInUser();
   const { startPresentation, joinPresentation, leavePresentation, endPresentation } = useSocket();
   const [isDialogOpen, setIsDialogOpen] = useState(true);
+  const [showBoardUsers, setShowBoardUsers] = useState(false);
   useEffect(() => {
     const usersArray = Array.from(boardUsers.values()).filter((user) => user.id !== owner.data?.id);
     const newExtraCount = usersArray.length > 2 ? usersArray.length - 2 : 0;
@@ -67,23 +78,20 @@ const Participants = () => {
     }
   };
 
-  useEffect(() => {
-    console.log("presentation", presentation);
-    console.log("isJoinedPresentation", isJoinedPresentation);
-    console.log("participants", presentation?.participants);
-  }, [presentation]);
+  useEffect(() => {}, [presentation]);
 
   return (
     <>
+      {showBoardUsers && <BoardMembers />}
       <div className="absolute z-10 h-12 top-2 right-2 bg-white rounded-e-md flex items-center shadow-md">
         <div className="flex h-full w-full justify-center items-center space-x-3 p-2">
           <div className="aspect-square h-full rounded flex justify-center items-center">
             {!presentation && (
               <button
-                className=" h-full rounded-sm bg-gray-200 flex flex-row justify-center items-center space-x-2 p-3"
+                className=" h-full rounded-sm bg-gray-200 flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
                 onClick={() => handlePresentationClick(0)}
               >
-                <Play size={15} fill="black" />
+                <MonitorPlay size={20} />
                 <span className="text-sm">Present</span>
               </button>
             )}
@@ -93,18 +101,19 @@ const Participants = () => {
                 .values()
                 .find((enhancedUser) => enhancedUser.id === owner.data?.id) === undefined && (
                 <button
-                  className=" h-full rounded-sm bg-gray-200 flex flex-row justify-center items-center space-x-2 p-3"
+                  className=" h-full rounded-sm bg-blue-400 flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
                   onClick={() => handlePresentationClick(1)}
                 >
-                  <Play size={15} fill="black" />
+                  <MonitorUp size={20} />
                   <span className="text-sm">Join</span>
                 </button>
               )}
             {presentation && presentation?.presenter?.id === owner.data?.id && (
               <button
-                className=" h-full rounded-sm bg-red-500 text-white flex flex-row justify-center items-center space-x-2 p-3"
+                className=" h-full rounded-sm bg-red-400 text-white flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
                 onClick={() => handlePresentationClick(3)}
               >
+                <MonitorX size={20} />
                 <span className="text-sm">End</span>
               </button>
             )}
@@ -115,9 +124,10 @@ const Participants = () => {
                 .values()
                 .find((enhancedUser) => enhancedUser.id === owner.data?.id) !== undefined && (
                 <button
-                  className=" h-full rounded-sm bg-red-500 text-white flex flex-row justify-center items-center space-x-2 p-3"
+                  className=" h-full rounded-sm bg-red-400 text-white flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
                   onClick={() => handlePresentationClick(2)}
                 >
+                  <MonitorDown size={20} />
                   <span className="text-sm">Leave</span>
                 </button>
               )}
@@ -157,6 +167,15 @@ const Participants = () => {
                 </div>
               )}
             </div>
+          </div>
+          <div className="aspect-square h-full rounded flex justify-center items-center">
+            <button
+              className=" h-full rounded-sm bg-gray-200 flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
+              onClick={() => setShowBoardUsers(!showBoardUsers)}
+            >
+              <Users size={15} fill="black" />
+              <span className="text-sm">Members</span>
+            </button>
           </div>
         </div>
       </div>

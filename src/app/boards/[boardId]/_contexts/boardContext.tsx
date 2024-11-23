@@ -1,6 +1,6 @@
 "use client";
 
-import { LoggedInUser, PathModel, ShapeModel } from "@/lib/services/queries";
+import { BoardModel, LoggedInUser, PathModel, ShapeModel } from "@/lib/services/queries";
 import Konva from "konva";
 import { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
@@ -40,9 +40,7 @@ export enum EditorTab {
 
 type BoardContextProps = {
   children: React.ReactNode;
-  pathsProp: PathModel[];
-  shapesProp: ShapeModel[];
-  presentationProp: PresentationState | null;
+  boardProp: BoardModel;
 };
 
 export type Children = {
@@ -341,16 +339,14 @@ type IBoardContext = {
   setPresentation: React.Dispatch<React.SetStateAction<PresentationState | null>>;
   isJoinedPresentation: boolean;
   setIsJoinedPresentation: React.Dispatch<React.SetStateAction<boolean>>;
+  boardOwner: LoggedInUser | null;
+  setBoardOwner: React.Dispatch<React.SetStateAction<LoggedInUser | null>>;
 };
 
 export const BoardContext: React.Context<IBoardContext> = createContext({} as IBoardContext);
 
-export const BoardContextProvider: React.FC<BoardContextProps> = ({
-  children,
-  shapesProp,
-  pathsProp,
-  presentationProp,
-}) => {
+export const BoardContextProvider: React.FC<BoardContextProps> = ({ children, boardProp }) => {
+  const [boardOwner, setBoardOwner] = useState<LoggedInUser | null>(null);
   const [stageRef, setStageRef] = useState<React.RefObject<Konva.Stage> | null>(null);
   const [layerRef, setLayerRef] = useState<React.RefObject<Konva.Layer> | null>(null);
   const [nodes, setNodes] = useState<Map<string, Node>>(new Map());
@@ -397,7 +393,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   useEffect(() => {
     // Initialize nodes from shapesProp
     const initialNodes = new Map<string, Node>();
-    shapesProp.forEach((s) => {
+    boardProp.shapes.forEach((s) => {
       const text = new Text().setAttrs(s.data.text);
       const anchorPoints = s.data.anchorPoints.map((ap) => new AnchorPoint().setAttrs(ap));
       const newNode = new Node().setAttrs({ ...s.data, text, anchorPoints });
@@ -408,7 +404,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
 
     // Initialize paths from pathsProp
     const initialPaths = new Map<string, Path>();
-    pathsProp.forEach((p) => {
+    boardProp.paths.forEach((p) => {
       const edges = p.data.edges.map((e) => new PathEdge().setAttrs(e));
       const extrudableEdges = p.data.extrudableEdges.map((e) => new PathEdge().setAttrs(e));
       const points = p.data.points.map((p) => new PathPoint().setAttrs(p));
@@ -416,13 +412,29 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       initialPaths.set(newPath.id, newPath);
     });
     setPaths(initialPaths);
-  }, [shapesProp, pathsProp]);
+  }, [boardProp.shapes, boardProp.paths]);
 
   useEffect(() => {
-    if (presentationProp) {
+    if (boardProp.presentation) {
+      const participantsMap = boardProp.presentation?.participants
+        ? new Map(boardProp.presentation!.participants.map((p) => [p.socketId, p.user]))
+        : new Map();
+      const presentationProp = boardProp.presentation
+        ? {
+            presentation: boardProp.presentation.presentation,
+            participants: participantsMap,
+            presenter: boardProp.presentation.presenter,
+          }
+        : null;
       setPresentation(presentationProp);
     }
-  }, [presentationProp]);
+  }, [boardProp.presentation]);
+
+  useEffect(() => {
+    if (boardProp.owner) {
+      setBoardOwner(boardProp.owner);
+    }
+  }, [boardProp.owner]);
 
   const value = useMemo(
     () => ({
@@ -484,8 +496,11 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setPresentation,
       isJoinedPresentation,
       setIsJoinedPresentation,
+      boardOwner,
+      setBoardOwner,
     }),
     [
+      boardOwner,
       presentation,
       isJoinedPresentation,
       nodes,
