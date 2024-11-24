@@ -127,8 +127,8 @@ const Canvas: React.FC = () => {
       resizeStage();
     };
 
-    updateSize();
     window.addEventListener("resize", updateSize);
+    updateSize();
 
     return () => window.removeEventListener("resize", updateSize);
   }, []);

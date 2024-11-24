@@ -1,8 +1,6 @@
-import { motion } from "framer-motion";
-import { useContext } from "react";
-import { BoardContext } from "../../_contexts/boardContext";
-import { useGetUsersBoard, useLoggedInUser } from "@/lib/services/queries";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useContext, useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -10,26 +8,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown, Users } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import axios from "axios";
-import { useUpdateUserBoardPermission } from "@/lib/services/mutations";
+import { BoardContext } from "../../_contexts/boardContext";
+import useSocket from "../../_hooks/useSocket";
+import { Permission } from "@/lib/permission-enum";
+import { useLoggedInUser } from "@/lib/services/queries";
+import { motion } from "framer-motion";
 
-type Permission = "VIEW" | "EDIT" | "OWNER";
+type BoardMembersProps = {
+  className?: string;
+};
 
-const BoardMembers = () => {
-  const { boardId, boardOwner } = useContext(BoardContext);
-  const { data: usersBoard } = useGetUsersBoard(boardId!);
-  const queryClient = useQueryClient();
+const BoardMembers: React.FC<BoardMembersProps> = () => {
+  const { boardId, boardOwner, usersBoard } = useContext(BoardContext);
   const { data: loggedInUser } = useLoggedInUser();
-  const updateUserBoardPermission = useUpdateUserBoardPermission();
+  const { updateUserBoardPermission } = useSocket();
 
   const handlePermissionChange = (userId: number, newPermission: Permission) => {
-    updateUserBoardPermission.mutate({
-      boardId: boardId!,
-      userId: userId,
+    updateUserBoardPermission({
+      boardId: Number(boardId!),
+      userId,
       permission: newPermission,
     });
   };
@@ -41,6 +39,8 @@ const BoardMembers = () => {
       .join("")
       .toUpperCase();
   };
+
+  const usersBoardArray = Array.from(usersBoard?.values() || []);
 
   return (
     <motion.div
@@ -56,13 +56,13 @@ const BoardMembers = () => {
           <h2 className="text-lg font-semibold text-gray-900">Board Members</h2>
         </div>
         <p className="text-sm text-gray-500 mt-1">
-          {usersBoard?.length} {usersBoard?.length === 1 ? "member" : "members"}
+          {usersBoard?.size || 0} {(usersBoard?.size || 0) === 1 ? "member" : "members"}
         </p>
       </div>
 
       <ScrollArea className="h-72">
         <div className="p-2 space-y-1">
-          {usersBoard?.map((userBoard) => (
+          {usersBoardArray.map((userBoard) => (
             <div
               key={userBoard.user.id}
               className="group relative hover:bg-gray-50 rounded-lg p-3 transition-colors duration-150"
@@ -87,12 +87,13 @@ const BoardMembers = () => {
                   <p className="text-xs text-gray-500">{userBoard.user.email.toLowerCase()}</p>
                 </div>
 
-                {loggedInUser?.id === boardOwner?.id && userBoard.user.id !== boardOwner?.id && (
+                {userBoard.user.id !== boardOwner?.id && (
                   <Select
-                    defaultValue={userBoard.permission}
+                    value={userBoard.permission}
                     onValueChange={(value) =>
                       handlePermissionChange(userBoard.user.id, value as Permission)
                     }
+                    disabled={loggedInUser?.id !== boardOwner?.id}
                   >
                     <SelectTrigger className="h-8 w-24 text-xs bg-white border-gray-200">
                       <SelectValue />

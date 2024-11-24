@@ -12,9 +12,12 @@ import {
   PathEdge,
   PathPoint,
   StageConfig,
+  BoardAction,
 } from "../_contexts/boardContext";
 import { socket } from "@/lib/websocket";
-import { LoggedInUser, useLoggedInUser } from "@/lib/services/queries";
+import { LoggedInUser, useLoggedInUser, UserBoard } from "@/lib/services/queries";
+import { Permission } from "@/lib/permission-enum";
+import { toast } from "@/hooks/use-toast";
 
 type SocketContextProps = {
   children: React.ReactNode;
@@ -83,10 +86,10 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     setPresentation,
     setIsJoinedPresentation,
     setBoardAction,
+    setUsersBoard,
   } = useContext(BoardContext);
 
-  const { data } = useLoggedInUser();
-  const loggedUser = data;
+  const { data: loggedUser } = useLoggedInUser();
   const onGetBoardUsers = useCallback(
     (payload: { socketId: string; enhancedUser: LoggedInUser }[]) => {
       setBoardUsers((prevState) => {
@@ -247,9 +250,27 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     },
     [setPresentation]
   );
+  const onUpdateUserBoardPermission = useCallback(
+    (payload: { usersBoard: UserBoard[]; userId: number; permission: Permission }) => {
+      setUsersBoard(
+        new Map(payload.usersBoard.map((userBoard) => [userBoard.user.id.toString(), userBoard]))
+      );
+      if (loggedUser?.id === payload.userId) {
+        toast({
+          title: "Permission Updated",
+          description: `Your permission has been updated to ${payload.permission}`,
+        });
+      }
+    },
+    [setUsersBoard, loggedUser]
+  );
 
   const onError = useCallback((error: { message: string }) => {
-    console.error("Socket error:", error.message);
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
   }, []);
 
   useEffect(() => {
@@ -266,6 +287,7 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     socket.on("leave-presentation", onLeavePresentation);
     socket.on("drag-while-presenting", onDragWhilePresenting);
     socket.on("presentation-users", onPresentationUsers);
+    socket.on("users-board", onUpdateUserBoardPermission);
     socket.on("error", onError);
     return () => {
       socket.off("add-node", onAddNode);
@@ -281,6 +303,7 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
       socket.off("leave-presentation", onLeavePresentation);
       socket.off("drag-while-presenting", onDragWhilePresenting);
       socket.off("presentation-users", onPresentationUsers);
+      socket.off("users-board", onUpdateUserBoardPermission);
       socket.off("error", onError);
     };
   }, [
@@ -297,6 +320,7 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     onLeavePresentation,
     onDragWhilePresenting,
     onPresentationUsers,
+    onUpdateUserBoardPermission,
     onError,
   ]);
 

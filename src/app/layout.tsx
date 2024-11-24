@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from "@/lib/query-provider";
 import VerificationPrompt from "./dashboard/_components/verification-prompt";
 import { Suspense } from "react";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
             <VerificationPrompt />
             {children}
           </Suspense>
+          <Toaster />
         </body>
       </html>
     </QueryProvider>

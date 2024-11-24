@@ -10,6 +10,7 @@ import {
   BoardAction,
 } from "../_contexts/boardContext";
 import { AddNodePayload, AddPathPayload, SocketContext } from "../_contexts/socketContext";
+import { Permission } from "@/lib/permission-enum";
 
 const useSocket = () => {
   const { socket } = useContext(SocketContext);
@@ -142,6 +143,13 @@ const useSocket = () => {
     [socket, boardId, presentation, user]
   );
 
+  const updateUserBoardPermission = useCallback(
+    (payload: { boardId: number; userId: number; permission: Permission }) => {
+      socket.emit("update-user-board-permission", payload);
+    },
+    [socket, boardId, user]
+  );
+
   return {
     joinBoard,
     leaveBoard,
@@ -154,6 +162,7 @@ const useSocket = () => {
     leavePresentation,
     endPresentation,
     dragWhilePresenting,
+    updateUserBoardPermission,
   };
 };
 

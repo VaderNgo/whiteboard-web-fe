@@ -1,6 +1,6 @@
 "use client";
 
-import { BoardModel, LoggedInUser, PathModel, ShapeModel } from "@/lib/services/queries";
+import { BoardModel, LoggedInUser, PathModel, ShapeModel, UserBoard } from "@/lib/services/queries";
 import Konva from "konva";
 import { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
@@ -41,6 +41,7 @@ export enum EditorTab {
 type BoardContextProps = {
   children: React.ReactNode;
   boardProp: BoardModel;
+  usersBoardProp: UserBoard[];
 };
 
 export type Children = {
@@ -341,11 +342,17 @@ type IBoardContext = {
   setIsJoinedPresentation: React.Dispatch<React.SetStateAction<boolean>>;
   boardOwner: LoggedInUser | null;
   setBoardOwner: React.Dispatch<React.SetStateAction<LoggedInUser | null>>;
+  usersBoard: Map<string, UserBoard>;
+  setUsersBoard: React.Dispatch<React.SetStateAction<Map<string, UserBoard>>>;
 };
 
 export const BoardContext: React.Context<IBoardContext> = createContext({} as IBoardContext);
 
-export const BoardContextProvider: React.FC<BoardContextProps> = ({ children, boardProp }) => {
+export const BoardContextProvider: React.FC<BoardContextProps> = ({
+  children,
+  boardProp,
+  usersBoardProp,
+}) => {
   const [boardOwner, setBoardOwner] = useState<LoggedInUser | null>(null);
   const [stageRef, setStageRef] = useState<React.RefObject<Konva.Stage> | null>(null);
   const [layerRef, setLayerRef] = useState<React.RefObject<Konva.Layer> | null>(null);
@@ -389,6 +396,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children, bo
   });
   const [undoStack, setUndoStack] = useState<History[]>([]);
   const [redoStack, setRedoStack] = useState<History[]>([]);
+  const [usersBoard, setUsersBoard] = useState<Map<string, UserBoard>>(new Map());
 
   useEffect(() => {
     // Initialize nodes from shapesProp
@@ -436,8 +444,18 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children, bo
     }
   }, [boardProp.owner]);
 
+  useEffect(() => {
+    const initialUsersBoard = new Map<string, UserBoard>();
+    usersBoardProp.forEach((ub) => {
+      initialUsersBoard.set(ub.user.id.toString(), ub);
+    });
+    setUsersBoard(initialUsersBoard);
+  }, [usersBoardProp]);
+
   const value = useMemo(
     () => ({
+      usersBoard,
+      setUsersBoard,
       stageRef,
       setStageRef,
       nodes,
@@ -500,6 +518,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({ children, bo
       setBoardOwner,
     }),
     [
+      usersBoard,
       boardOwner,
       presentation,
       isJoinedPresentation,

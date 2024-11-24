@@ -1,5 +1,5 @@
 "use client";
-import { useGetBoard } from "@/lib/services/queries";
+import { useGetBoard, useGetUsersBoard } from "@/lib/services/queries";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -30,6 +30,7 @@ const BoardPage = () => {
   const router = useRouter();
   const params = useParams<{ boardId: string }>();
   const { data: board, isLoading, isError, error } = useGetBoard(params.boardId);
+  const { data: usersBoard } = useGetUsersBoard(params.boardId);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -62,24 +63,16 @@ const BoardPage = () => {
     return <LoadingSpinner />;
   }
 
-  const participantsMap = board.presentation?.participants
-    ? new Map(board.presentation!.participants.map((p) => [p.socketId, p.user]))
-    : new Map();
-
-  const presentationProp = board.presentation
-    ? {
-        presentation: board.presentation.presentation,
-        participants: participantsMap,
-        presenter: board.presentation.presenter,
-      }
-    : null;
+  console.log("users board", usersBoard);
 
   return (
-    <BoardContextProvider boardProp={board}>
-      <SocketContextProvider>
-        <Canvas />
-      </SocketContextProvider>
-    </BoardContextProvider>
+    <>
+      <BoardContextProvider boardProp={board} usersBoardProp={usersBoard ? usersBoard : []}>
+        <SocketContextProvider>
+          <Canvas />
+        </SocketContextProvider>
+      </BoardContextProvider>
+    </>
   );
 };
 

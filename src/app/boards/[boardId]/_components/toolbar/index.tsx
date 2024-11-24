@@ -1,8 +1,8 @@
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Circle,
   Diamond,
   Hand,
-  Hexagon,
   MessageSquareMore,
   MinusIcon,
   MousePointer2,
@@ -24,8 +24,9 @@ import { useContext, useEffect, useState } from "react";
 import { BoardAction, BoardContext, History, Node, Path } from "../../_contexts/boardContext";
 import useSocket from "../../_hooks/useSocket";
 import { ToolButton } from "./tool-button";
-
 import useHistory from "../../_hooks/useHistory";
+import { useLoggedInUser } from "@/lib/services/queries";
+import { Permission } from "@/lib/permission-enum";
 
 const Toolbar = () => {
   const {
@@ -46,9 +47,14 @@ const Toolbar = () => {
     setUndoStack,
     setPaths,
     setPolygonSides,
+    usersBoard,
   } = useContext(BoardContext);
   const { handleRedo, handleUndo } = useHistory();
   const { updateNode, updatePath } = useSocket();
+  const { data: loggedUser } = useLoggedInUser();
+  const isViewOnly = usersBoard.has(loggedUser!.id.toString())
+    ? usersBoard.get(loggedUser!.id.toString())!.permission === Permission.VIEW
+    : false;
 
   enum ToolButtonState {
     Select = "select",
@@ -68,19 +74,19 @@ const Toolbar = () => {
     Pencil = "pencil",
     Connection = "connection",
   }
+
   const [selectState, setSelectState] = useState<ToolButtonState>(ToolButtonState.Select);
   const [isShapesOpen, setIsShapesOpen] = useState(false);
+
   const handleNodeDelete = () => {
     if (selectedNode) {
       const node = new Node().setAttrs({ ...selectedNode, deleted: true });
-      setNodes((prev) => {
-        return new Map(prev.set(node.id, node));
-      });
+      setNodes((prev) => new Map(prev.set(node.id, node)));
       updateNode(node.id, node);
-      setUndoStack((prev) => {
-        const newHistory = { action: "delete", nodeData: node, type: "node" };
-        return [...prev, newHistory as History];
-      });
+      setUndoStack((prev) => [
+        ...prev,
+        { action: "delete", nodeData: node, type: "node" } as History,
+      ]);
     } else if (selectedPath) {
       const path = new Path().setAttrs({ ...selectedPath, deleted: true });
       setPaths((prev) => {
@@ -90,10 +96,10 @@ const Toolbar = () => {
         return new Map(prev.set(path.id, updatedPath));
       });
       updatePath(path.id, path);
-      setUndoStack((prev) => {
-        const newHistory = { action: "delete", pathData: path, type: "path" };
-        return [...prev, newHistory as History];
-      });
+      setUndoStack((prev) => [
+        ...prev,
+        { action: "delete", pathData: path, type: "path" } as History,
+      ]);
     }
 
     setSelectedPath(null);
@@ -159,46 +165,79 @@ const Toolbar = () => {
     }
   }, [boardAction]);
 
+  const springTransition = {
+    type: "spring",
+    stiffness: 700,
+    damping: 30,
+  };
+
   return (
     <>
-      {isShapesOpen && (
-        <div className="z-10 absolute top-[55%] -translate-y-[50%] left-20 flex flex-col bg-white pt-1 rounded-lg shadow-md">
-          <div className="bg-white rouned-md px-1.5 flex flex-row items-center">
-            <ToolButton
-              label="Rectangle"
-              side="top"
-              icon={Square}
-              onClick={() => handleToolButtonClick(ToolButtonState.Rectangle)}
-              isActive={selectState === ToolButtonState.Rectangle}
-            />
-            <ToolButton
-              label="Ellipse"
-              side="top"
-              icon={Circle}
-              onClick={() => handleToolButtonClick(ToolButtonState.Ellipse)}
-              isActive={selectState === ToolButtonState.Ellipse}
-            />
-          </div>
-          <div className="bg-white rouned-md px-1.5 pb-1.5 flex flex-row items-center">
-            <ToolButton
-              label="Triangle"
-              side="top"
-              icon={Triangle}
-              onClick={() => handleToolButtonClick(ToolButtonState.Triangle)}
-              isActive={selectState === ToolButtonState.Triangle}
-            />
-            <ToolButton
-              label="Diamond"
-              side="top"
-              icon={Diamond}
-              onClick={() => handleToolButtonClick(ToolButtonState.Diamond)}
-              isActive={selectState === ToolButtonState.Diamond}
-            />
-          </div>
-        </div>
-      )}
-      <div className="z-10 absolute top-[50%] -translate-y-[50%] left-2 flex flex-col gap-y-4">
-        <div className="bg-white rouned-md p-1.5 flex gap-y-1 flex-col items-center shadow-md">
+      <AnimatePresence>
+        {isShapesOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={springTransition}
+            className="z-10 absolute left-20 -translate-x-1/2 top-[55%] -translate-y-[50%] flex flex-col bg-white pt-1 rounded-lg shadow-md"
+          >
+            <motion.div
+              className="bg-white rounded-md px-1.5 flex flex-row items-center"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springTransition, delay: 0.1 }}
+            >
+              <ToolButton
+                label="Rectangle"
+                side="top"
+                icon={Square}
+                onClick={() => handleToolButtonClick(ToolButtonState.Rectangle)}
+                isActive={selectState === ToolButtonState.Rectangle}
+              />
+              <ToolButton
+                label="Ellipse"
+                side="top"
+                icon={Circle}
+                onClick={() => handleToolButtonClick(ToolButtonState.Ellipse)}
+                isActive={selectState === ToolButtonState.Ellipse}
+              />
+            </motion.div>
+            <motion.div
+              className="bg-white rounded-md px-1.5 pb-1.5 flex flex-row items-center"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springTransition, delay: 0.2 }}
+            >
+              <ToolButton
+                label="Triangle"
+                side="top"
+                icon={Triangle}
+                onClick={() => handleToolButtonClick(ToolButtonState.Triangle)}
+                isActive={selectState === ToolButtonState.Triangle}
+              />
+              <ToolButton
+                label="Diamond"
+                side="top"
+                icon={Diamond}
+                onClick={() => handleToolButtonClick(ToolButtonState.Diamond)}
+                isActive={selectState === ToolButtonState.Diamond}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <motion.div
+        className="z-10 absolute left-2 -translate-x-1/2 top-[25%] -translate-y-[50%] flex flex-col gap-y-4"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={springTransition}
+      >
+        <motion.div
+          className="bg-white rounded-md p-1.5 flex gap-y-1 flex-col items-center shadow-md"
+          layout
+          transition={springTransition}
+        >
           <ToolButton
             label="Select"
             icon={MousePointer2}
@@ -208,45 +247,55 @@ const Toolbar = () => {
           <ToolButton
             label="Drag"
             icon={Hand}
-            onClick={() => {
-              handleToolButtonClick(ToolButtonState.Drag);
-            }}
+            onClick={() => handleToolButtonClick(ToolButtonState.Drag)}
             isActive={selectState === ToolButtonState.Drag}
           />
-          <ToolButton
-            label="Text"
-            icon={Type}
-            onClick={() => handleToolButtonClick(ToolButtonState.Text)}
-            isActive={selectState === ToolButtonState.Text}
-          />
-          <ToolButton
-            label="Sticky Note"
-            icon={StickyNoteIcon}
-            onClick={() => handleToolButtonClick(ToolButtonState.Note)}
-            isActive={selectState === ToolButtonState.Note}
-          />
-          <ToolButton
-            label="Path"
-            icon={WaypointsIcon}
-            onClick={() => handleToolButtonClick(ToolButtonState.Line)}
-            isActive={selectState === ToolButtonState.Line}
-          />
-          <ToolButton
-            label="Shapes"
-            icon={Shapes}
-            onClick={() => {
-              setIsShapesOpen(!isShapesOpen);
-              handleToolButtonClick(ToolButtonState.Shapes);
-            }}
-            isActive={false}
-          />
-        </div>
-        <div className="z-10 bg-white rounded-md p-1.5 flex flex-col items-center shadow-md">
-          <ToolButton label="Undo" icon={Undo2Icon} onClick={() => handleUndo()} isActive={false} />
-          <ToolButton label="Redo" icon={Redo2Icon} onClick={() => handleRedo()} isActive={false} />
-          <ToolButton label="Redo" icon={Trash} onClick={handleNodeDelete} isActive={false} />
-        </div>
-      </div>
+          {!isViewOnly && (
+            <>
+              <ToolButton
+                label="Text"
+                icon={Type}
+                onClick={() => handleToolButtonClick(ToolButtonState.Text)}
+                isActive={selectState === ToolButtonState.Text}
+              />
+              <ToolButton
+                label="Sticky Note"
+                icon={StickyNoteIcon}
+                onClick={() => handleToolButtonClick(ToolButtonState.Note)}
+                isActive={selectState === ToolButtonState.Note}
+              />
+              <ToolButton
+                label="Path"
+                icon={WaypointsIcon}
+                onClick={() => handleToolButtonClick(ToolButtonState.Line)}
+                isActive={selectState === ToolButtonState.Line}
+              />
+              <ToolButton
+                label="Shapes"
+                icon={Shapes}
+                onClick={() => {
+                  setIsShapesOpen(!isShapesOpen);
+                  handleToolButtonClick(ToolButtonState.Shapes);
+                }}
+                isActive={false}
+              />
+            </>
+          )}
+        </motion.div>
+        {!isViewOnly && (
+          <>
+            <motion.div
+              className="z-10 bg-white rounded-md p-1.5 flex flex-col items-center shadow-md"
+              layout
+              transition={springTransition}
+            >
+              <ToolButton label="Undo" icon={Undo2Icon} onClick={handleUndo} isActive={false} />
+              <ToolButton label="Redo" icon={Redo2Icon} onClick={handleRedo} isActive={false} />
+              <ToolButton label="Delete" icon={Trash} onClick={handleNodeDelete} isActive={false} />
+            </motion.div>
+          </>
+        )}
+      </motion.div>
     </>
   );
 };
