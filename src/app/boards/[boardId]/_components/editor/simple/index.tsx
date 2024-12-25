@@ -15,6 +15,8 @@ import { BoardContext, EditorTab, Node } from "../../../_contexts/boardContext";
 import { ShapePicker } from "./shapePicker";
 import ColorPicker from "./colorPicker";
 import useSocket from "../../../_hooks/useSocket";
+import TextStylePicker from "./textStylePicker";
+import TextAlignmentPicker from "./textAlignmentPicker";
 
 const SimpleEditor = () => {
   const {
@@ -54,16 +56,6 @@ const SimpleEditor = () => {
       setEditorSize({ w: editorRef.clientWidth, h: editorRef.clientHeight });
     }
   }, [selectedNode, stageRef, editorRef, stageConfig, stageStyle]);
-
-  const getColorPickerPosition = (type: "fill" | "stroke"): React.CSSProperties => {
-    if (!editorRef) return { top: 0, left: 0 };
-    const rect = editorRef.getBoundingClientRect();
-    return {
-      top: type === "fill" ? rect.bottom + 5 : rect.bottom + 5,
-      left: type === "fill" ? rect.right - 200 : rect.right - 100,
-      position: "absolute",
-    };
-  };
 
   if (!selectedNode || !editorPosition) return null;
 
@@ -120,8 +112,10 @@ const SimpleEditor = () => {
   return (
     <>
       <ShapePicker top={tabTop} left={left} activeTab={activeTab} />
-      <ColorPicker top={top + 50} left={left} activeTab={activeTab} type="fill" />
-      <ColorPicker top={top + 50} left={left + 150} activeTab={activeTab} type="stroke" />
+      <ColorPicker top={top + 50} left={left + 350} activeTab={activeTab} type="fill" />
+      <ColorPicker top={top + 50} left={left + 350} activeTab={activeTab} type="stroke" />
+      <TextStylePicker top={top + 50} left={left + 250} activeTab={activeTab} />
+      <TextAlignmentPicker top={top + 50} left={left} activeTab={activeTab} />
       <div
         ref={setEditorRef}
         className={cn(
@@ -191,47 +185,31 @@ const SimpleEditor = () => {
               )}
             </div>
           </Hint>
-          <Hint label="Align" side="top" sideOffset={10}>
-            <AlignCenter />
-          </Hint>
-          <Hint label="Insert Link" side="top" sideOffset={10}>
-            <Link />
-          </Hint>
-        </div>
-        <div
-          className="flex flex-row justify-center items-center cursor-pointer gap-5"
-          onClick={() => {
-            handleEditorValueChange("textColor", "red");
-          }}
-        >
-          <Hint label="Text Color" side="top" sideOffset={10}>
-            <div className="flex flex-col h-full justify-center items-center">
-              <span className="font-bold text-black text-md">A</span>
-              <div className="w-[25px] h-[5px] bg-black mb-0"></div>
-            </div>
-          </Hint>
-          <Hint label="Highlighter Color" side="top" sideOffset={10}>
-            <div className="flex flex-col h-full justify-center items-center">
-              <Highlighter className="" />
-              <div className="w-[25px] h-[5px] bg-black bottom-0"></div>
+          <Hint label="Text Alignment" side="top" sideOffset={10}>
+            <div
+              className="flex flex-row justify-center items-center cursor-pointer"
+              onClick={() => handleTabChange(EditorTab.TEXT_ALIGN)}
+            >
+              <AlignCenter />
             </div>
           </Hint>
         </div>
 
-        {/* <div className="flex flex-row justify-center items-center cursor-pointer gap-5">
-          <Hint label="Border Style, Opacity, Color">
-            <div className="flex flex-col justify-center items-center">
-              <div className="size-[25px] rounded-full bg-red-500 flex flex-row justify-center items-center caret-transparent">
-                <div className="size-[15px] rounded-full bg-white caret-transparent"></div>
-              </div>
+        <div className="flex flex-row justify-center items-center cursor-pointer gap-5">
+          <Hint label="Text Style" side="top" sideOffset={10}>
+            <div
+              className="flex flex-col h-full justify-center items-center"
+              onClick={() => handleTabChange(EditorTab.TEXT_STYLE)}
+            >
+              <span className="font-bold text-black text-md">A</span>
+              <div
+                className="w-[25px] h-[5px]"
+                style={{ backgroundColor: selectedNode?.text?.textColor || "black" }}
+              />
             </div>
           </Hint>
-          <Hint side="top" sideOffset={10} label="Set color and opacity">
-            <div className="flex flex-col justify-center items-center">
-              <div className="size-[25px] rounded-full bg-yellow-400 flex flex-row justify-center items-center caret-transparent"></div>
-            </div>
-          </Hint>
-        </div> */}
+        </div>
+
         <div className="flex flex-row justify-center items-center gap-5">
           <Hint label="Fill Color">
             <div

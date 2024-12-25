@@ -85,6 +85,9 @@ export const ColorPicker = ({ top, left, activeTab, type }: ColorPickerProps) =>
       )}
       style={colorPickerStyle}
     >
+      <div className="text-sm text-gray-600 mb-2">
+        {type === "fill" ? "Fill Node Color" : "Stroke Edit"}
+      </div>
       <div className="grid grid-cols-4 gap-2">
         {colors.map((color) => (
           <div

@@ -31,13 +31,12 @@ export enum EditorTab {
   FONT_SIZE = "font_size",
   FONT_FAMILY = "font_family",
   FONT_STYLE = "font_style",
-
-  TEXT_COLOR = "font_color",
-  TEXT_HIGHLIGHT = "font_highlight",
+  TEXT_ALIGN = "text_align",
 
   ALIGNMENT = "alignment",
   FILL_COLOR = "fill_color",
   STROKE_COLOR = "stroke_color",
+  TEXT_STYLE = "text_style",
 }
 
 type BoardContextProps = {
