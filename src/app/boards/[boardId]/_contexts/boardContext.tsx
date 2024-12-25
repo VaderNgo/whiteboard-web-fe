@@ -36,6 +36,8 @@ export enum EditorTab {
   TEXT_HIGHLIGHT = "font_highlight",
 
   ALIGNMENT = "alignment",
+  FILL_COLOR = "fill_color",
+  STROKE_COLOR = "stroke_color",
 }
 
 type BoardContextProps = {

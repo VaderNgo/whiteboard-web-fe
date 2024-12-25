@@ -1,5 +1,5 @@
 import { useLoggedInUser } from "@/lib/services/queries";
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import {
   BoardContext,
   Node,
@@ -23,14 +23,27 @@ const useSocket = () => {
     stageConfig,
     setPresentation,
     setBoardAction,
+    usersBoard,
   } = useContext(BoardContext);
   const user = useLoggedInUser();
+
+  // Utility function to check if the current user has view-only permissions
+  const isViewOnly = useCallback(() => {
+    if (!user?.data?.id) return false;
+    const userPermission = usersBoard.get(user.data.id.toString())?.permission;
+    return userPermission === Permission.VIEW;
+  }, [user, usersBoard]);
+
+  useEffect(() => {
+    console.log("loggedInUser: ", user.data?.permission);
+    console.log("usersBoard: ", usersBoard.get(user.data!.id.toString())?.permission);
+  }, [usersBoard]);
 
   const joinBoard = useCallback(() => {
     if (!socket || !boardId || !user) return;
     socket.emit("joinBoard", boardId);
     setBoardAction(BoardAction.Select);
-  }, [socket, boardId]); // authenState.user
+  }, [socket, boardId]);
 
   const leaveBoard = useCallback(() => {
     if (!socket || !boardId) return;
@@ -39,7 +52,7 @@ const useSocket = () => {
 
   const addNode = useCallback(
     (data: Node) => {
-      if (!socket || !boardId) return;
+      if (!socket || !boardId || isViewOnly()) return;
       const payload: AddNodePayload = {
         boardId,
         data,
@@ -50,12 +63,12 @@ const useSocket = () => {
       });
       socket.emit("add-node", payload);
     },
-    [socket, boardId]
+    [socket, boardId, isViewOnly]
   );
 
   const addPath = useCallback(
     (data: Path) => {
-      if (!socket || !boardId) return;
+      if (!socket || !boardId || isViewOnly()) return;
       const payload: AddPathPayload = {
         boardId,
         data,
@@ -66,12 +79,12 @@ const useSocket = () => {
       });
       socket.emit("add-path", payload);
     },
-    [socket, boardId]
+    [socket, boardId, isViewOnly]
   );
 
   const updateNode = useCallback(
     (nodeId: string, data: Node) => {
-      if (!socket || !boardId) return;
+      if (!socket || !boardId || isViewOnly()) return;
       const payload = {
         boardId,
         nodeId,
@@ -79,26 +92,25 @@ const useSocket = () => {
       };
       socket.emit("update-node", payload);
     },
-    [socket, boardId]
+    [socket, boardId, isViewOnly]
   );
 
   const updatePath = useCallback(
     (pathId: string, data: Path) => {
-      if (!socket || !boardId) return;
+      if (!socket || !boardId || isViewOnly()) return;
       const payload = {
         boardId,
         pathId,
         data,
       };
-
       socket.emit("update-path", payload);
     },
-    [socket, boardId]
+    [socket, boardId, isViewOnly]
   );
 
   const startPresentation = useCallback(
     (data: StageConfig) => {
-      if (!socket || !boardId) return;
+      if (!socket || !boardId || isViewOnly()) return;
       socket.emit("start-presentation", {
         boardId,
         data,
@@ -110,7 +122,7 @@ const useSocket = () => {
       });
       setIsJoinedPresentation(true);
     },
-    [socket, boardId, user]
+    [socket, boardId, user, isViewOnly]
   );
 
   const joinPresentation = useCallback(() => {
@@ -134,20 +146,21 @@ const useSocket = () => {
 
   const dragWhilePresenting = useCallback(
     (data: StageConfig) => {
-      if (!socket || !boardId || presentation?.presenter!.id != user.data?.id) return;
+      if (!socket || !boardId || presentation?.presenter!.id != user.data?.id || isViewOnly())
+        return;
       socket.emit("drag-while-presenting", {
         boardId,
         data,
       });
     },
-    [socket, boardId, presentation, user]
+    [socket, boardId, presentation, user, isViewOnly]
   );
 
   const updateUserBoardPermission = useCallback(
     (payload: { boardId: number; userId: number; permission: Permission }) => {
       socket.emit("update-user-board-permission", payload);
     },
-    [socket, boardId, user]
+    [socket, boardId]
   );
 
   return {

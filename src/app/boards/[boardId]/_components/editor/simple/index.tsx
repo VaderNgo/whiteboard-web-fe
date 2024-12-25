@@ -11,9 +11,10 @@ import {
   WholeWord,
 } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import { BoardContext, EditorTab } from "../../../_contexts/boardContext";
-import useSocket from "../../../_hooks/useSocket";
+import { BoardContext, EditorTab, Node } from "../../../_contexts/boardContext";
 import { ShapePicker } from "./shapePicker";
+import ColorPicker from "./colorPicker";
+import useSocket from "../../../_hooks/useSocket";
 
 const SimpleEditor = () => {
   const {
@@ -25,14 +26,14 @@ const SimpleEditor = () => {
     stageConfig,
     selectedShapes,
     setNodes,
+    setUndoStack,
   } = useContext(BoardContext);
-  // const { addToHistory } = useHistory();
   const [editorPosition, setEditorPosition] = useState<{ left: number; top: number } | null>(null);
   const [editorSize, setEditorSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const [editorRef, setEditorRef] = useState<HTMLDivElement | null>(null);
   const [shapeSize, setShapeSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const [activeTab, setActiveTab] = useState<EditorTab | null>(null);
-
+  const { updateNode } = useSocket();
   useEffect(() => {
     if (selectedShapes.length !== 1) {
       setActiveTab(null);
@@ -53,6 +54,16 @@ const SimpleEditor = () => {
       setEditorSize({ w: editorRef.clientWidth, h: editorRef.clientHeight });
     }
   }, [selectedNode, stageRef, editorRef, stageConfig, stageStyle]);
+
+  const getColorPickerPosition = (type: "fill" | "stroke"): React.CSSProperties => {
+    if (!editorRef) return { top: 0, left: 0 };
+    const rect = editorRef.getBoundingClientRect();
+    return {
+      top: type === "fill" ? rect.bottom + 5 : rect.bottom + 5,
+      left: type === "fill" ? rect.right - 200 : rect.right - 100,
+      position: "absolute",
+    };
+  };
 
   if (!selectedNode || !editorPosition) return null;
 
@@ -109,6 +120,8 @@ const SimpleEditor = () => {
   return (
     <>
       <ShapePicker top={tabTop} left={left} activeTab={activeTab} />
+      <ColorPicker top={top + 50} left={left} activeTab={activeTab} type="fill" />
+      <ColorPicker top={top + 50} left={left + 150} activeTab={activeTab} type="stroke" />
       <div
         ref={setEditorRef}
         className={cn(
@@ -205,7 +218,7 @@ const SimpleEditor = () => {
           </Hint>
         </div>
 
-        <div className="flex flex-row justify-center items-center cursor-pointer gap-5">
+        {/* <div className="flex flex-row justify-center items-center cursor-pointer gap-5">
           <Hint label="Border Style, Opacity, Color">
             <div className="flex flex-col justify-center items-center">
               <div className="size-[25px] rounded-full bg-red-500 flex flex-row justify-center items-center caret-transparent">
@@ -217,6 +230,33 @@ const SimpleEditor = () => {
             <div className="flex flex-col justify-center items-center">
               <div className="size-[25px] rounded-full bg-yellow-400 flex flex-row justify-center items-center caret-transparent"></div>
             </div>
+          </Hint>
+        </div> */}
+        <div className="flex flex-row justify-center items-center gap-5">
+          <Hint label="Fill Color">
+            <div
+              className="w-6 h-6 rounded cursor-pointer border border-gray-300"
+              style={{
+                backgroundColor: selectedNode?.fillColor || "transparent",
+                backgroundImage:
+                  selectedNode?.fillColor === "transparent"
+                    ? "linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)"
+                    : "none",
+                backgroundSize: "8px 8px",
+                backgroundPosition: "0 0, 4px 4px",
+              }}
+              onClick={() => handleTabChange(EditorTab.FILL_COLOR)}
+            />
+          </Hint>
+
+          <Hint label="Stroke Color">
+            <div
+              className="w-6 h-6 rounded cursor-pointer border border-gray-300"
+              style={{
+                backgroundColor: selectedNode?.strokeColor || "black",
+              }}
+              onClick={() => handleTabChange(EditorTab.STROKE_COLOR)}
+            />
           </Hint>
         </div>
       </div>
