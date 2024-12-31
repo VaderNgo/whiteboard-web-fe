@@ -95,12 +95,19 @@ export type PathModel = {
 export type BoardModel = {
   id: string;
   name: string;
-  teamId: string;
   createdAt: string;
   shapes: ShapeModel[];
   paths: PathModel[];
   owner: LoggedInUser;
   presentation: PresentationStateTemp | null;
+  team: TeamModel;
+}
+
+export type TeamModel = {
+  id: string;
+  name: string;
+  description: string;
+  logo: string;
 }
 
 export type PresentationStateTemp = {

@@ -62,6 +62,7 @@ const useSocket = () => {
     setPaths(new Map());
     setBoardUsers(new Map());
     setUserCursors(new Map());
+    socket.disconnect();
   }, [socket, boardId]);
 
   const addNode = useCallback(

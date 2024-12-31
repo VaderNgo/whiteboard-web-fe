@@ -30,6 +30,7 @@ import Participants from "../participants";
 import { EditablePath } from "../path";
 import { calculateEdges } from "../path/functions";
 import ZoomBar from "../zoombar";
+import Info from "../info";
 const Canvas: React.FC = () => {
   const {
     nodes,
@@ -165,7 +166,7 @@ const Canvas: React.FC = () => {
     }
     setBoardId(params.boardId);
     return () => {
-      setBoardId(undefined);
+      setBoardId("-99");
     };
   }, [params.boardId, setBoardId, socket]);
 
@@ -200,8 +201,8 @@ const Canvas: React.FC = () => {
       joinBoard();
 
       // Add visibility and unload listeners
-      document.addEventListener("visibilitychange", handlePageVisibility);
-      window.addEventListener("beforeunload", handleBeforeUnload);
+      // document.addEventListener("visibilitychange", handlePageVisibility);
+      // window.addEventListener("beforeunload", handleBeforeUnload);
     }
     return () => {
       isActive = false;
@@ -671,6 +672,7 @@ const Canvas: React.FC = () => {
 
   return (
     <>
+      <Info />
       <SimpleEditor />
       <Toolbar />
       {renderCursors()}

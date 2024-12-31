@@ -331,13 +331,15 @@ type IBoardContext = {
   redoStack: History[];
   setRedoStack: React.Dispatch<React.SetStateAction<History[]>>;
   boardId: string | undefined;
-  setBoardId: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setBoardId: React.Dispatch<React.SetStateAction<string>>;
   userCursors: Map<string, UserCursor>;
   setUserCursors: React.Dispatch<React.SetStateAction<Map<string, UserCursor>>>;
   boardUsers: Map<string, LoggedInUser>;
   setBoardUsers: React.Dispatch<React.SetStateAction<Map<string, LoggedInUser>>>;
   boardName: string;
   setBoardName: React.Dispatch<React.SetStateAction<string>>;
+  teamId: string;
+  setTeamId: React.Dispatch<React.SetStateAction<string>>;
   presentation: PresentationState | null;
   setPresentation: React.Dispatch<React.SetStateAction<PresentationState | null>>;
   isJoinedPresentation: boolean;
@@ -387,8 +389,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   const [canDragStage, setCanDragStage] = useState<boolean>(false);
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
   const [dark, setDark] = useState(false);
-  const [boardId, setBoardId] = useState<string | undefined>();
-  const [boardName, setBoardName] = useState<string>("");
+  const [boardId, setBoardId] = useState<string>(boardProp.id);
+  const [boardName, setBoardName] = useState<string>(boardProp.name);
   const [userCursors, setUserCursors] = useState<Map<string, UserCursor>>(new Map());
   const [boardUsers, setBoardUsers] = useState<Map<string, LoggedInUser>>(new Map());
   const [boardAction, setBoardAction] = useState<BoardAction>(BoardAction.Select);
@@ -399,7 +401,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   const [undoStack, setUndoStack] = useState<History[]>([]);
   const [redoStack, setRedoStack] = useState<History[]>([]);
   const [usersBoard, setUsersBoard] = useState<Map<string, UserBoard>>(new Map());
-
+  const [teamId, setTeamId] = useState<string>(boardProp.team.id);
   useEffect(() => {
     // Initialize nodes from shapesProp
     const initialNodes = new Map<string, Node>();
@@ -422,6 +424,10 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       initialPaths.set(newPath.id, newPath);
     });
     setPaths(initialPaths);
+
+    setBoardId(boardProp.id);
+    setBoardName(boardProp.name);
+    setTeamId(boardProp.team.id);
   }, [boardProp.shapes, boardProp.paths]);
 
   useEffect(() => {
@@ -518,8 +524,13 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setIsJoinedPresentation,
       boardOwner,
       setBoardOwner,
+      teamId,
+      setTeamId,
     }),
     [
+      teamId,
+      boardName,
+      boardId,
       usersBoard,
       boardOwner,
       presentation,

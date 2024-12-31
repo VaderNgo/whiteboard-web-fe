@@ -63,6 +63,8 @@ const BoardPage = () => {
     return <LoadingSpinner />;
   }
 
+  console.log(board);
+
   return (
     <>
       <BoardContextProvider boardProp={board} usersBoardProp={usersBoard ? usersBoard : []}>
