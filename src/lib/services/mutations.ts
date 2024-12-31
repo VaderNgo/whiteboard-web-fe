@@ -275,3 +275,15 @@ export function useInviteMemberToBoard() {
     },
   });
 }
+
+export function useDeleteBoard() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ boardId }: { boardId: string }) => {
+      return await AxiosInstance.delete(`/boards/${boardId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["board"] });
+    }
+  });
+}

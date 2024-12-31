@@ -42,9 +42,10 @@ const useSocket = () => {
   }, [user, usersBoard]);
 
   const isPresenter = useCallback(() => {
-    if (!user?.data?.id) return false;
-    return presentation?.presenter?.id == user.data.id && presentation;
-  }, [user, presentation, usersBoard]);
+    if (!presentation) return true; // If there's no presentation, allow the action
+    if (!user?.data?.id || !presentation?.presenter?.id) return false; // Prevent if user or presenter details are missing
+    return presentation.presenter.id === user.data.id; // Check if the current user is the presenter
+  }, [user, presentation]);
 
   useEffect(() => {}, [usersBoard]);
 
@@ -60,7 +61,6 @@ const useSocket = () => {
     // Clear local state
     setNodes(new Map());
     setPaths(new Map());
-    // setBoardUsers(new Map());
     setUserCursors(new Map());
     setBoardOwner(null);
     setPresentation(null);
@@ -72,6 +72,7 @@ const useSocket = () => {
 
   const addNode = useCallback(
     (data: Node) => {
+      console.log(socket, boardId, isPresenter(), isViewOnly());
       if (!socket || !boardId || !isPresenter() || isViewOnly()) return;
       const payload: AddNodePayload = {
         boardId,
@@ -83,7 +84,7 @@ const useSocket = () => {
       });
       socket.emit("add-node", payload);
     },
-    [socket, boardId, isViewOnly]
+    [socket, boardId, isViewOnly, isPresenter]
   );
 
   const addPath = useCallback(

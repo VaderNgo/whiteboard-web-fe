@@ -1,34 +1,43 @@
-"use client";
-
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Star } from "lucide-react";
-import { useState } from "react";
 
 type BoardProps = {
   name?: string;
+  logo?: string; // URL of the logo
   isFavorite?: boolean;
+  onClick?: () => void;
 };
 
-export const Board = ({ name, isFavorite = false }: BoardProps) => {
+export const Board = ({ name, logo, isFavorite = false, onClick }: BoardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <div
-      className="w-64 h-32 bg-slate-100 rounded-md relative overflow-hidden cursor-pointer active:scale-90 transition-transform"
+    <button
+      onClick={onClick}
+      className={cn(
+        "group relative aspect-video w-full rounded-lg bg-muted/50 hover:bg-muted/70 transition overflow-hidden"
+      )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      style={
+        logo
+          ? {
+              backgroundImage: `url(${logo})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : undefined
+      }
     >
-      <div
-        className={cn(
-          "absolute top-full left-0 bg-black/50 h-12 w-full py-2 px-3 font-mono font-semibold text-white transition-transform duration-200",
-          isHovered && "-translate-y-12"
-        )}
-      >
-        <div className="flex w-full h-full justify-center items-center">
-          <p className="flex-1">{name || "Board name"}</p>
-          {isFavorite && <Star fill={"orange"} color={"orange"} />}
-          {!isFavorite && <Star />}
+      <div className="absolute inset-0 bg-black/30 transition-opacity group-hover:bg-black/40" />
+      <div className="relative p-4">
+        <div className="flex items-center gap-x-2">
+          <p className="text-white font-semibold">{name || "Board name"}</p>
+          {isFavorite && <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />}
+          {!isFavorite && isHovered && <Star className="h-4 w-4 text-white" />}
         </div>
       </div>
-    </div>
+    </button>
   );
 };
