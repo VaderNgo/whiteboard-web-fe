@@ -66,7 +66,7 @@ const useSocket = () => {
 
   const addNode = useCallback(
     (data: Node) => {
-      if (!socket || !boardId || isPresenter() || isViewOnly()) return;
+      if (!socket || !boardId || !isPresenter() || isViewOnly()) return;
       const payload: AddNodePayload = {
         boardId,
         data,
@@ -82,7 +82,7 @@ const useSocket = () => {
 
   const addPath = useCallback(
     (data: Path) => {
-      if (!socket || !boardId || isPresenter() || isViewOnly()) return;
+      if (!socket || !boardId || !isPresenter() || isViewOnly()) return;
       const payload: AddPathPayload = {
         boardId,
         data,
