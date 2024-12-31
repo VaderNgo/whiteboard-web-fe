@@ -14,6 +14,7 @@ import useSocket from "../../_hooks/useSocket";
 import { Permission } from "@/lib/permission-enum";
 import { useLoggedInUser } from "@/lib/services/queries";
 import { motion } from "framer-motion";
+import InviteBoardMember from "./inviteBoardMember";
 
 type BoardMembersProps = {
   className?: string;
@@ -23,6 +24,8 @@ const BoardMembers: React.FC<BoardMembersProps> = () => {
   const { boardId, boardOwner, usersBoard } = useContext(BoardContext);
   const { data: loggedInUser } = useLoggedInUser();
   const { updateUserBoardPermission } = useSocket();
+
+  useEffect(() => {}, [usersBoard]);
 
   const handlePermissionChange = (userId: number, newPermission: Permission) => {
     updateUserBoardPermission({

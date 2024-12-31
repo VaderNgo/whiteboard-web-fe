@@ -60,8 +60,13 @@ const useSocket = () => {
     // Clear local state
     setNodes(new Map());
     setPaths(new Map());
-    setBoardUsers(new Map());
+    // setBoardUsers(new Map());
     setUserCursors(new Map());
+    setBoardOwner(null);
+    setPresentation(null);
+    setIsJoinedPresentation(false);
+    setUndoStack([]);
+    setBoardAction(BoardAction.Select);
     socket.disconnect();
   }, [socket, boardId]);
 
