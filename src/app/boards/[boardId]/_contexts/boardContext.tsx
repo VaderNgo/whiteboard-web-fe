@@ -273,6 +273,7 @@ export type History = {
 export type UserCursor = {
   x: number;
   y: number;
+  color: string;
 };
 
 export type BoardUser = {

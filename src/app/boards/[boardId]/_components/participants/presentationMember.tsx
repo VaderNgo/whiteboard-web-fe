@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const PresentationMember = () => {
   const { presentation, stageConfig } = useContext(BoardContext);
+  const { startPresentation, joinPresentation, leavePresentation, endPresentation } = useSocket();
   const owner = useLoggedInUser();
 
   if (!presentation) return null;
@@ -19,7 +20,6 @@ const PresentationMember = () => {
   ].slice(0, 3);
 
   const extraCount = Math.max(0, participants.length - 2);
-  const { startPresentation, joinPresentation, leavePresentation, endPresentation } = useSocket();
   const handlePresentationClick = (type: number) => {
     switch (type) {
       case 0:
@@ -145,9 +145,9 @@ const PresentationMember = () => {
 
           {presentation &&
             presentation.presenter?.id !== owner.data?.id &&
-            presentation.participants
-              .values()
-              .find((enhancedUser) => enhancedUser.id === owner.data?.id) === undefined && (
+            Array.from(presentation.participants.values()).find(
+              (enhancedUser) => enhancedUser.id === owner.data?.id
+            ) === undefined && (
               <motion.button
                 className={`h-full rounded-sm flex flex-row justify-center items-center space-x-2 p-3 
                   bg-blue-400
@@ -190,9 +190,9 @@ const PresentationMember = () => {
           {presentation &&
             presentation?.presenter?.id !== owner.data?.id &&
             presentation.participants.size !== 0 &&
-            presentation.participants
-              .values()
-              .find((enhancedUser) => enhancedUser.id === owner.data?.id) !== undefined && (
+            Array.from(presentation.participants.values()).find(
+              (enhancedUser) => enhancedUser.id === owner.data?.id
+            ) !== undefined && (
               <motion.button
                 className={`h-full rounded-sm flex flex-row justify-center items-center space-x-2 p-3 
                   bg-red-400

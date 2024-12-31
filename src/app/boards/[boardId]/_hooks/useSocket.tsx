@@ -24,6 +24,13 @@ const useSocket = () => {
     setPresentation,
     setBoardAction,
     usersBoard,
+    userCursors,
+    setNodes,
+    setPaths,
+    setBoardOwner,
+    setBoardName,
+    setBoardUsers,
+    setUserCursors,
   } = useContext(BoardContext);
   const user = useLoggedInUser();
 
@@ -34,10 +41,12 @@ const useSocket = () => {
     return userPermission === Permission.VIEW;
   }, [user, usersBoard]);
 
-  useEffect(() => {
-    console.log("loggedInUser: ", user.data?.permission);
-    console.log("usersBoard: ", usersBoard.get(user.data!.id.toString())?.permission);
-  }, [usersBoard]);
+  const isPresenter = useCallback(() => {
+    if (!user?.data?.id) return false;
+    return presentation?.presenter?.id == user.data.id && presentation;
+  }, [user, presentation, usersBoard]);
+
+  useEffect(() => {}, [usersBoard]);
 
   const joinBoard = useCallback(() => {
     if (!socket || !boardId || !user) return;
@@ -48,11 +57,16 @@ const useSocket = () => {
   const leaveBoard = useCallback(() => {
     if (!socket || !boardId) return;
     socket.emit("leaveBoard", { boardId });
+    // Clear local state
+    setNodes(new Map());
+    setPaths(new Map());
+    setBoardUsers(new Map());
+    setUserCursors(new Map());
   }, [socket, boardId]);
 
   const addNode = useCallback(
     (data: Node) => {
-      if (!socket || !boardId || isViewOnly()) return;
+      if (!socket || !boardId || isPresenter() || isViewOnly()) return;
       const payload: AddNodePayload = {
         boardId,
         data,
@@ -68,7 +82,7 @@ const useSocket = () => {
 
   const addPath = useCallback(
     (data: Path) => {
-      if (!socket || !boardId || isViewOnly()) return;
+      if (!socket || !boardId || isPresenter() || isViewOnly()) return;
       const payload: AddPathPayload = {
         boardId,
         data,
@@ -163,6 +177,14 @@ const useSocket = () => {
     [socket, boardId]
   );
 
+  const handleCursor = useCallback(
+    (payload: { position: { x: number; y: number } }) => {
+      if (!socket || !boardId) return;
+      socket.emit("cursor-move", { boardId: boardId, position: payload.position });
+    },
+    [socket, boardId, usersBoard, user]
+  );
+
   return {
     joinBoard,
     leaveBoard,
@@ -176,6 +198,7 @@ const useSocket = () => {
     endPresentation,
     dragWhilePresenting,
     updateUserBoardPermission,
+    handleCursor,
   };
 };
 

@@ -93,9 +93,9 @@ const Participants = () => {
             )}
             {presentation &&
               presentation.presenter?.id !== owner.data?.id &&
-              presentation.participants
-                .values()
-                .find((enhancedUser) => enhancedUser.id === owner.data?.id) === undefined && (
+              Array.from(presentation.participants.values()).find(
+                (enhancedUser) => enhancedUser.id === owner.data?.id
+              ) === undefined && (
                 <button
                   className=" h-full rounded-sm bg-blue-400 flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
                   onClick={() => handlePresentationClick(1)}
@@ -116,9 +116,9 @@ const Participants = () => {
             {presentation &&
               presentation?.presenter?.id !== owner.data?.id &&
               presentation.participants.size !== 0 &&
-              presentation.participants
-                .values()
-                .find((enhancedUser) => enhancedUser.id === owner.data?.id) !== undefined && (
+              Array.from(presentation.participants.values()).find(
+                (enhancedUser) => enhancedUser.id === owner.data?.id
+              ) !== undefined && (
                 <button
                   className=" h-full rounded-sm bg-red-400 text-white flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
                   onClick={() => handlePresentationClick(2)}
@@ -182,9 +182,9 @@ const Participants = () => {
           !!(
             presentation &&
             presentation?.presenter?.id !== owner.data?.id &&
-            presentation.participants
-              .values()
-              .find((enhancedUser) => enhancedUser.id === owner.data?.id) === undefined
+            Array.from(presentation.participants.values()).find(
+              (enhancedUser) => enhancedUser.id === owner.data?.id
+            ) === undefined
           )
         }
         onOpenChange={setIsDialogOpen}

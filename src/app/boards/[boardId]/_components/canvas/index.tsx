@@ -1,7 +1,7 @@
 "use client";
 import Konva from "konva";
 import { useParams } from "next/navigation";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Layer, Line, Rect, Stage, Transformer } from "react-konva";
 import {
   BoardAction,
@@ -31,6 +31,7 @@ import Participants from "../participants";
 import ZoomBar from "../zoombar";
 import GridLayer from "../layer/grid";
 import { useLoggedInUser } from "@/lib/services/queries";
+import throttle from "lodash/throttle";
 const Canvas: React.FC = () => {
   const {
     nodes,
@@ -73,13 +74,86 @@ const Canvas: React.FC = () => {
   const [selectionRectCoords, setSelectionRectCoords] = useState({ x1: 0, y1: 0 });
   const stageRef = useRef<Konva.Stage>(null);
   const params = useParams<{ boardId: string }>();
-  const { joinBoard, leaveBoard, addNode, addPath, updateNode, updatePath, dragWhilePresenting } =
-    useSocket();
+  const {
+    joinBoard,
+    leaveBoard,
+    addNode,
+    addPath,
+    updateNode,
+    updatePath,
+    dragWhilePresenting,
+    handleCursor,
+  } = useSocket();
   const [resizedCanvasWidth, setResizedCanvasWidth] = useState(CANVAS_WIDTH);
   const [resizedCanvasHeight, setResizedCanvasHeight] = useState(CANVAS_HEIGHT);
   const tempShapeRef = useRef<Konva.Shape | null>(null);
   const { data: loggedUser } = useLoggedInUser();
   useEffect(() => {}, [drawingPath, nodes]);
+
+  useEffect(() => {
+    window.addEventListener("mousemove", (e) => {
+      handleCursor({
+        position: {
+          x: e.clientX,
+          y: e.clientY,
+        },
+      });
+    });
+    return () => {
+      window.removeEventListener("mousemove", (e) => {
+        handleCursor({
+          position: {
+            x: e.clientX,
+            y: e.clientY,
+          },
+        });
+      });
+    };
+  }, [userCursors]);
+
+  const CursorComponent = ({
+    x,
+    y,
+    color,
+    username,
+  }: {
+    x: number;
+    y: number;
+    color: string;
+    username: string;
+  }) => {
+    return <Cursor x={x} y={y} color={color} username={username} />;
+  };
+
+  const MemoizedCursor = React.memo(CursorComponent, (prevProps, nextProps) => {
+    const positionThreshold = 1;
+    return (
+      Math.abs(prevProps.x - nextProps.x) < positionThreshold &&
+      Math.abs(prevProps.y - nextProps.y) < positionThreshold &&
+      prevProps.color === nextProps.color &&
+      prevProps.username === nextProps.username
+    );
+  });
+
+  const renderCursors = useCallback(() => {
+    if (!userCursors || !boardUsers || boardUsers.size === 0) return null;
+
+    return Array.from(boardUsers.keys()).map((key) => {
+      const currUserCursor = userCursors.get(key);
+      const currUser = boardUsers.get(key);
+      if (!currUserCursor || !currUser) return null;
+
+      return (
+        <MemoizedCursor
+          key={key}
+          x={currUserCursor.x}
+          y={currUserCursor.y}
+          color={currUserCursor.color}
+          username={currUser.username}
+        />
+      );
+    });
+  }, [userCursors, boardUsers]);
 
   const createStepPathPoints = (start: PathPoint, end: { x: number; y: number }): PathPoint[] => {
     return [
@@ -100,18 +174,53 @@ const Canvas: React.FC = () => {
   }, [params.boardId, setBoardId, socket]);
 
   useEffect(() => {
-    if (params.boardId) {
+    const handleReconnect = () => {
+      if (params.boardId) {
+        joinBoard();
+      }
+    };
+
+    socket.on("reconnect", handleReconnect);
+
+    return () => {
+      socket.off("reconnect", handleReconnect);
+    };
+  }, [params.boardId, socket, joinBoard]);
+
+  useEffect(() => {
+    let isActive = true;
+    const handlePageVisibility = () => {
+      if (document.hidden) {
+        leaveBoard();
+      } else if (params.boardId) {
+        joinBoard();
+      }
+    };
+    const handleBeforeUnload = () => {
+      leaveBoard();
+    };
+
+    if (params.boardId && isActive) {
       joinBoard();
+
+      // Add visibility and unload listeners
+      document.addEventListener("visibilitychange", handlePageVisibility);
+      window.addEventListener("beforeunload", handleBeforeUnload);
     }
     return () => {
+      isActive = false;
       leaveBoard();
       setBoardUsers(new Map());
       setUserCursors(new Map());
       setBoardName("");
-    };
-  }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]); //getBoard
 
-  useEffect(() => {}, [boardUsers]);
+      // Remove listeners
+      document.removeEventListener("visibilitychange", handlePageVisibility);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]);
+
+  useEffect(() => {}, [boardUsers, userCursors]);
 
   useEffect(() => {}, [boardAction, tempShapeRef]);
 
@@ -166,8 +275,6 @@ const Canvas: React.FC = () => {
     if (boardAction !== BoardAction.Drag) {
       return;
     }
-    console.log(presentation?.presenter?.username);
-    console.log("stageConfig", stageConfig);
     if (stageRef.current) {
       const stage = stageRef.current;
       const scaleBy = 1.05;
@@ -212,7 +319,6 @@ const Canvas: React.FC = () => {
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
       if (presentation && presentation.presenter && presentation.presenter.id !== loggedUser?.id) {
-        console.log("can not drag");
         return;
       }
       const container = stageRef.current.container();
@@ -223,7 +329,6 @@ const Canvas: React.FC = () => {
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
       if (presentation && presentation.presenter && presentation.presenter.id !== loggedUser?.id) {
-        console.log("can not drag");
         return;
       }
       setStageStyle((prevState) => ({
@@ -254,7 +359,6 @@ const Canvas: React.FC = () => {
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     if (e.target === stageRef.current && boardAction === BoardAction.Drag) {
       if (presentation && presentation.presenter && presentation.presenter.id !== loggedUser?.id) {
-        console.log("can not drag");
         return;
       }
       const container = stageRef.current.container();
@@ -391,17 +495,12 @@ const Canvas: React.FC = () => {
   };
 
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    // user mouse
-    // const uid = authState.user?.uid;
-    // if (uid) {
+    e.evt.preventDefault();
     const mouseX = stageRef.current?.getRelativePointerPosition()?.x;
     const mouseY = stageRef.current?.getRelativePointerPosition()?.y;
     if (mouseX && mouseY) {
-      // updateUserMouse({ x: mouseX, y: mouseY });
     }
-    // }
 
-    e.evt.preventDefault();
     if (boardAction === BoardAction.Select) {
       if (!selectionRectRef.current?.visible()) {
         selectionRectRef.current?.visible(false);
@@ -578,6 +677,7 @@ const Canvas: React.FC = () => {
     <>
       <SimpleEditor />
       <Toolbar />
+      {renderCursors()}
       <BoardContext.Consumer>
         {(roomContextValue) => (
           <SocketContext.Consumer>
@@ -683,27 +783,6 @@ const Canvas: React.FC = () => {
                             fill="rgba(99,102,241,0.2)"
                             visible={false}
                           />
-                          {userCursors && (
-                            <>
-                              {boardUsers &&
-                                boardUsers.size > 0 &&
-                                Array.from(boardUsers.keys()).map((key) => {
-                                  const currUserCursor = userCursors.get(key);
-                                  const currUser = boardUsers.get(key);
-                                  if (!currUserCursor || !currUser) return null;
-                                  return (
-                                    // <Cursor
-                                    //   key={key}
-                                    //   x={currUserCursor.x}
-                                    //   y={currUserCursor.y}
-                                    //   // color={currUser.color}
-                                    //   // name={currUser.name}
-                                    // />
-                                    <></>
-                                  );
-                                })}
-                            </>
-                          )}
                         </>
                       )}
                     </Layer>
