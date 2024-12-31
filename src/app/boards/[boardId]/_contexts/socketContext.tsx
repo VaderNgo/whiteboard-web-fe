@@ -1,23 +1,21 @@
 "use client";
+import { toast } from "@/hooks/use-toast";
+import { Permission } from "@/lib/permission-enum";
+import { LoggedInUser, useLoggedInUser, UserBoard } from "@/lib/services/queries";
+import { socket } from "@/lib/websocket";
 import React, { createContext, useCallback, useContext, useEffect, useMemo } from "react";
-import socketIOClient, { Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import {
-  Node,
-  BoardContext,
-  BoardUser,
-  UserCursor,
-  Path,
-  Text,
   AnchorPoint,
+  BoardContext,
+  Node,
+  Path,
   PathEdge,
   PathPoint,
   StageConfig,
-  BoardAction,
+  Text,
+  UserCursor,
 } from "../_contexts/boardContext";
-import { socket } from "@/lib/websocket";
-import { LoggedInUser, useLoggedInUser, UserBoard } from "@/lib/services/queries";
-import { Permission } from "@/lib/permission-enum";
-import { toast } from "@/hooks/use-toast";
 import useSocket from "../_hooks/useSocket";
 
 type SocketContextProps = {

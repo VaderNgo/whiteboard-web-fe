@@ -19,19 +19,17 @@ import Cursor from "../cursor";
 import Shape from "../shapes";
 import Toolbar from "../toolbar";
 
-import useHistory from "../../_hooks/useHistory";
 import useSocket from "../../_hooks/useSocket";
 
+import { useLoggedInUser } from "@/lib/services/queries";
+import { socket } from "@/lib/websocket";
 import { SocketContext } from "../../_contexts/socketContext";
 import SimpleEditor from "../editor/simple";
+import GridLayer from "../layer/grid";
+import Participants from "../participants";
 import { EditablePath } from "../path";
 import { calculateEdges } from "../path/functions";
-import { socket } from "@/lib/websocket";
-import Participants from "../participants";
 import ZoomBar from "../zoombar";
-import GridLayer from "../layer/grid";
-import { useLoggedInUser } from "@/lib/services/queries";
-import throttle from "lodash/throttle";
 const Canvas: React.FC = () => {
   const {
     nodes,
@@ -90,24 +88,22 @@ const Canvas: React.FC = () => {
   const { data: loggedUser } = useLoggedInUser();
   useEffect(() => {}, [drawingPath, nodes]);
 
-  useEffect(() => {
-    window.addEventListener("mousemove", (e) => {
+  const mouseMoveHandler = useCallback(
+    (e: MouseEvent) => {
       handleCursor({
         position: {
           x: e.clientX,
           y: e.clientY,
         },
       });
-    });
+    },
+    [handleCursor, userCursors]
+  );
+
+  useEffect(() => {
+    window.addEventListener("mousemove", mouseMoveHandler);
     return () => {
-      window.removeEventListener("mousemove", (e) => {
-        handleCursor({
-          position: {
-            x: e.clientX,
-            y: e.clientY,
-          },
-        });
-      });
+      window.removeEventListener("mousemove", mouseMoveHandler);
     };
   }, [userCursors]);
 

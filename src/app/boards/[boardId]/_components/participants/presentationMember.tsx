@@ -1,9 +1,9 @@
+import { useLoggedInUser } from "@/lib/services/queries";
+import { AnimatePresence, motion } from "framer-motion";
 import { MonitorDown, MonitorUp, MonitorX } from "lucide-react";
 import { useContext } from "react";
 import { BoardContext } from "../../_contexts/boardContext";
-import { useLoggedInUser } from "@/lib/services/queries";
 import useSocket from "../../_hooks/useSocket";
-import { motion, AnimatePresence } from "framer-motion";
 
 const PresentationMember = () => {
   const { presentation, stageConfig } = useContext(BoardContext);

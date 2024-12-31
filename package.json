@@ -31,7 +31,6 @@
     "framer-motion": "^11.11.17",
     "konva": "^9.3.14",
     "lexical": "^0.17.1",
-    "lodash": "^4.17.21",
     "lucide-react": "^0.429.0",
     "nanoid": "^5.0.7",
     "next": "^14.2.15",
@@ -53,7 +52,6 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.13",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
