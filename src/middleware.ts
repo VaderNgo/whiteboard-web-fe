@@ -23,6 +23,7 @@ export async function middleware(request: NextRequest) {
       const response = NextResponse.redirect(new URL("/", request.url));
       response.cookies.set("connect.sid", "", {
         expires: new Date(0),
+        domain: process.env.NEXT_PUBLIC_AUTH_COOKIE_DOMAIN,
       });
       return response;
     }
