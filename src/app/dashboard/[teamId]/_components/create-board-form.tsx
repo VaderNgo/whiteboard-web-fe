@@ -3,6 +3,7 @@ import { Form, FormContainer, InputField } from "@/components/ui/form";
 import { useCreateBoard } from "@/lib/services/mutations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import z from "zod";
@@ -18,6 +19,7 @@ export default function CreateBoardForm({
 }: {
   onSubmitSuccess: () => Promise<void>;
 }) {
+  const { teamId } = useParams<{ teamId: string }>();
   const [created, setCreated] = useState(false);
   const [rootMessage, setRootMessage] = useState("");
   const [rootType, setRootType] = useState<"error" | "success">("error");
@@ -35,7 +37,7 @@ export default function CreateBoardForm({
 
   const onSubmit: SubmitHandler<CreateBoardBody> = async (data) => {
     try {
-      await createBoard.mutateAsync({ name: data.name, teamId: 1 });
+      await createBoard.mutateAsync({ name: data.name, teamId: Number(teamId) });
       clearErrors();
       setCreated(true);
       setRootType("success");
