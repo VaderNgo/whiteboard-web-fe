@@ -348,8 +348,16 @@ type IBoardContext = {
   setBoardOwner: React.Dispatch<React.SetStateAction<LoggedInUser | null>>;
   usersBoard: Map<string, UserBoard>;
   setUsersBoard: React.Dispatch<React.SetStateAction<Map<string, UserBoard>>>;
+  exportCanvas: (backgroundColor: string) => Promise<void>;
 };
 
+interface ExportCanvasOptions {
+  pixelRatio?: number;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
 export const BoardContext: React.Context<IBoardContext> = createContext({} as IBoardContext);
 
 export const BoardContextProvider: React.FC<BoardContextProps> = ({
@@ -460,6 +468,76 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
     setUsersBoard(initialUsersBoard);
   }, [usersBoardProp]);
 
+  const exportCanvas = async (backgroundColor: string): Promise<void> => {
+    if (!stageRef || !stageRef.current) return;
+
+    const stage = stageRef.current;
+    const scale = stage.scaleX();
+    const position = {
+      x: stage.x(),
+      y: stage.y(),
+    };
+
+    try {
+      // Calculate visible area in stage coordinates
+      const visibleRect = {
+        x: -position.x / scale,
+        y: -position.y / scale,
+        width: stage.width() / scale,
+        height: stage.height() / scale,
+      };
+
+      // First get the transparent PNG
+      const exportOptions: ExportCanvasOptions = {
+        pixelRatio: 2,
+        x: visibleRect.x,
+        y: visibleRect.y,
+        width: visibleRect.width,
+        height: visibleRect.height,
+      };
+
+      const transparentDataURL = stage.toDataURL(exportOptions);
+
+      // Create a temporary canvas to compose the final image
+      const tempCanvas = document.createElement("canvas");
+      const ctx = tempCanvas.getContext("2d");
+      if (!ctx) return;
+
+      // Set the canvas size to match the export size
+      const exportWidth = visibleRect.width * exportOptions.pixelRatio!;
+      const exportHeight = visibleRect.height * exportOptions.pixelRatio!;
+      tempCanvas.width = exportWidth;
+      tempCanvas.height = exportHeight;
+
+      // Fill the background
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+      // Load and draw the transparent image
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = transparentDataURL;
+      });
+      ctx.drawImage(img, 0, 0);
+
+      // Get the final image with background
+      const finalDataURL = tempCanvas.toDataURL("image/png");
+
+      // Create and trigger download
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      link.download = `canvas-export-${timestamp}.png`;
+      link.href = finalDataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
+  };
+
   const value = useMemo(
     () => ({
       usersBoard,
@@ -526,6 +604,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setBoardOwner,
       teamId,
       setTeamId,
+      exportCanvas,
     }),
     [
       teamId,

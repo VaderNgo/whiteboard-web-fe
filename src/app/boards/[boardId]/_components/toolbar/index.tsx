@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Circle,
   Diamond,
+  Download,
   Hand,
   MessageSquareMore,
   MinusIcon,
@@ -27,6 +28,7 @@ import { ToolButton } from "./tool-button";
 import useHistory from "../../_hooks/useHistory";
 import { useLoggedInUser } from "@/lib/services/queries";
 import { Permission } from "@/lib/permission-enum";
+import ExportDialog from "./exportDialog";
 
 const Toolbar = () => {
   const {
@@ -48,6 +50,8 @@ const Toolbar = () => {
     setPaths,
     setPolygonSides,
     usersBoard,
+    exportCanvas,
+    stageConfig,
   } = useContext(BoardContext);
   const { handleRedo, handleUndo } = useHistory();
   const { updateNode, updatePath } = useSocket();
@@ -279,6 +283,7 @@ const Toolbar = () => {
                 }}
                 isActive={false}
               />
+              <ExportDialog exportCanvas={exportCanvas} currentScale={stageConfig.stageScale} />
             </>
           )}
         </motion.div>
