@@ -1,23 +1,22 @@
 "use client";
+import { toast } from "@/hooks/use-toast";
+import { Permission } from "@/lib/permission-enum";
+import { LoggedInUser, useLoggedInUser, UserBoard } from "@/lib/services/queries";
+import { socket } from "@/lib/websocket";
 import React, { createContext, useCallback, useContext, useEffect, useMemo } from "react";
-import socketIOClient, { Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import {
-  Node,
-  BoardContext,
-  BoardUser,
-  UserCursor,
-  Path,
-  Text,
   AnchorPoint,
+  BoardContext,
+  Node,
+  Path,
   PathEdge,
   PathPoint,
   StageConfig,
-  BoardAction,
+  Text,
+  UserCursor,
 } from "../_contexts/boardContext";
-import { socket } from "@/lib/websocket";
-import { LoggedInUser, useLoggedInUser, UserBoard } from "@/lib/services/queries";
-import { Permission } from "@/lib/permission-enum";
-import { toast } from "@/hooks/use-toast";
+import useSocket from "../_hooks/useSocket";
 
 type SocketContextProps = {
   children: React.ReactNode;
@@ -87,9 +86,14 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     setIsJoinedPresentation,
     setBoardAction,
     setUsersBoard,
+    setUserCursors,
+    boardId,
+    presentation,
   } = useContext(BoardContext);
 
+  const { joinBoard, joinPresentation } = useSocket();
   const { data: loggedUser } = useLoggedInUser();
+
   const onGetBoardUsers = useCallback(
     (payload: { socketId: string; enhancedUser: LoggedInUser }[]) => {
       setBoardUsers((prevState) => {
@@ -265,6 +269,21 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     [setUsersBoard, loggedUser]
   );
 
+  const onCursorMove = useCallback(
+    (payload: { socketId: string; position: { x: number; y: number }; color: string }) => {
+      setUserCursors((prevState) => {
+        return new Map(
+          prevState.set(payload.socketId, {
+            x: payload.position.x,
+            y: payload.position.y,
+            color: payload.color,
+          } as UserCursor)
+        );
+      });
+    },
+    [setUserCursors]
+  );
+
   const onError = useCallback((error: { message: string }) => {
     toast({
       title: "Error",
@@ -288,6 +307,7 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     socket.on("drag-while-presenting", onDragWhilePresenting);
     socket.on("presentation-users", onPresentationUsers);
     socket.on("users-board", onUpdateUserBoardPermission);
+    socket.on("cursor-move", onCursorMove);
     socket.on("error", onError);
     return () => {
       socket.off("add-node", onAddNode);
@@ -304,6 +324,7 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
       socket.off("drag-while-presenting", onDragWhilePresenting);
       socket.off("presentation-users", onPresentationUsers);
       socket.off("users-board", onUpdateUserBoardPermission);
+      socket.off("cursor-move", onCursorMove);
       socket.off("error", onError);
     };
   }, [

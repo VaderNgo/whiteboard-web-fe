@@ -60,13 +60,13 @@ export const Member = ({
 
       {role !== "OWNER" && showActions && (
         <>
-          <PermissionEditor
+          {/* <PermissionEditor
             teamId={teamId}
             userId={userId}
             currentPermission={permission!}
             onError={onError!}
             onSuccess={onMessage!}
-          />
+          /> */}
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Trash2 size={20} stroke="red" />

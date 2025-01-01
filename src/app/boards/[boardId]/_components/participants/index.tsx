@@ -8,20 +8,12 @@ import {
 } from "@/components/ui/dialog";
 import { LoggedInUser, useLoggedInUser } from "@/lib/services/queries";
 import { Dialog } from "@radix-ui/react-dialog";
-import {
-  ChevronDown,
-  DoorOpen,
-  MonitorDown,
-  MonitorPlay,
-  MonitorUp,
-  MonitorX,
-  Play,
-  Users,
-} from "lucide-react";
+import { ChevronDown, MonitorDown, MonitorPlay, MonitorUp, MonitorX, Users } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { BoardContext } from "../../_contexts/boardContext";
 import useSocket from "../../_hooks/useSocket";
 import BoardMembers from "./boardMembers";
+import PresentationMember from "./presentationMember";
 
 const Participants = () => {
   const {
@@ -83,6 +75,10 @@ const Participants = () => {
   return (
     <>
       {showBoardUsers && <BoardMembers />}
+      {}
+      {presentation && (presentation.presenter || presentation.participants.size > 0) && (
+        <PresentationMember />
+      )}
       <div className="absolute z-10 h-12 top-2 right-2 bg-white rounded-e-md flex items-center shadow-md">
         <div className="flex h-full w-full justify-center items-center space-x-3 p-2">
           <div className="aspect-square h-full rounded flex justify-center items-center">
@@ -97,9 +93,9 @@ const Participants = () => {
             )}
             {presentation &&
               presentation.presenter?.id !== owner.data?.id &&
-              presentation.participants
-                .values()
-                .find((enhancedUser) => enhancedUser.id === owner.data?.id) === undefined && (
+              Array.from(presentation.participants.values()).find(
+                (enhancedUser) => enhancedUser.id === owner.data?.id
+              ) === undefined && (
                 <button
                   className=" h-full rounded-sm bg-blue-400 flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
                   onClick={() => handlePresentationClick(1)}
@@ -120,9 +116,9 @@ const Participants = () => {
             {presentation &&
               presentation?.presenter?.id !== owner.data?.id &&
               presentation.participants.size !== 0 &&
-              presentation.participants
-                .values()
-                .find((enhancedUser) => enhancedUser.id === owner.data?.id) !== undefined && (
+              Array.from(presentation.participants.values()).find(
+                (enhancedUser) => enhancedUser.id === owner.data?.id
+              ) !== undefined && (
                 <button
                   className=" h-full rounded-sm bg-red-400 text-white flex flex-row justify-center items-center space-x-2 p-3 hover:scale-105 transition-transform"
                   onClick={() => handlePresentationClick(2)}
@@ -186,9 +182,9 @@ const Participants = () => {
           !!(
             presentation &&
             presentation?.presenter?.id !== owner.data?.id &&
-            presentation.participants
-              .values()
-              .find((enhancedUser) => enhancedUser.id === owner.data?.id) === undefined
+            Array.from(presentation.participants.values()).find(
+              (enhancedUser) => enhancedUser.id === owner.data?.id
+            ) === undefined
           )
         }
         onOpenChange={setIsDialogOpen}

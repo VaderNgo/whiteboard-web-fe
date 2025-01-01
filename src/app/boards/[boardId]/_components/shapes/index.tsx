@@ -376,6 +376,11 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
       onMouseLeave={endHovering}
       name="mindmap-node"
     >
+      {node.shapeType === "Rect" && <RectShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Ellipse" && <EllipseShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Polygon" && <PolygonShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Note" && <NoteShape node={node} isHovering={isHovering} />}
+      {node.shapeType === "Text" && <TextShape node={node} isHovering={isHovering} />}
       {node.anchorPoints.map((anchorPoint) => (
         <Anchor
           key={anchorPoint.indexAnchor}
@@ -387,11 +392,6 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           boardAction={boardAction}
         />
       ))}
-      {node.shapeType === "Rect" && <RectShape node={node} isHovering={isHovering} />}
-      {node.shapeType === "Ellipse" && <EllipseShape node={node} isHovering={isHovering} />}
-      {node.shapeType === "Polygon" && <PolygonShape node={node} isHovering={isHovering} />}
-      {node.shapeType === "Note" && <NoteShape node={node} isHovering={isHovering} />}
-      {node.shapeType === "Text" && <TextShape node={node} isHovering={isHovering} />}
       {isEditing ? (
         <TextEditor
           initialText={node.text.content}
@@ -402,7 +402,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
           fontSize={node.text.fontSize}
           textColor={node.text.textColor}
           textAlign={node.text.align as "left" | "right" | "center" | "justify"}
-          alignContent={node.text.verticalAlign}
+          verticalAlign={node.text.verticalAlign as "top" | "middle" | "bottom"}
           fontStyle={node.text.fontStyle}
           fontFamily={"Arial"}
           padding={node.shapeType === "Polygon" ? 20 : 10}

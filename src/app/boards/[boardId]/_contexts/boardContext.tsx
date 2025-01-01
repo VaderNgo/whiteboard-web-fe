@@ -31,11 +31,12 @@ export enum EditorTab {
   FONT_SIZE = "font_size",
   FONT_FAMILY = "font_family",
   FONT_STYLE = "font_style",
-
-  TEXT_COLOR = "font_color",
-  TEXT_HIGHLIGHT = "font_highlight",
+  TEXT_ALIGN = "text_align",
 
   ALIGNMENT = "alignment",
+  FILL_COLOR = "fill_color",
+  STROKE_COLOR = "stroke_color",
+  TEXT_STYLE = "text_style",
 }
 
 type BoardContextProps = {
@@ -272,6 +273,7 @@ export type History = {
 export type UserCursor = {
   x: number;
   y: number;
+  color: string;
 };
 
 export type BoardUser = {
@@ -329,13 +331,15 @@ type IBoardContext = {
   redoStack: History[];
   setRedoStack: React.Dispatch<React.SetStateAction<History[]>>;
   boardId: string | undefined;
-  setBoardId: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setBoardId: React.Dispatch<React.SetStateAction<string>>;
   userCursors: Map<string, UserCursor>;
   setUserCursors: React.Dispatch<React.SetStateAction<Map<string, UserCursor>>>;
   boardUsers: Map<string, LoggedInUser>;
   setBoardUsers: React.Dispatch<React.SetStateAction<Map<string, LoggedInUser>>>;
   boardName: string;
   setBoardName: React.Dispatch<React.SetStateAction<string>>;
+  teamId: string;
+  setTeamId: React.Dispatch<React.SetStateAction<string>>;
   presentation: PresentationState | null;
   setPresentation: React.Dispatch<React.SetStateAction<PresentationState | null>>;
   isJoinedPresentation: boolean;
@@ -344,8 +348,16 @@ type IBoardContext = {
   setBoardOwner: React.Dispatch<React.SetStateAction<LoggedInUser | null>>;
   usersBoard: Map<string, UserBoard>;
   setUsersBoard: React.Dispatch<React.SetStateAction<Map<string, UserBoard>>>;
+  exportCanvas: (backgroundColor: string) => Promise<void>;
 };
 
+interface ExportCanvasOptions {
+  pixelRatio?: number;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
 export const BoardContext: React.Context<IBoardContext> = createContext({} as IBoardContext);
 
 export const BoardContextProvider: React.FC<BoardContextProps> = ({
@@ -385,8 +397,8 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   const [canDragStage, setCanDragStage] = useState<boolean>(false);
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
   const [dark, setDark] = useState(false);
-  const [boardId, setBoardId] = useState<string | undefined>();
-  const [boardName, setBoardName] = useState<string>("");
+  const [boardId, setBoardId] = useState<string>(boardProp.id);
+  const [boardName, setBoardName] = useState<string>(boardProp.name);
   const [userCursors, setUserCursors] = useState<Map<string, UserCursor>>(new Map());
   const [boardUsers, setBoardUsers] = useState<Map<string, LoggedInUser>>(new Map());
   const [boardAction, setBoardAction] = useState<BoardAction>(BoardAction.Select);
@@ -397,7 +409,7 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
   const [undoStack, setUndoStack] = useState<History[]>([]);
   const [redoStack, setRedoStack] = useState<History[]>([]);
   const [usersBoard, setUsersBoard] = useState<Map<string, UserBoard>>(new Map());
-
+  const [teamId, setTeamId] = useState<string>(boardProp.team.id);
   useEffect(() => {
     // Initialize nodes from shapesProp
     const initialNodes = new Map<string, Node>();
@@ -420,6 +432,10 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       initialPaths.set(newPath.id, newPath);
     });
     setPaths(initialPaths);
+
+    setBoardId(boardProp.id);
+    setBoardName(boardProp.name);
+    setTeamId(boardProp.team.id);
   }, [boardProp.shapes, boardProp.paths]);
 
   useEffect(() => {
@@ -451,6 +467,76 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
     });
     setUsersBoard(initialUsersBoard);
   }, [usersBoardProp]);
+
+  const exportCanvas = async (backgroundColor: string): Promise<void> => {
+    if (!stageRef || !stageRef.current) return;
+
+    const stage = stageRef.current;
+    const scale = stage.scaleX();
+    const position = {
+      x: stage.x(),
+      y: stage.y(),
+    };
+
+    try {
+      // Calculate visible area in stage coordinates
+      const visibleRect = {
+        x: -position.x / scale,
+        y: -position.y / scale,
+        width: stage.width() / scale,
+        height: stage.height() / scale,
+      };
+
+      // First get the transparent PNG
+      const exportOptions: ExportCanvasOptions = {
+        pixelRatio: 2,
+        x: visibleRect.x,
+        y: visibleRect.y,
+        width: visibleRect.width,
+        height: visibleRect.height,
+      };
+
+      const transparentDataURL = stage.toDataURL(exportOptions);
+
+      // Create a temporary canvas to compose the final image
+      const tempCanvas = document.createElement("canvas");
+      const ctx = tempCanvas.getContext("2d");
+      if (!ctx) return;
+
+      // Set the canvas size to match the export size
+      const exportWidth = visibleRect.width * exportOptions.pixelRatio!;
+      const exportHeight = visibleRect.height * exportOptions.pixelRatio!;
+      tempCanvas.width = exportWidth;
+      tempCanvas.height = exportHeight;
+
+      // Fill the background
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+      // Load and draw the transparent image
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = transparentDataURL;
+      });
+      ctx.drawImage(img, 0, 0);
+
+      // Get the final image with background
+      const finalDataURL = tempCanvas.toDataURL("image/png");
+
+      // Create and trigger download
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      link.download = `canvas-export-${timestamp}.png`;
+      link.href = finalDataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
+  };
 
   const value = useMemo(
     () => ({
@@ -516,8 +602,14 @@ export const BoardContextProvider: React.FC<BoardContextProps> = ({
       setIsJoinedPresentation,
       boardOwner,
       setBoardOwner,
+      teamId,
+      setTeamId,
+      exportCanvas,
     }),
     [
+      teamId,
+      boardName,
+      boardId,
       usersBoard,
       boardOwner,
       presentation,

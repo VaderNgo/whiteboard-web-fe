@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosInstance } from "../axios";
 import { RegiterBodyType } from "@/app/_components/signup-form";
+import { Permission } from "../permission-enum";
 
 export function useVerifyEmail() {
   const queryClient = useQueryClient();
@@ -255,5 +256,34 @@ export function useCreateBoard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] });
     },
+  });
+}
+
+export function useInviteMemberToBoard() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ boardId, userId, permission }: { boardId: string; userId: number, permission: Permission }) => {
+      return await AxiosInstance.post(`/boards/${boardId}/members`, {
+        userId,
+        permission
+      });
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate both the users-board query and the board query
+      queryClient.invalidateQueries({ queryKey: ["users-board", variables.boardId] });
+      queryClient.invalidateQueries({ queryKey: ["board", variables.boardId] });
+    },
+  });
+}
+
+export function useDeleteBoard() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ boardId }: { boardId: string }) => {
+      return await AxiosInstance.delete(`/boards/${boardId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["board"] });
+    }
   });
 }

@@ -63,7 +63,7 @@ const BoardPage = () => {
     return <LoadingSpinner />;
   }
 
-  console.log("users board", usersBoard);
+  console.log(board);
 
   return (
     <>
