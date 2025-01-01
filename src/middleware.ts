@@ -21,7 +21,9 @@ export async function middleware(request: NextRequest) {
     } catch {
       // Invalid session, delete cookie and redirect to home page
       const response = NextResponse.redirect(new URL("/", request.url));
-      response.cookies.delete("connect.sid");
+      response.cookies.set("connect.sid", "", {
+        expires: new Date(0),
+      });
       return response;
     }
   }
