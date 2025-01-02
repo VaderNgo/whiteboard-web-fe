@@ -55,12 +55,14 @@ export type TeamMembersResponse = {
 
 export function useGetTeamMembers(teamId: string) {
   return useQuery({
-    queryKey: ["team-members", { teamId: teamId }],
+    queryKey: ["team-members", { teamId: teamId.toString() }],
     queryFn: async () => {
       if (!teamId) return { currentMembers: [], pendingMembers: [] };
       try {
+        console.log("Fetching team members");
         const result = (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`))
           .data;
+        console.log("Fetched team members", result);
         return result;
       } catch (error) {
         console.log("Failed to fetch team members", error);

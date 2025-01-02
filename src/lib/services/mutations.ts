@@ -12,7 +12,7 @@ export function useVerifyEmail() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user"] });
-    }
+    },
   });
 }
 
@@ -20,10 +20,9 @@ export function useResendConfirmationEmail() {
   return useMutation({
     mutationFn: async () => {
       return await AxiosInstance.get(`/auth/resend-email`);
-    }
-  })
+    },
+  });
 }
-
 
 export function useCreateAccount() {
   return useMutation({
@@ -126,7 +125,7 @@ export function useInviteMember() {
 
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: ["team-members", variables.teamId.toString()],
+        queryKey: ["team-members", { teamId: variables.teamId.toString() }],
       });
     },
   });
@@ -148,29 +147,29 @@ export function useRemoveMember() {
 export function useUpdatePermission() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { teamId: string, userId: string, permission: string }) => {
+    mutationFn: async (data: { teamId: string; userId: string; permission: string }) => {
       return await AxiosInstance.put(`/teams/${data.teamId}/members/`, data);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["team-members", { teamId: variables.teamId }]
+        queryKey: ["team-members", { teamId: variables.teamId.toString() }],
       });
-    }
-  })
+    },
+  });
 }
 
 export function useUpdateUserBoardPermission() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { boardId: string, userId: number, permission: string }) => {
+    mutationFn: async (data: { boardId: string; userId: number; permission: string }) => {
       return await AxiosInstance.patch(`/boards/${data.boardId}/users-board`, data);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["users-board", { boardId: variables.boardId }]
+        queryKey: ["users-board", { boardId: variables.boardId }],
       });
-    }
-  })
+    },
+  });
 }
 
 export function useMarkAsRead() {
@@ -262,10 +261,18 @@ export function useCreateBoard() {
 export function useInviteMemberToBoard() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ boardId, userId, permission }: { boardId: string; userId: number, permission: Permission }) => {
+    mutationFn: async ({
+      boardId,
+      userId,
+      permission,
+    }: {
+      boardId: string;
+      userId: number;
+      permission: Permission;
+    }) => {
       return await AxiosInstance.post(`/boards/${boardId}/members`, {
         userId,
-        permission
+        permission,
       });
     },
     onSuccess: (_, variables) => {
@@ -284,6 +291,6 @@ export function useDeleteBoard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["board"] });
-    }
+    },
   });
 }
