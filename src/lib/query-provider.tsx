@@ -24,13 +24,13 @@ export const QueryProvider = ({ children }: { children: ReactNode }) => {
     client.invalidateQueries({ queryKey: ["notifications"] });
   };
 
-  const handleTeamMemberUpdated = (teamId: string) => {
-    client.invalidateQueries({ queryKey: ["team-members", teamId.toString()] });
+  const handleTeamMemberUpdated = (teamId: number) => {
+    client.invalidateQueries({ queryKey: ["team-members", { teamId: teamId.toString() }] });
   };
 
-  const handleRemovedFromTeam = (teamId: string) => {
+  const handleRemovedFromTeam = (payload: { teamId: number }) => {
     client.invalidateQueries({ queryKey: ["teams"] });
-    if (pathname === `/dashboard/${teamId}`) {
+    if (pathname.includes(`/dashboard/${payload.teamId}`)) {
       router.push("/dashboard");
     }
   };

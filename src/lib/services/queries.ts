@@ -32,7 +32,6 @@ export type LoggedInUser = {
   permission?: Permission;
 };
 
-
 export function useLoggedInUser() {
   return useQuery({
     queryKey: ["user"],
@@ -59,12 +58,17 @@ export function useGetTeamMembers(teamId: string) {
     queryKey: ["team-members", { teamId: teamId }],
     queryFn: async () => {
       if (!teamId) return { currentMembers: [], pendingMembers: [] };
-      return (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`)).data;
+      try {
+        const result = (await AxiosInstance.get<TeamMembersResponse>(`/teams/${teamId}/members`))
+          .data;
+        return result;
+      } catch (error) {
+        console.log("Failed to fetch team members", error);
+        return { currentMembers: [], pendingMembers: [] };
+      }
     },
   });
 }
-
-
 
 export type Notification = {
   id: number;
@@ -85,12 +89,12 @@ export function useGetNotifications() {
 export type ShapeModel = {
   id: string;
   data: Node;
-}
+};
 
 export type PathModel = {
   id: string;
   data: Path;
-}
+};
 
 export type BoardModel = {
   id: string;
@@ -103,26 +107,26 @@ export type BoardModel = {
   presentation: PresentationStateTemp | null;
   team: TeamModel;
   isDeleted: boolean;
-}
+};
 
 export type TeamModel = {
   id: string;
   name: string;
   description: string;
   logo: string;
-}
+};
 
 export type PresentationStateTemp = {
   participants: { socketId: string; user: LoggedInUser }[];
   presentation: StageConfig | null;
   presenter: LoggedInUser | null;
-}
+};
 
 export type UserBoard = {
   user: LoggedInUser;
-  data: StageConfig,
-  permission: Permission,
-}
+  data: StageConfig;
+  permission: Permission;
+};
 
 export function useGetBoard(id: string) {
   return useQuery({
@@ -134,19 +138,19 @@ export function useGetBoard(id: string) {
 export function useGetUsersBoard(boardId: string) {
   return useQuery({
     queryKey: ["users-board", boardId],
-    queryFn: async () => (await AxiosInstance.get<UserBoard[]>(`/boards/${boardId}/users-board`)).data,
+    queryFn: async () =>
+      (await AxiosInstance.get<UserBoard[]>(`/boards/${boardId}/users-board`)).data,
     enabled: !!boardId,
   });
 }
 
 export function useGetTeamBoards(teamId: string) {
   return useQuery<BoardModel[]>({
-    queryKey: ['boards', teamId],
+    queryKey: ["boards", teamId],
     queryFn: async () => {
-      if (!teamId) throw new Error('Team ID is required');
+      if (!teamId) throw new Error("Team ID is required");
       return (await AxiosInstance.get<BoardModel[]>(`/teams/${teamId}/boards`)).data;
     },
     enabled: !!teamId,
   });
 }
-
