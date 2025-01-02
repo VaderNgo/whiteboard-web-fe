@@ -187,7 +187,12 @@ const useSocket = () => {
   const handleCursor = useCallback(
     (payload: { position: { x: number; y: number } }) => {
       if (!socket || !boardId) return;
-      socket.emit("cursor-move", { boardId: boardId, position: payload.position });
+      socket.emit("cursor-move", {
+        boardId: boardId,
+        position: payload.position,
+        stagePosition: { x: stageConfig.stageX, y: stageConfig.stageY },
+        stageScale: stageConfig.stageScale,
+      });
     },
     [socket, boardId, usersBoard, user]
   );

@@ -274,6 +274,8 @@ export type UserCursor = {
   x: number;
   y: number;
   color: string;
+  stagePosition: { x: number; y: number };
+  stageScale: number;
 };
 
 export type BoardUser = {

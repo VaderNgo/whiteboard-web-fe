@@ -37,6 +37,7 @@ export default function CreateBoardForm({
 
   const onSubmit: SubmitHandler<CreateBoardBody> = async (data) => {
     try {
+      console.log(teamId);
       await createBoard.mutateAsync({ name: data.name, teamId: Number(teamId) });
       clearErrors();
       setCreated(true);

@@ -91,14 +91,22 @@ const Canvas: React.FC = () => {
 
   const mouseMoveHandler = useCallback(
     (e: MouseEvent) => {
-      handleCursor({
-        position: {
-          x: e.clientX,
-          y: e.clientY,
-        },
-      });
+      if (!stageRef.current) return;
+
+      // Get stage's pointer position
+      const stage = stageRef.current;
+      const point = stage.getRelativePointerPosition();
+
+      if (point) {
+        handleCursor({
+          position: {
+            x: point.x,
+            y: point.y,
+          },
+        });
+      }
     },
-    [handleCursor, userCursors]
+    [handleCursor, stageConfig, userCursors]
   );
 
   useEffect(() => {
@@ -106,20 +114,33 @@ const Canvas: React.FC = () => {
     return () => {
       window.removeEventListener("mousemove", mouseMoveHandler);
     };
-  }, [userCursors]);
+  }, [userCursors, stageConfig, params.boardId]);
 
   const CursorComponent = ({
     x,
     y,
     color,
     username,
+    otherStagePosition,
+    otherStageScale,
   }: {
     x: number;
     y: number;
     color: string;
     username: string;
+    otherStagePosition?: { x: number; y: number };
+    otherStageScale?: number;
   }) => {
-    return <Cursor x={x} y={y} color={color} username={username} />;
+    return (
+      <Cursor
+        x={x}
+        y={y}
+        color={color}
+        username={username}
+        otherStagePosition={otherStagePosition}
+        otherStageScale={otherStageScale}
+      />
+    );
   };
 
   const MemoizedCursor = React.memo(CursorComponent, (prevProps, nextProps) => {
@@ -147,6 +168,8 @@ const Canvas: React.FC = () => {
           y={currUserCursor.y}
           color={currUserCursor.color}
           username={currUser.username}
+          otherStagePosition={currUserCursor.stagePosition}
+          otherStageScale={currUserCursor.stageScale}
         />
       );
     });
@@ -162,6 +185,7 @@ const Canvas: React.FC = () => {
 
   useEffect(() => {
     if (!socket.connected) {
+      socket.disconnect();
       socket.connect();
     }
     setBoardId(params.boardId);
@@ -186,16 +210,16 @@ const Canvas: React.FC = () => {
 
   useEffect(() => {
     let isActive = true;
-    const handlePageVisibility = () => {
-      if (document.hidden) {
-        leaveBoard();
-      } else if (params.boardId) {
-        joinBoard();
-      }
-    };
-    const handleBeforeUnload = () => {
-      leaveBoard();
-    };
+    // const handlePageVisibility = () => {
+    //   if (document.hidden) {
+    //     leaveBoard();
+    //   } else if (params.boardId) {
+    //     joinBoard();
+    //   }
+    // };
+    // const handleBeforeUnload = () => {
+    //   leaveBoard();
+    // };
 
     if (params.boardId && isActive) {
       joinBoard();
@@ -212,8 +236,8 @@ const Canvas: React.FC = () => {
       setBoardName("");
 
       // Remove listeners
-      document.removeEventListener("visibilitychange", handlePageVisibility);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      // document.removeEventListener("visibilitychange", handlePageVisibility);
+      // window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [params.boardId, joinBoard, leaveBoard, setBoardUsers, setUserCursors, setBoardName]);
 
@@ -675,7 +699,7 @@ const Canvas: React.FC = () => {
       <Info />
       <SimpleEditor />
       <Toolbar />
-      {renderCursors()}
+
       <BoardContext.Consumer>
         {(roomContextValue) => (
           <SocketContext.Consumer>
@@ -781,6 +805,7 @@ const Canvas: React.FC = () => {
                             fill="rgba(99,102,241,0.2)"
                             visible={false}
                           />
+                          {renderCursors()}
                         </>
                       )}
                     </Layer>
