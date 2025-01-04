@@ -4,7 +4,6 @@ import { useContext, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { SocketContext } from "../../../_contexts/socketContext";
 import useSocket from "../../../_hooks/useSocket";
-import { set } from "react-hook-form";
 
 type ShapePickerProps = {
   top: number;
@@ -18,23 +17,30 @@ export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
   const { updateNode } = useSocket();
 
   useEffect(() => {}, [selectedNode]);
+
   let shapePickerStyle: React.CSSProperties = {
     position: "absolute",
     left: `${left}px`,
     top: `${top}px`,
   };
 
-  const handleShapeTypeChange = (type: ShapeType) => {
+  const handleShapeTypeChange = (type: ShapeType, sides?: number) => {
     if (selectedNode) {
       const currNode = new Node().setAttrs({ ...selectedNode });
       setUndoStack((prev) => {
         const newHistory = { action: "update", nodeData: currNode, type: "node" };
         return [...prev, newHistory as History];
       });
+
+      // If sides are specified, set them first
+      if (sides !== undefined) {
+        setPolygonSides(sides);
+      }
+
       setNodes((prevState) => {
         const updatedNode = prevState.get(selectedNode.id);
         if (!updatedNode) return prevState;
-        updatedNode.shapeType = type;
+        updatedNode.setAttrs({ ...updatedNode, shapeType: type, sides });
         updatedNode.calculateAnchorPoints();
         updateNode(updatedNode.id, updatedNode);
         return new Map(prevState.set(selectedNode.id, updatedNode));
@@ -56,19 +62,10 @@ export const ShapePicker = ({ top, left, activeTab }: ShapePickerProps) => {
           <Circle onClick={() => handleShapeTypeChange("Ellipse")} className="cursor-pointer" />
           <Square onClick={() => handleShapeTypeChange("Rect")} className="cursor-pointer" />
           <Triangle
-            onClick={() => {
-              setPolygonSides(3);
-              handleShapeTypeChange("Polygon");
-            }}
+            onClick={() => handleShapeTypeChange("Polygon", 3)}
             className="cursor-pointer"
           />
-          <Diamond
-            onClick={() => {
-              setPolygonSides(4);
-              handleShapeTypeChange("Polygon");
-            }}
-            className="cursor-pointer"
-          />
+          <Diamond onClick={() => handleShapeTypeChange("Polygon", 4)} className="cursor-pointer" />
         </div>
       </div>
     </>

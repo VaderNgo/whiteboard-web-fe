@@ -31,6 +31,7 @@ import { EditablePath } from "../path";
 import { calculateEdges } from "../path/functions";
 import ZoomBar from "../zoombar";
 import Info from "../info";
+import { Permission } from "@/lib/permission-enum";
 const Canvas: React.FC = () => {
   const {
     nodes,
@@ -66,6 +67,7 @@ const Canvas: React.FC = () => {
     setPresentation,
     presentation,
     isJoinedPresentation,
+    usersBoard,
   } = useContext(BoardContext);
   const transformerRef = useRef<Konva.Transformer>(null);
   const selectionRectRef = useRef<Konva.Rect>(null);
@@ -88,7 +90,12 @@ const Canvas: React.FC = () => {
   const tempShapeRef = useRef<Konva.Shape | null>(null);
   const { data: loggedUser } = useLoggedInUser();
   useEffect(() => {}, [drawingPath, nodes]);
-
+  const user = useLoggedInUser();
+  const isViewOnly = useCallback(() => {
+    if (!user?.data?.id) return false;
+    const userPermission = usersBoard.get(user.data.id.toString())?.permission;
+    return userPermission === Permission.VIEW;
+  }, [user, usersBoard]);
   const mouseMoveHandler = useCallback(
     (e: MouseEvent) => {
       if (!stageRef.current) return;
@@ -786,7 +793,6 @@ const Canvas: React.FC = () => {
                           {selectedShapes && (
                             <Transformer
                               ref={transformerRef}
-                              rotateEnabled={true}
                               anchorSize={15}
                               anchorStrokeWidth={5}
                               anchorCornerRadius={50}

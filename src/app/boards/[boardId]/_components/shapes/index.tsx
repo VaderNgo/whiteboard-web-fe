@@ -1,5 +1,5 @@
 import Konva from "konva";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Group, Text } from "react-konva";
 import { BoardContext, History, Node, Path } from "../../_contexts/boardContext";
 import useHistory from "../../_hooks/useHistory";
@@ -13,6 +13,7 @@ import RectShape from "./rectShape";
 import NoteShape from "./noteShape";
 import TextShape from "./textShape";
 import { useLoggedInUser } from "@/lib/services/queries";
+import { Permission } from "@/lib/permission-enum";
 
 type ShapeProps = {
   node: Node;
@@ -37,6 +38,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     setSelectedPath,
     presentation,
     setPresentation,
+    usersBoard,
   } = useContext(BoardContext);
 
   const shapeRef = useRef<Konva.Group>(null);
@@ -48,6 +50,13 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const [groupScale, setGroupScale] = useState({ x: 1, y: 1 });
   const [isHovering, setIsHovering] = useState(false);
   const { data: loggedUser } = useLoggedInUser();
+
+  const user = useLoggedInUser();
+  const isViewOnly = useCallback(() => {
+    if (!user?.data?.id) return false;
+    const userPermission = usersBoard.get(user.data.id.toString())?.permission;
+    return userPermission === Permission.VIEW;
+  }, [user, usersBoard]);
 
   useEffect(() => {
     shapeRef.current?.setAttr("id", node.id);
@@ -142,6 +151,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (presentation && presentation.presenter && loggedUser?.id !== presentation?.presenter.id)
       return;
+    if (isViewOnly()) return;
     if (isEditing) return;
     if (isHovering) setIsHovering(false);
     if (e.evt.shiftKey) {
@@ -311,6 +321,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
   const startEditting = () => {
     if (presentation && presentation.presenter && loggedUser?.id !== presentation?.presenter.id)
       return;
+    if (isViewOnly()) return;
     setIsEditing(true);
     setSelectedNode(node);
     setSelectedPath(null);

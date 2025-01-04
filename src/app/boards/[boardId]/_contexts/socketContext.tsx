@@ -89,6 +89,9 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
     setUserCursors,
     boardId,
     presentation,
+    setSelectedNode,
+    setSelectedPath,
+    setSelectedShapes,
   } = useContext(BoardContext);
 
   const { joinBoard, joinPresentation } = useSocket();
@@ -264,6 +267,11 @@ export const SocketContextProvider: React.FC<SocketContextProps> = ({ children }
           title: "Permission Updated",
           description: `Your permission has been updated to ${payload.permission}`,
         });
+      }
+      if (payload.userId === loggedUser?.id && payload.permission === Permission.VIEW) {
+        setSelectedNode(null);
+        setSelectedPath(null);
+        setSelectedShapes([]);
       }
     },
     [setUsersBoard, loggedUser]

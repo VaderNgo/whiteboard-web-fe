@@ -10,13 +10,15 @@ import {
   Square,
   WholeWord,
 } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { BoardContext, EditorTab, Node } from "../../../_contexts/boardContext";
 import { ShapePicker } from "./shapePicker";
 import ColorPicker from "./colorPicker";
 import useSocket from "../../../_hooks/useSocket";
 import TextStylePicker from "./textStylePicker";
 import TextAlignmentPicker from "./textAlignmentPicker";
+import { useLoggedInUser } from "@/lib/services/queries";
+import { Permission } from "@/lib/permission-enum";
 
 const SimpleEditor = () => {
   const {
@@ -29,6 +31,7 @@ const SimpleEditor = () => {
     selectedShapes,
     setNodes,
     setUndoStack,
+    usersBoard,
   } = useContext(BoardContext);
   const [editorPosition, setEditorPosition] = useState<{ left: number; top: number } | null>(null);
   const [editorSize, setEditorSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
@@ -36,6 +39,12 @@ const SimpleEditor = () => {
   const [shapeSize, setShapeSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const [activeTab, setActiveTab] = useState<EditorTab | null>(null);
   const { updateNode } = useSocket();
+  const user = useLoggedInUser();
+  const isViewOnly = useCallback(() => {
+    if (!user?.data?.id) return false;
+    const userPermission = usersBoard.get(user.data.id.toString())?.permission;
+    return userPermission === Permission.VIEW;
+  }, [user, usersBoard]);
   useEffect(() => {
     if (selectedShapes.length !== 1) {
       setActiveTab(null);
@@ -108,6 +117,8 @@ const SimpleEditor = () => {
     }
     setEditorValue({ node, text });
   };
+
+  if (isViewOnly()) return null;
 
   return (
     <>

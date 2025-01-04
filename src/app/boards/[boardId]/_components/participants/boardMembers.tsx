@@ -1,4 +1,3 @@
-import React, { useContext, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -8,13 +7,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Crown, Users } from "lucide-react";
-import { BoardContext } from "../../_contexts/boardContext";
-import useSocket from "../../_hooks/useSocket";
 import { Permission } from "@/lib/permission-enum";
 import { useLoggedInUser } from "@/lib/services/queries";
 import { motion } from "framer-motion";
-import InviteBoardMember from "./inviteBoardMember";
+import { Crown, Users } from "lucide-react";
+import React, { useContext, useEffect } from "react";
+import { BoardContext } from "../../_contexts/boardContext";
+import useSocket from "../../_hooks/useSocket";
 
 type BoardMembersProps = {
   className?: string;
@@ -78,7 +77,7 @@ const BoardMembers: React.FC<BoardMembersProps> = () => {
                   </AvatarFallback>
                 </Avatar>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {userBoard.user.username}
@@ -87,7 +86,9 @@ const BoardMembers: React.FC<BoardMembersProps> = () => {
                       <Crown className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">{userBoard.user.email.toLowerCase()}</p>
+                  <p className="text-xs text-gray-500 w-28 text-ellipsis overflow-hidden">
+                    {userBoard.user.email.toLowerCase()}
+                  </p>
                 </div>
 
                 {userBoard.user.id !== boardOwner?.id && (
