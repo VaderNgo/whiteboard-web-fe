@@ -96,6 +96,10 @@ const Canvas: React.FC = () => {
     const userPermission = usersBoard.get(user.data.id.toString())?.permission;
     return userPermission === Permission.VIEW;
   }, [user, usersBoard]);
+  const isNotPresenter = useCallback(() => {
+    if (!user?.data?.id) return false;
+    return presentation && presentation?.presenter?.id !== user?.data.id;
+  }, [user, presentation]);
   const mouseMoveHandler = useCallback(
     (e: MouseEvent) => {
       if (!stageRef.current) return;
@@ -427,6 +431,9 @@ const Canvas: React.FC = () => {
     }
     e.evt.preventDefault();
     if (boardAction === BoardAction.Select) {
+      if (isViewOnly()) return;
+      if (isNotPresenter()) return;
+
       const X1 = stageRef.current.getRelativePointerPosition()?.x;
       const Y1 = stageRef.current.getRelativePointerPosition()?.y;
       setSelectionRectCoords({

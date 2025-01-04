@@ -58,6 +58,11 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     return userPermission === Permission.VIEW;
   }, [user, usersBoard]);
 
+  const isNotPresenter = useCallback(() => {
+    if (!user?.data?.id) return false;
+    return presentation && presentation?.presenter?.id !== user?.data.id;
+  }, [user, presentation]);
+
   useEffect(() => {
     shapeRef.current?.setAttr("id", node.id);
   }, [node.id]);
@@ -152,6 +157,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     if (presentation && presentation.presenter && loggedUser?.id !== presentation?.presenter.id)
       return;
     if (isViewOnly()) return;
+    if (isNotPresenter()) return;
     if (isEditing) return;
     if (isHovering) setIsHovering(false);
     if (e.evt.shiftKey) {
@@ -322,6 +328,7 @@ const Shape: React.FC<ShapeProps> = ({ node }) => {
     if (presentation && presentation.presenter && loggedUser?.id !== presentation?.presenter.id)
       return;
     if (isViewOnly()) return;
+    if (isNotPresenter()) return;
     setIsEditing(true);
     setSelectedNode(node);
     setSelectedPath(null);

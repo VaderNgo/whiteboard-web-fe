@@ -52,6 +52,7 @@ const Toolbar = () => {
     usersBoard,
     exportCanvas,
     stageConfig,
+    presentation,
   } = useContext(BoardContext);
   const { handleRedo, handleUndo } = useHistory();
   const { updateNode, updatePath } = useSocket();
@@ -59,6 +60,8 @@ const Toolbar = () => {
   const isViewOnly = usersBoard.has(loggedUser!.id.toString())
     ? usersBoard.get(loggedUser!.id.toString())!.permission === Permission.VIEW
     : false;
+
+  const isNotPresenter = presentation && presentation?.presenter?.id !== loggedUser?.id;
 
   enum ToolButtonState {
     Select = "select",
@@ -178,7 +181,7 @@ const Toolbar = () => {
   return (
     <>
       <AnimatePresence>
-        {isShapesOpen && (
+        {isShapesOpen && !isViewOnly && !isNotPresenter && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -254,7 +257,7 @@ const Toolbar = () => {
             onClick={() => handleToolButtonClick(ToolButtonState.Drag)}
             isActive={selectState === ToolButtonState.Drag}
           />
-          {!isViewOnly && (
+          {!isViewOnly && !isNotPresenter && (
             <>
               <ToolButton
                 label="Text"
@@ -283,9 +286,9 @@ const Toolbar = () => {
                 }}
                 isActive={false}
               />
-              <ExportDialog exportCanvas={exportCanvas} currentScale={stageConfig.stageScale} />
             </>
           )}
+          <ExportDialog exportCanvas={exportCanvas} currentScale={stageConfig.stageScale} />
         </motion.div>
         {!isViewOnly && (
           <>
