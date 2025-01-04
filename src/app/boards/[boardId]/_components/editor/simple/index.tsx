@@ -4,10 +4,12 @@ import {
   AlignCenter,
   Bold,
   Circle,
+  Diamond,
   Highlighter,
   Italic,
   Link,
   Square,
+  Triangle,
   WholeWord,
 } from "lucide-react";
 import { useCallback, useContext, useEffect, useState } from "react";
@@ -141,7 +143,10 @@ const SimpleEditor = () => {
               className="flex flex-row justify-center items-center cursor-pointer"
               onClick={() => handleTabChange(EditorTab.SHAPE_PICKER)}
             >
-              {editorValue.node?.shapeType === "Rect" ? <Square /> : <Circle />}
+              {selectedNode.shapeType === "Rect" && <Square />}
+              {selectedNode.shapeType === "Ellipse" && <Circle />}
+              {selectedNode.shapeType === "Polygon" && selectedNode.sides == 3 && <Triangle />}
+              {selectedNode.shapeType === "Polygon" && selectedNode.sides == 4 && <Diamond />}
             </div>
           </Hint>
         )}
