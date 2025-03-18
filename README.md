@@ -12,7 +12,7 @@
 
 ## 🛠️ Technologies Used
 - **Frontend**: [Next.js](https://nextjs.org/), [React-Konva](https://konvajs.org/docs/react/), [Konva](https://konvajs.org/)
-- **Backend**: [NestJS](https://nestjs.com/), [Redis](https://redis.io/) [PostgreSQL](https://www.postgresql.org) 
+- **Backend**: [NestJS](https://nestjs.com/), [Redis](https://redis.io/), [PostgreSQL](https://www.postgresql.org), [Socket.io](https://socket.io/)
 - **Deployment & Orchestration**: [Docker](https://www.docker.com/), [Docker Compose](https://docs.docker.com/compose/)
 
 ## ✨ Features
