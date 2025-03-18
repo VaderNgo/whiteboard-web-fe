@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🖌️ Whiteboard Web - Real-time Collaborative Whiteboard
 
-## Getting Started
+![GitHub Repo stars](https://img.shields.io/github/stars/locngoduc/whiteboard-web-fe?style=flat-square)
+![GitHub forks](https://img.shields.io/github/forks/locngoduc/whiteboard-web-fe?style=flat-square)
+![GitHub license](https://img.shields.io/github/license/locngoduc/whiteboard-web-fe?style=flat-square)
 
-First, run the development server:
+![image](https://github.com/user-attachments/assets/dce4ce20-b1f9-4a06-bbd8-58218c4c6142)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Introduction
+**Whiteboard Web** is a real-time collaborative whiteboard application that allows users to draw, write, and collaborate seamlessly in groups. Built with modern web technologies, this application ensures a smooth and interactive experience.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Technologies Used
+- **Frontend**: [Next.js](https://nextjs.org/), [React-Konva](https://konvajs.org/docs/react/), [Konva](https://konvajs.org/)
+- **Backend**: [NestJS](https://nestjs.com/), [Redis](https://redis.io/) [PostgreSQL](https://www.postgresql.org) 
+- **Deployment & Orchestration**: [Docker](https://www.docker.com/), [Docker Compose](https://docs.docker.com/compose/)
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## ✨ Features
+- 🔑 **User Authentication**: Register and log in to access your account.
+- 👥 **Group Management**:
+  - Create and manage groups.
+  - Invite and remove members.
+  - Update group details.
+- 🎨 **Whiteboard Collaboration**:
+  - Create, edit, and delete whiteboards.
+  - Real-time updates and synchronization.
+- ⚡ **High Performance**:
+  - Optimized real-time interactions with Redis caching.
+  - Scalable backend with NestJS and Docker.
 
-## Learn More
+## 📦 Installation & Setup
+```sh
+# Clone the repository
+git clone https://github.com/locngoduc/whiteboard-web-fe.git
+cd whiteboard-web-fe
 
-To learn more about Next.js, take a look at the following resources:
+# Install dependencies
+yarn install  # or npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+# Run the project locally
+yarn dev  # or npm run dev
